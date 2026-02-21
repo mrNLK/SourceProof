@@ -7,36 +7,37 @@ const corsHeaders = {
 };
 
 const GITHUB_API = "https://api.github.com";
-const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
-const CACHE_DAYS = 7;
+const LOVABLE_AI = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const CACHE_DAYS = 7; // v2 - Lovable AI gateway
 
-async function claudeCall(system: string, userPrompt: string): Promise<string> {
-  const apiKey = Deno.env.get('PARALLEL_API_KEY');
-  if (!apiKey) throw new Error('PARALLEL_API_KEY not configured');
+async function aiCall(system: string, userPrompt: string): Promise<string> {
+  const apiKey = Deno.env.get('LOVABLE_API_KEY');
+  if (!apiKey) throw new Error('LOVABLE_API_KEY not configured');
 
-  const res = await fetch(ANTHROPIC_API, {
+  const res = await fetch(LOVABLE_AI, {
     method: 'POST',
     headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
+      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
-      system,
-      messages: [{ role: 'user', content: userPrompt }],
+      model: 'google/gemini-3-flash-preview',
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: userPrompt },
+      ],
     }),
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    console.error('Claude API error:', res.status, errText);
-    throw new Error(`Claude API error: ${res.status}`);
+    console.error('AI gateway error:', res.status, errText);
+    if (res.status === 429) throw new Error('RATE_LIMITED');
+    throw new Error(`AI gateway error: ${res.status}`);
   }
 
   const data = await res.json();
-  return data.content?.[0]?.text || '';
+  return data.choices?.[0]?.message?.content || '';
 }
 
 function getSupabase() {
@@ -53,13 +54,11 @@ async function githubFetch(url: string) {
   };
   const token = Deno.env.get('GITHUB_TOKEN');
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  
+
   const res = await fetch(url, { headers });
   if (res.status === 403 || res.status === 429) {
     const remaining = res.headers.get('x-ratelimit-remaining');
-    if (remaining === '0') {
-      throw new Error('RATE_LIMITED');
-    }
+    if (remaining === '0') throw new Error('RATE_LIMITED');
   }
   if (!res.ok) {
     console.error(`GitHub API error: ${res.status} for ${url}`);
@@ -84,17 +83,18 @@ function getLangColor(lang: string): string {
   return langColors[lang] || `hsl(${Math.abs(lang.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 360}, 50%, 55%)`;
 }
 
-// Step 1: Parse query with Claude
+// Step 1: Parse query with AI
 async function parseQuery(query: string): Promise<{ repos: { owner: string; name: string }[]; skills: string[]; location: string | null; seniority: string | null }> {
   try {
-    const text = await claudeCall(
-      'You are a technical recruiting assistant. Given a hiring query, identify the most relevant GitHub repositories where ideal candidates would be active contributors. Also generate 4 ranked skill criteria. Return valid JSON only, no markdown: { "repos": [{"owner": "string", "name": "string"}], "skills": ["string"], "location": "string | null", "seniority": "string | null" }',
+    const text = await aiCall(
+      'You are a technical recruiting assistant. Given a hiring query, identify the most relevant GitHub repositories where ideal candidates would be active contributors. Also generate 4 ranked skill criteria. Return valid JSON only, no markdown, no code fences: { "repos": [{"owner": "string", "name": "string"}], "skills": ["string"], "location": "string or null", "seniority": "string or null" }',
       `Parse this recruiting search query:\n\n"${query}"\n\nIdentify 3-6 GitHub repositories where the best candidates for this role would be active contributors. For example, "React experts" → repos like facebook/react, vercel/next.js. "ML infrastructure engineers" → pytorch/pytorch, huggingface/transformers, etc.`
     );
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
+      console.log('AI parsed repos:', parsed.repos);
       return {
         repos: parsed.repos || [],
         skills: parsed.skills || [query],
@@ -103,7 +103,7 @@ async function parseQuery(query: string): Promise<{ repos: { owner: string; name
       };
     }
   } catch (e) {
-    console.error('Claude parse error:', e);
+    console.error('AI parse error:', e);
   }
   return { repos: [], skills: [query], location: null, seniority: null };
 }
@@ -112,7 +112,6 @@ async function parseQuery(query: string): Promise<{ repos: { owner: string; name
 async function fetchContributors(repos: { owner: string; name: string }[], skills: string[]): Promise<Map<string, { username: string; commitCounts: Record<string, number> }>> {
   const contributorMap = new Map<string, { username: string; commitCounts: Record<string, number> }>();
 
-  // Fetch contributors from each repo
   for (const repo of repos.slice(0, 6)) {
     const repoFullName = `${repo.owner}/${repo.name}`;
     try {
@@ -133,11 +132,11 @@ async function fetchContributors(repos: { owner: string; name: string }[], skill
       }
     } catch (e) {
       if ((e as Error).message === 'RATE_LIMITED') throw e;
-      console.error(`Error fetching contributors for ${repo}:`, e);
+      console.error(`Error fetching contributors for ${repoFullName}:`, e);
     }
   }
 
-  // If no repos found contributors, fall back to user search
+  // Fallback to user search if no repo contributors found
   if (contributorMap.size === 0 && skills.length > 0) {
     const searchQuery = skills.join('+');
     const searchData = await githubFetch(`${GITHUB_API}/search/users?q=${encodeURIComponent(searchQuery)}&per_page=20`);
@@ -157,8 +156,7 @@ async function enrichCandidates(
   supabase: ReturnType<typeof createClient>
 ) {
   const usernames = Array.from(contributorMap.keys());
-  
-  // Check cache
+
   const { data: cached } = await supabase
     .from('candidates')
     .select('*')
@@ -168,7 +166,6 @@ async function enrichCandidates(
   const cachedMap = new Map((cached || []).map((c: any) => [c.github_username, c]));
   const toFetch = usernames.filter(u => !cachedMap.has(u));
 
-  // Fetch uncached profiles
   const freshProfiles = await Promise.all(
     toFetch.slice(0, 15).map(async (username) => {
       const [profile, repos] = await Promise.all([
@@ -220,7 +217,6 @@ async function enrichCandidates(
     })
   );
 
-  // Upsert fresh profiles into cache
   const validProfiles = freshProfiles.filter(Boolean);
   if (validProfiles.length > 0) {
     for (const p of validProfiles) {
@@ -228,14 +224,12 @@ async function enrichCandidates(
     }
   }
 
-  // Merge cached + fresh
   const allCandidates = [];
   for (const username of usernames) {
-    const cached = cachedMap.get(username);
+    const c = cachedMap.get(username);
     const fresh = validProfiles.find((p: any) => p?.github_username === username);
-    const candidate = fresh || cached;
+    const candidate = fresh || c;
     if (candidate) {
-      // Attach commit counts from this search
       const commitCounts = contributorMap.get(username)?.commitCounts || {};
       allCandidates.push({ ...candidate, contributed_repos: { ...(candidate.contributed_repos || {}), ...commitCounts } });
     }
@@ -244,11 +238,10 @@ async function enrichCandidates(
   return allCandidates;
 }
 
-// Step 4: AI scoring and summarization with Claude
+// Step 4: AI scoring and summarization
 async function scoreCandidates(candidates: any[], query: string, parsedCriteria: any): Promise<any[]> {
   if (candidates.length === 0) return candidates;
 
-  // Process in batches of 12
   const batchSize = 12;
   const batches = [];
   for (let i = 0; i < candidates.length; i += batchSize) {
@@ -271,8 +264,8 @@ async function scoreCandidates(candidates: any[], query: string, parsedCriteria:
     }));
 
     try {
-      const text = await claudeCall(
-        'You are a technical recruiting expert. Score and summarize these GitHub contributors for the role described. For each, return JSON array (no markdown): [{ "username": "string", "score": 0-100, "summary": "1 concise line mentioning repos and commit counts", "about": "2-3 sentences", "is_hidden_gem": true/false (true if high contributions but under 500 followers) }]',
+      const text = await aiCall(
+        'You are a technical recruiting expert. Score and summarize these GitHub contributors for the role described. For each, return a JSON array (no markdown, no code fences): [{ "username": "string", "score": 0-100, "summary": "1 concise line mentioning repos and commit counts", "about": "2-3 sentences", "is_hidden_gem": true/false }]. Hidden gem = high contributions but under 500 followers.',
         `Search query: "${query}"\nCriteria: ${JSON.stringify(parsedCriteria)}\n\nCandidates:\n${JSON.stringify(candidateInfo)}`
       );
 
@@ -290,13 +283,13 @@ async function scoreCandidates(candidates: any[], query: string, parsedCriteria:
         }
       }
     } catch (e) {
-      console.error('Claude scoring error:', e);
+      console.error('AI scoring error:', e);
     }
 
     allScored.push(...batch);
   }
 
-  // Update cache with AI-generated data
+  // Update cache with AI scores
   const supabase = getSupabase();
   for (const c of allScored) {
     if (c.summary) {
@@ -335,7 +328,7 @@ serve(async (req) => {
     const parsedCriteria = await parseQuery(query);
     console.log('Parsed criteria:', parsedCriteria);
 
-    // Step 2: Fetch contributors
+    // Step 2: Fetch contributors from identified repos
     const contributorMap = await fetchContributors(parsedCriteria.repos, parsedCriteria.skills);
     console.log(`Found ${contributorMap.size} contributors`);
 
@@ -380,10 +373,10 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in github-search:', error);
-    
+
     if ((error as Error).message === 'RATE_LIMITED') {
-      return new Response(JSON.stringify({ 
-        error: 'GitHub API rate limit reached. Please try again in a few minutes.',
+      return new Response(JSON.stringify({
+        error: 'Rate limit reached. Please try again in a few minutes.',
         rateLimited: true
       }), {
         status: 429,
