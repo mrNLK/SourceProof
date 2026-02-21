@@ -20,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/developer/:id" element={<DeveloperProfile />} />
+          {/* id = GitHub username */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

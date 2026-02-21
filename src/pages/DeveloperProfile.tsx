@@ -1,21 +1,57 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Star, GitFork, Users, MapPin, Calendar, ExternalLink, Gem, Zap } from "lucide-react";
-import { mockDevelopers } from "@/data/mockDevelopers";
+import { ArrowLeft, Star, GitFork, Users, MapPin, Calendar, ExternalLink, Gem, Zap, Loader2 } from "lucide-react";
 import { GitBranch } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getDeveloperProfile } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const DeveloperProfile = () => {
   const { id } = useParams();
-  const developer = mockDevelopers.find((d) => d.id === id);
 
-  if (!developer) {
+  const { data: developer, isLoading, error } = useQuery({
+    queryKey: ["github-profile", id],
+    queryFn: () => getDeveloperProfile(id!),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground font-display">Developer not found.</p>
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border glass sticky top-0 z-50">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
+                <GitBranch className="w-4 h-4 text-primary" />
+              </div>
+              <span className="font-display text-sm font-semibold text-foreground hidden sm:inline">SourceKit</span>
+            </Link>
+          </div>
+        </header>
+        <main className="max-w-4xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+            <span className="ml-3 text-muted-foreground font-display text-sm">Loading profile from GitHub...</span>
+          </div>
+        </main>
       </div>
     );
   }
 
-  const maxCommits = Math.max(...developer.recentActivity.map((a) => a.commits));
+  if (error || !developer) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-destructive font-display mb-2">Failed to load profile</p>
+          <p className="text-muted-foreground text-sm">{(error as Error)?.message || 'User not found'}</p>
+          <Link to="/" className="text-primary text-sm mt-4 inline-block hover:underline">← Back to search</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const recentActivity = developer.recentActivity || [];
+  const maxCommits = recentActivity.length ? Math.max(...recentActivity.map((a: any) => a.commits), 1) : 1;
 
   return (
     <div className="min-h-screen bg-background">
@@ -28,10 +64,10 @@ const DeveloperProfile = () => {
             </div>
             <span className="font-display text-sm font-semibold text-foreground hidden sm:inline">SourceKit</span>
           </Link>
-          <Link to={-1 as any} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto">
+          <button onClick={() => window.history.back()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto">
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
-          </Link>
+          </button>
         </div>
       </header>
 
@@ -60,7 +96,11 @@ const DeveloperProfile = () => {
                   Score: {developer.score}
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground font-display mb-2">@{developer.username}</p>
+              <p className="text-sm text-muted-foreground font-display mb-2">
+                <a href={developer.githubUrl || `https://github.com/${developer.username}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                  @{developer.username} ↗
+                </a>
+              </p>
               <p className="text-text-secondary mb-4">{developer.bio}</p>
 
               <div className="flex flex-wrap gap-4 text-sm text-text-dim">
@@ -93,7 +133,7 @@ const DeveloperProfile = () => {
           <div className="glass rounded-xl p-5">
             <h3 className="font-display text-sm font-semibold text-foreground mb-4">Top Languages</h3>
             <div className="space-y-3">
-              {developer.topLanguages.map((lang) => (
+              {developer.topLanguages.map((lang: any) => (
                 <div key={lang.name}>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="flex items-center gap-2 text-text-secondary">
@@ -113,29 +153,33 @@ const DeveloperProfile = () => {
           {/* Activity chart */}
           <div className="glass rounded-xl p-5">
             <h3 className="font-display text-sm font-semibold text-foreground mb-4">Recent Activity</h3>
-            <div className="flex items-end gap-2 h-32">
-              {developer.recentActivity.map((activity) => (
-                <div key={activity.month} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className="w-full bg-primary/20 rounded-t-sm hover:bg-primary/40 transition-colors relative group"
-                    style={{ height: `${(activity.commits / maxCommits) * 100}%` }}
-                  >
-                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-display text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                      {activity.commits}
-                    </span>
+            {recentActivity.length > 0 ? (
+              <div className="flex items-end gap-2 h-32">
+                {recentActivity.map((activity: any) => (
+                  <div key={activity.month} className="flex-1 flex flex-col items-center gap-1">
+                    <div
+                      className="w-full bg-primary/20 rounded-t-sm hover:bg-primary/40 transition-colors relative group"
+                      style={{ height: `${(activity.commits / maxCommits) * 100}%`, minHeight: activity.commits > 0 ? '4px' : '0px' }}
+                    >
+                      <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-display text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        {activity.commits}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-text-dim font-display">{activity.month}</span>
                   </div>
-                  <span className="text-[10px] text-text-dim font-display">{activity.month}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">No recent public activity</p>
+            )}
           </div>
         </div>
 
         {/* Highlights */}
         <div className="glass rounded-xl p-5">
-          <h3 className="font-display text-sm font-semibold text-foreground mb-4">Key Highlights</h3>
+          <h3 className="font-display text-sm font-semibold text-foreground mb-4">Top Repositories</h3>
           <div className="space-y-2">
-            {developer.highlights.map((highlight, i) => (
+            {developer.highlights.map((highlight: string, i: number) => (
               <div key={i} className="flex items-start gap-3 text-sm text-text-secondary">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                 {highlight}

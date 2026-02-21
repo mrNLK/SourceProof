@@ -1,6 +1,6 @@
 import { Star, GitFork, MapPin, Gem } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Developer } from "@/data/mockDevelopers";
+import type { Developer } from "@/types/developer";
 
 interface DeveloperCardProps {
   developer: Developer;
@@ -11,7 +11,7 @@ const DeveloperCard = ({ developer }: DeveloperCardProps) => {
 
   return (
     <button
-      onClick={() => navigate(`/developer/${developer.id}`)}
+      onClick={() => navigate(`/developer/${developer.username}`)}
       className="w-full text-left glass rounded-xl p-5 hover:glow-border transition-all duration-300 hover:glow-sm group"
     >
       <div className="flex items-start gap-4">
@@ -36,23 +36,27 @@ const DeveloperCard = ({ developer }: DeveloperCardProps) => {
           <p className="text-sm text-text-secondary line-clamp-2 mb-3">{developer.bio}</p>
 
           {/* Language bars */}
-          <div className="flex gap-0.5 h-1.5 rounded-full overflow-hidden mb-3">
-            {developer.topLanguages.map((lang) => (
-              <div
-                key={lang.name}
-                style={{ width: `${lang.percentage}%`, backgroundColor: lang.color }}
-                className="rounded-full"
-              />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {developer.topLanguages.slice(0, 3).map((lang) => (
-              <span key={lang.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: lang.color }} />
-                {lang.name}
-              </span>
-            ))}
-          </div>
+          {developer.topLanguages.length > 0 && (
+            <>
+              <div className="flex gap-0.5 h-1.5 rounded-full overflow-hidden mb-3">
+                {developer.topLanguages.map((lang) => (
+                  <div
+                    key={lang.name}
+                    style={{ width: `${lang.percentage}%`, backgroundColor: lang.color }}
+                    className="rounded-full"
+                  />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {developer.topLanguages.slice(0, 3).map((lang) => (
+                  <span key={lang.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: lang.color }} />
+                    {lang.name}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* Stats */}
           <div className="flex items-center gap-4 text-xs text-text-dim">

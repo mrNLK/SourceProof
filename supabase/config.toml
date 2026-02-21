@@ -1,0 +1,7 @@
+project_id = "chmmgyjfrspwwejxidnx"
+
+[functions.github-search]
+verify_jwt = false
+
+[functions.github-profile]
+verify_jwt = false
