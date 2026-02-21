@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import SearchResults from "./pages/SearchResults";
 import DeveloperProfile from "./pages/DeveloperProfile";
+import Pipeline from "./pages/Pipeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,7 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/developer/:id" element={<DeveloperProfile />} />
-          {/* id = GitHub username */}
+          <Route path="/pipeline" element={<Pipeline />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

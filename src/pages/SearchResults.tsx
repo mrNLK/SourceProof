@@ -1,17 +1,20 @@
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import { Search, GitBranch, Loader2, Gem, Linkedin, ExternalLink, Bookmark, BookmarkCheck, SlidersHorizontal, MapPin, X } from "lucide-react";
+import { Search, GitBranch, Loader2, Gem, Linkedin, ExternalLink, Bookmark, BookmarkCheck, SlidersHorizontal, MapPin, X, FlaskConical, Kanban } from "lucide-react";
 import { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { searchDevelopers, type SearchResponse } from "@/lib/api";
 import DeveloperCard from "@/components/DeveloperCard";
+import ResearchTab from "@/components/ResearchTab";
 
 type SearchPhase = 'parsing' | 'fetching' | 'scoring' | 'done';
+type TabMode = 'search' | 'research';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const query = searchParams.get("q") || "";
   const [searchInput, setSearchInput] = useState(query);
+  const [tabMode, setTabMode] = useState<TabMode>('search');
   const [shortlisted, setShortlisted] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem('shortlisted') || '[]')); } catch { return new Set(); }
   });
@@ -24,7 +27,7 @@ const SearchResults = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["github-search", query],
     queryFn: () => searchDevelopers(query),
-    enabled: !!query,
+    enabled: !!query && tabMode === 'search',
     staleTime: 1000 * 60 * 5,
   });
 
@@ -32,32 +35,23 @@ const SearchResults = () => {
   const parsedCriteria = data?.parsedCriteria;
   const reposSearched = data?.reposSearched || [];
 
-  // Determine search phase for progress display
   const phase: SearchPhase = isLoading ? 'scoring' : 'done';
 
-  // Extract unique locations from results for autocomplete
   const availableLocations = useMemo(() => {
-    const locs = results
-      .map((d: any) => d.location)
-      .filter((l: string) => l && l.trim());
+    const locs = results.map((d: any) => d.location).filter((l: string) => l && l.trim());
     return [...new Set(locs)] as string[];
   }, [results]);
 
   const locationSuggestions = useMemo(() => {
     if (!locationFilter) return availableLocations;
-    return availableLocations.filter((l: string) =>
-      l.toLowerCase().includes(locationFilter.toLowerCase())
-    );
+    return availableLocations.filter((l: string) => l.toLowerCase().includes(locationFilter.toLowerCase()));
   }, [availableLocations, locationFilter]);
 
-  // Filters
   const filtered = useMemo(() => {
     let list = results;
     if (showGemsOnly) list = list.filter((d: any) => d.hiddenGem);
     if (locationFilter) {
-      list = list.filter((d: any) =>
-        d.location && d.location.toLowerCase().includes(locationFilter.toLowerCase())
-      );
+      list = list.filter((d: any) => d.location && d.location.toLowerCase().includes(locationFilter.toLowerCase()));
     }
     return list;
   }, [results, showGemsOnly, locationFilter]);
@@ -65,6 +59,7 @@ const SearchResults = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
+      setTabMode('search');
       navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`);
     }
   };
@@ -99,155 +94,189 @@ const SearchResults = () => {
               placeholder="Search engineers..."
             />
           </form>
+          <Link
+            to="/pipeline"
+            className="flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors shrink-0"
+          >
+            <Kanban className="w-3.5 h-3.5" />
+            Pipeline
+          </Link>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* Search Progress */}
-        {isLoading && (
-          <div className="glass rounded-xl p-6 mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="font-display text-sm font-semibold text-foreground">
-                Analyzing your query with AI...
-              </span>
-            </div>
-            <div className="space-y-2">
-              <ProgressStep label="Understanding your query..." active={true} />
-              <ProgressStep label="Fetching contributors from repositories..." active={true} />
-              <ProgressStep label="Scoring and ranking candidates..." active={true} />
-            </div>
-          </div>
-        )}
+      <main className="max-w-5xl mx-auto px-4 py-6">
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-6 p-1 glass rounded-lg w-fit">
+          <button
+            onClick={() => setTabMode('search')}
+            className={`flex items-center gap-1.5 text-xs font-display px-4 py-2 rounded-md transition-colors ${
+              tabMode === 'search' ? 'bg-primary/15 text-primary border border-primary/30' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Search className="w-3.5 h-3.5" />
+            Search
+          </button>
+          <button
+            onClick={() => setTabMode('research')}
+            className={`flex items-center gap-1.5 text-xs font-display px-4 py-2 rounded-md transition-colors ${
+              tabMode === 'research' ? 'bg-primary/15 text-primary border border-primary/30' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <FlaskConical className="w-3.5 h-3.5" />
+            Research
+          </button>
+        </div>
 
-        {/* Parsed Criteria Display */}
-        {parsedCriteria && !isLoading && (
-          <div className="glass rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <SlidersHorizontal className="w-4 h-4 text-primary" />
-              <span className="font-display text-xs font-semibold text-foreground">AI-Parsed Search Criteria</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {parsedCriteria.skills.map((s: string) => (
-                <span key={s} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 font-display">{s}</span>
-              ))}
-              {parsedCriteria.location && (
-                <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">📍 {parsedCriteria.location}</span>
-              )}
-              {parsedCriteria.seniority !== 'any' && (
-                <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">🎯 {parsedCriteria.seniority}</span>
-              )}
-            </div>
-            {reposSearched.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-border">
-                <span className="text-xs text-muted-foreground font-display">Repos searched: </span>
-                {reposSearched.map((r: string) => (
-                  <a key={r} href={`https://github.com/${r}`} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-primary/80 hover:text-primary mr-2 font-display">
-                    {r} <ExternalLink className="w-3 h-3" />
-                  </a>
-                ))}
+        {tabMode === 'research' ? (
+          <ResearchTab />
+        ) : (
+          <>
+            {/* Search Progress */}
+            {isLoading && (
+              <div className="glass rounded-xl p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                  <span className="font-display text-sm font-semibold text-foreground">
+                    Analyzing your query with AI...
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <ProgressStep label="Understanding your query..." active={true} />
+                  <ProgressStep label="Fetching contributors from repositories..." active={true} />
+                  <ProgressStep label="Scoring and ranking candidates..." active={true} />
+                </div>
               </div>
             )}
-          </div>
-        )}
 
-        {/* Results header + filters */}
-        {!isLoading && results.length > 0 && (
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-            <div>
-              <h1 className="font-display text-lg font-semibold text-foreground">
-                {locationFilter || showGemsOnly ? (
-                  <>Showing <span className="text-primary">{filtered.length}</span> of {results.length} engineers</>
-                ) : (
-                  <>Found <span className="text-primary">{filtered.length}</span> engineers</>
-                )}
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5 font-display">Sorted by AI relevance score</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Location filter */}
-              <div className="relative">
-                <div className="flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-full border border-border bg-secondary">
-                  <MapPin className="w-3 h-3 text-muted-foreground" />
-                  <input
-                    ref={locationInputRef}
-                    type="text"
-                    value={locationFilter}
-                    onChange={(e) => { setLocationFilter(e.target.value); setShowLocationSuggestions(true); }}
-                    onFocus={() => setShowLocationSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
-                    placeholder="Filter by location..."
-                    className="bg-transparent outline-none text-foreground placeholder:text-muted-foreground w-32"
-                  />
-                  {locationFilter && (
-                    <button onClick={() => setLocationFilter("")} className="text-muted-foreground hover:text-foreground">
-                      <X className="w-3 h-3" />
-                    </button>
+            {/* Parsed Criteria Display */}
+            {parsedCriteria && !isLoading && (
+              <div className="glass rounded-xl p-4 mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <SlidersHorizontal className="w-4 h-4 text-primary" />
+                  <span className="font-display text-xs font-semibold text-foreground">AI-Parsed Search Criteria</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {parsedCriteria.skills.map((s: string) => (
+                    <span key={s} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 font-display">{s}</span>
+                  ))}
+                  {parsedCriteria.location && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">📍 {parsedCriteria.location}</span>
+                  )}
+                  {parsedCriteria.seniority !== 'any' && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">🎯 {parsedCriteria.seniority}</span>
                   )}
                 </div>
-                {showLocationSuggestions && locationSuggestions.length > 0 && (
-                  <div className="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto">
-                    {locationSuggestions.map((loc) => (
-                      <button
-                        key={loc}
-                        onMouseDown={() => { setLocationFilter(loc); setShowLocationSuggestions(false); }}
-                        className="w-full text-left text-xs px-3 py-1.5 hover:bg-accent text-foreground font-display truncate"
-                      >
-                        {loc}
-                      </button>
+                {reposSearched.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <span className="text-xs text-muted-foreground font-display">Repos searched: </span>
+                    {reposSearched.map((r: string) => (
+                      <a key={r} href={`https://github.com/${r}`} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary/80 hover:text-primary mr-2 font-display">
+                        {r} <ExternalLink className="w-3 h-3" />
+                      </a>
                     ))}
                   </div>
                 )}
               </div>
-
-              <button
-                onClick={() => setShowGemsOnly(!showGemsOnly)}
-                className={`flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-full border transition-colors ${
-                  showGemsOnly ? 'bg-warning/10 text-warning border-warning/30' : 'border-border text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Gem className="w-3 h-3" />
-                Hidden Gems
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="glass rounded-xl p-6 text-center">
-            <p className="text-destructive font-display text-sm mb-2">
-              {(error as Error).message === 'RATE_LIMITED'
-                ? '⚡ GitHub API rate limit reached'
-                : 'Failed to search GitHub'}
-            </p>
-            <p className="text-muted-foreground text-xs">
-              {(error as Error).message === 'RATE_LIMITED'
-                ? 'Please wait a few minutes and try again. The GitHub API limits requests per hour.'
-                : (error as Error).message}
-            </p>
-          </div>
-        )}
-
-        {/* Results */}
-        {!isLoading && !error && (
-          <div className="grid gap-3">
-            {filtered.map((dev: any) => (
-              <DeveloperCard
-                key={dev.id}
-                developer={dev}
-                isShortlisted={shortlisted.has(dev.username)}
-                onToggleShortlist={() => toggleShortlist(dev.username)}
-              />
-            ))}
-            {results.length === 0 && (
-              <p className="text-center text-muted-foreground py-12 font-display text-sm">No results found. Try a different query.</p>
             )}
-            {results.length > 0 && filtered.length === 0 && (
-              <p className="text-center text-muted-foreground py-12 font-display text-sm">No engineers match the current filters.</p>
+
+            {/* Results header + filters */}
+            {!isLoading && results.length > 0 && (
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div>
+                  <h1 className="font-display text-lg font-semibold text-foreground">
+                    {locationFilter || showGemsOnly ? (
+                      <>Showing <span className="text-primary">{filtered.length}</span> of {results.length} engineers</>
+                    ) : (
+                      <>Found <span className="text-primary">{filtered.length}</span> engineers</>
+                    )}
+                  </h1>
+                  <p className="text-xs text-muted-foreground mt-0.5 font-display">Sorted by AI relevance score</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <div className="flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-full border border-border bg-secondary">
+                      <MapPin className="w-3 h-3 text-muted-foreground" />
+                      <input
+                        ref={locationInputRef}
+                        type="text"
+                        value={locationFilter}
+                        onChange={(e) => { setLocationFilter(e.target.value); setShowLocationSuggestions(true); }}
+                        onFocus={() => setShowLocationSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
+                        placeholder="Filter by location..."
+                        className="bg-transparent outline-none text-foreground placeholder:text-muted-foreground w-32"
+                      />
+                      {locationFilter && (
+                        <button onClick={() => setLocationFilter("")} className="text-muted-foreground hover:text-foreground">
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                    {showLocationSuggestions && locationSuggestions.length > 0 && (
+                      <div className="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto">
+                        {locationSuggestions.map((loc) => (
+                          <button
+                            key={loc}
+                            onMouseDown={() => { setLocationFilter(loc); setShowLocationSuggestions(false); }}
+                            className="w-full text-left text-xs px-3 py-1.5 hover:bg-accent text-foreground font-display truncate"
+                          >
+                            {loc}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setShowGemsOnly(!showGemsOnly)}
+                    className={`flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-full border transition-colors ${
+                      showGemsOnly ? 'bg-warning/10 text-warning border-warning/30' : 'border-border text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Gem className="w-3 h-3" />
+                    Hidden Gems
+                  </button>
+                </div>
+              </div>
             )}
-          </div>
+
+            {/* Error */}
+            {error && (
+              <div className="glass rounded-xl p-6 text-center">
+                <p className="text-destructive font-display text-sm mb-2">
+                  {(error as Error).message === 'RATE_LIMITED'
+                    ? '⚡ GitHub API rate limit reached'
+                    : 'Failed to search GitHub'}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {(error as Error).message === 'RATE_LIMITED'
+                    ? 'Please wait a few minutes and try again. The GitHub API limits requests per hour.'
+                    : (error as Error).message}
+                </p>
+              </div>
+            )}
+
+            {/* Results */}
+            {!isLoading && !error && (
+              <div className="grid gap-3">
+                {filtered.map((dev: any) => (
+                  <DeveloperCard
+                    key={dev.id}
+                    developer={dev}
+                    isShortlisted={shortlisted.has(dev.username)}
+                    onToggleShortlist={() => toggleShortlist(dev.username)}
+                    showPipelineButton
+                  />
+                ))}
+                {results.length === 0 && (
+                  <p className="text-center text-muted-foreground py-12 font-display text-sm">No results found. Try a different query.</p>
+                )}
+                {results.length > 0 && filtered.length === 0 && (
+                  <p className="text-center text-muted-foreground py-12 font-display text-sm">No engineers match the current filters.</p>
+                )}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
