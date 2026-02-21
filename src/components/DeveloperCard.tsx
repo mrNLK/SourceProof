@@ -68,8 +68,12 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
           <img
             src={developer.avatarUrl}
             alt={developer.name}
-            className="w-12 h-12 rounded-lg bg-secondary border border-border"
+            className="w-12 h-12 rounded-lg bg-secondary border border-border object-cover"
+            onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }}
           />
+          <div className="hidden w-12 h-12 rounded-lg bg-primary/15 border border-primary/30 items-center justify-center font-display text-sm font-bold text-primary shrink-0">
+            {developer.name?.charAt(0)?.toUpperCase() || '?'}
+          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-display text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
