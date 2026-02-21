@@ -99,9 +99,17 @@ const Pipeline = () => {
                       >
                         <div className="flex items-start gap-2">
                           <GripVertical className="w-3 h-3 text-muted-foreground mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                          {c.avatar_url && (
-                            <img src={c.avatar_url} alt="" className="w-7 h-7 rounded-md bg-secondary border border-border shrink-0" />
-                          )}
+                          {c.avatar_url ? (
+                            <img
+                              src={c.avatar_url}
+                              alt=""
+                              className="w-7 h-7 rounded-full bg-secondary border border-border shrink-0 object-cover"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }}
+                            />
+                          ) : null}
+                          <div className={`${c.avatar_url ? 'hidden' : 'flex'} w-7 h-7 rounded-full bg-primary/15 border border-primary/30 items-center justify-center font-display text-[10px] font-bold text-primary shrink-0`}>
+                            {(c.name || c.github_username)?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
                           <div className="min-w-0 flex-1">
                             <Link
                               to={`/developer/${c.github_username}`}
