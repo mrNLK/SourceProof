@@ -1,19 +1,43 @@
-import { Star, GitFork, MapPin, Gem, Bookmark, BookmarkCheck, Linkedin, Loader2 } from "lucide-react";
+import { Star, GitFork, MapPin, Gem, Bookmark, BookmarkCheck, Linkedin, Loader2, UserPlus, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { Developer } from "@/types/developer";
 import { enrichLinkedIn } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DeveloperCardProps {
   developer: Developer;
   isShortlisted?: boolean;
   onToggleShortlist?: () => void;
+  showPipelineButton?: boolean;
 }
 
-const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist }: DeveloperCardProps) => {
+const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipelineButton }: DeveloperCardProps) => {
   const navigate = useNavigate();
   const [linkedinLoading, setLinkedinLoading] = useState(false);
   const [linkedinUrl, setLinkedinUrl] = useState(developer.linkedinUrl);
+  const [addedToPipeline, setAddedToPipeline] = useState(false);
+  const [pipelineLoading, setPipelineLoading] = useState(false);
+
+  const handleAddToPipeline = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (addedToPipeline || pipelineLoading) return;
+    setPipelineLoading(true);
+    try {
+      const { error } = await supabase.from('pipeline').upsert({
+        github_username: developer.username,
+        name: developer.name,
+        avatar_url: developer.avatarUrl,
+        stage: 'sourced',
+      }, { onConflict: 'github_username' });
+      if (error) throw error;
+      setAddedToPipeline(true);
+    } catch (err) {
+      console.error('Failed to add to pipeline:', err);
+    } finally {
+      setPipelineLoading(false);
+    }
+  };
 
   const handleLinkedIn = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -133,6 +157,18 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist }: Develope
 
       {/* Action buttons */}
       <div className="absolute top-3 right-3 flex items-center gap-1.5">
+        {/* Add to Pipeline */}
+        {showPipelineButton && (
+          <button
+            onClick={handleAddToPipeline}
+            className={`p-1.5 rounded-md border transition-colors ${
+              addedToPipeline ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'border-border text-muted-foreground hover:text-foreground hover:border-primary/30'
+            }`}
+            title={addedToPipeline ? 'Added to pipeline' : 'Add to pipeline'}
+          >
+            {pipelineLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : addedToPipeline ? <Check className="w-3.5 h-3.5" /> : <UserPlus className="w-3.5 h-3.5" />}
+          </button>
+        )}
         {/* LinkedIn */}
         {linkedinUrl ? (
           <a
