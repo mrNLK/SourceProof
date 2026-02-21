@@ -1,7 +1,8 @@
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import { Search, GitBranch, Filter, ArrowLeft } from "lucide-react";
+import { Search, GitBranch, Filter, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { mockDevelopers } from "@/data/mockDevelopers";
+import { useQuery } from "@tanstack/react-query";
+import { searchDevelopers } from "@/lib/api";
 import DeveloperCard from "@/components/DeveloperCard";
 
 const SearchResults = () => {
@@ -10,15 +11,19 @@ const SearchResults = () => {
   const query = searchParams.get("q") || "";
   const [searchInput, setSearchInput] = useState(query);
 
+  const { data: results = [], isLoading, error } = useQuery({
+    queryKey: ["github-search", query],
+    queryFn: () => searchDevelopers(query),
+    enabled: !!query,
+    staleTime: 1000 * 60 * 5,
+  });
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`);
     }
   };
-
-  // Mock filtering — in real app this would be an API call
-  const results = mockDevelopers;
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,20 +58,35 @@ const SearchResults = () => {
               Results for "<span className="text-primary">{query}</span>"
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {results.length} engineers found · Sorted by relevance score
+              {isLoading ? "Searching GitHub..." : `${results.length} engineers found · Sorted by relevance score`}
             </p>
           </div>
-          <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-1.5 transition-colors">
-            <Filter className="w-3.5 h-3.5" />
-            <span className="font-display">Filters</span>
-          </button>
         </div>
 
-        <div className="grid gap-3">
-          {results.map((dev) => (
-            <DeveloperCard key={dev.id} developer={dev} />
-          ))}
-        </div>
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+            <span className="ml-3 text-muted-foreground font-display text-sm">Analyzing GitHub profiles...</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="glass rounded-xl p-6 text-center">
+            <p className="text-destructive font-display text-sm mb-2">Failed to search GitHub</p>
+            <p className="text-muted-foreground text-xs">{(error as Error).message}</p>
+          </div>
+        )}
+
+        {!isLoading && !error && (
+          <div className="grid gap-3">
+            {results.map((dev: any) => (
+              <DeveloperCard key={dev.id} developer={dev} />
+            ))}
+            {results.length === 0 && (
+              <p className="text-center text-muted-foreground py-12 font-display text-sm">No results found. Try a different query.</p>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
