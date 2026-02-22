@@ -8,7 +8,15 @@ import BulkActionsTab from "@/components/BulkActionsTab";
 import SettingsTab from "@/components/SettingsTab";
 import { Clock } from "lucide-react";
 
-const PlaceholderTab = ({ icon: Icon, title, subtitle }: { icon: React.ElementType; title: string; subtitle: string }) => (
+const PlaceholderTab = ({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+}) => (
   <div className="flex flex-col items-center justify-center py-24 text-center">
     <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
       <Icon className="w-6 h-6 text-primary" />
@@ -18,7 +26,6 @@ const PlaceholderTab = ({ icon: Icon, title, subtitle }: { icon: React.ElementTy
   </div>
 );
 
-const SettingsTab = () => (
 const Index = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("search");
   const [rerunQuery, setRerunQuery] = useState<string | undefined>();
@@ -32,7 +39,7 @@ const Index = () => {
     }
     setRerunQuery(query);
     setRerunExpanded(expandedQuery);
-    setRerunKey(k => k + 1);
+    setRerunKey((k) => k + 1);
     setActiveTab("search");
   }, []);
 
@@ -48,9 +55,7 @@ const Index = () => {
       )}
       {activeTab === "history" && <HistoryTab onRerun={handleRerun} />}
       {activeTab === "pipeline" && <PipelineTab />}
-      {activeTab === "watchlist" && (
-        <WatchlistTab onNavigateToSearch={() => setActiveTab("search")} />
-      )}
+      {activeTab === "watchlist" && <WatchlistTab onNavigateToSearch={() => setActiveTab("search")} />}
       {activeTab === "bulk" && <BulkActionsTab />}
       {activeTab === "settings" && <SettingsTab />}
     </DashboardLayout>
