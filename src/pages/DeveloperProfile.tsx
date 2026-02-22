@@ -1,13 +1,19 @@
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Star, GitFork, Users, MapPin, Calendar, ExternalLink, Gem, Zap, Loader2, Linkedin, GitCommit, GitPullRequest, CircleDot, Eye, Globe, Twitter, Building2, Code2, Sparkles, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Star, GitFork, Users, MapPin, Calendar, ExternalLink, Gem, Zap, Loader2, Linkedin, GitCommit, GitPullRequest, CircleDot, Eye, Globe, Twitter, Building2, Code2, Sparkles, TrendingUp, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { GitBranch } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getDeveloperProfile } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const DeveloperProfile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [lookupUsername, setLookupUsername] = useState("");
+  const [expandedSkills, setExpandedSkills] = useState<Record<string, boolean>>({});
+  const [skillTab, setSkillTab] = useState<"technical" | "domain">("technical");
 
   const { data: developer, isLoading, error } = useQuery({
     queryKey: ["github-profile", id],
@@ -58,6 +64,43 @@ const DeveloperProfile = () => {
   const interests: any[] = developer.interests || [];
   const topRepos: any[] = developer.topRepos || [];
 
+  // Working style quadrant
+  const repoCount = developer.publicRepos || 0;
+  const totalContribs = breakdown.commits ?? developer.totalContributions ?? 0;
+  const contribPerRepo = repoCount > 0 ? totalContribs / repoCount : 0;
+  const isBroad = repoCount > 15;
+  const isExecution = contribPerRepo > 30;
+  const quadrant = isBroad
+    ? (isExecution ? "broad-execution" : "broad-exploration")
+    : (isExecution ? "narrow-execution" : "narrow-exploration");
+
+  // Categorize skills
+  const techLangs = ["javascript", "typescript", "python", "rust", "go", "java", "c++", "c", "ruby", "php", "swift", "kotlin", "shell", "html", "css", "scala", "elixir", "haskell", "lua", "dart", "r", "perl", "zig", "c#", "objective-c"];
+  const technicalSkills = skills.filter(s => techLangs.includes(s.toLowerCase()));
+  const domainSkills = skills.filter(s => !techLangs.includes(s.toLowerCase()));
+
+  const techCategories: { title: string; tags: string[]; indicators: string[] }[] = [];
+  if (technicalSkills.length > 0) {
+    techCategories.push({
+      title: "Languages & Frameworks",
+      tags: technicalSkills,
+      indicators: [`Proficient in ${technicalSkills.length} technologies`, `Primary: ${technicalSkills.slice(0, 3).join(", ")}`],
+    });
+  }
+  const domainCategories: { title: string; tags: string[]; indicators: string[] }[] = [];
+  if (domainSkills.length > 0) {
+    for (let i = 0; i < domainSkills.length; i += 5) {
+      const chunk = domainSkills.slice(i, i + 5);
+      domainCategories.push({
+        title: i === 0 ? "Core Domains" : "Additional Domains",
+        tags: chunk,
+        indicators: ["Derived from repository topics and descriptions"],
+      });
+    }
+  }
+
+  const activeCategories = skillTab === "technical" ? techCategories : domainCategories;
+
   const contribStats = [
     { label: "Commits", value: breakdown.commits ?? developer.totalContributions, icon: GitCommit },
     { label: "PRs", value: breakdown.pullRequests, icon: GitPullRequest },
@@ -72,9 +115,24 @@ const DeveloperProfile = () => {
     developer.twitterUsername && { label: "twitter", url: `https://twitter.com/${developer.twitterUsername}`, icon: Twitter },
   ].filter(Boolean) as { label: string; url: string; icon: any }[];
 
+  const toggleSkillExpand = (key: string) => {
+    setExpandedSkills(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleLookup = () => {
+    const u = lookupUsername.trim();
+    if (u) navigate(`/developer/${u}`);
+  };
+
+  const quadrantLabel: Record<string, string> = {
+    "narrow-exploration": "Deep Explorer",
+    "narrow-execution": "Focused Builder",
+    "broad-exploration": "Wide Tinkerer",
+    "broad-execution": "Prolific Generalist",
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border glass sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -91,7 +149,7 @@ const DeveloperProfile = () => {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        {/* ── HERO / PROFILE HEADER ── */}
+        {/* ── HERO ── */}
         <div className="glass rounded-xl p-6">
           <div className="flex flex-col sm:flex-row items-start gap-5">
             <img src={developer.avatarUrl} alt={developer.name} className="w-24 h-24 rounded-xl bg-secondary border border-border" />
@@ -111,17 +169,13 @@ const DeveloperProfile = () => {
                   <Zap className="w-3 h-3" /> Score: {developer.score}
                 </div>
               </div>
-
               <p className="text-secondary-foreground mb-3">{developer.bio}</p>
-
               <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
                 {developer.location && <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{developer.location}</span>}
                 {developer.company && <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{developer.company}</span>}
                 <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />Joined {developer.joinedYear}</span>
                 <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" />{developer.followers} followers · {developer.following ?? '--'} following</span>
               </div>
-
-              {/* Contact Links */}
               {contactLinks.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {contactLinks.map(link => (
@@ -188,18 +242,53 @@ const DeveloperProfile = () => {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* ── SKILLS ── */}
+          {/* ── SKILLS (upgraded with tabs + expandable cards) ── */}
           <div className="glass rounded-xl p-5">
-            <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+            <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
               <Code2 className="w-4 h-4 text-primary" /> Skills
             </h3>
-            {skills.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {skills.map((skill: string) => (
-                  <Badge key={skill} variant="secondary" className="text-xs font-display">
-                    {skill}
-                  </Badge>
-                ))}
+            {/* Tabs */}
+            <div className="flex gap-1 mb-4">
+              <button
+                onClick={() => setSkillTab("technical")}
+                className={`text-xs font-display px-3 py-1.5 rounded-lg transition-colors ${skillTab === "technical" ? "bg-primary/15 text-primary border border-primary/30" : "bg-secondary text-muted-foreground border border-border hover:text-foreground"}`}
+              >
+                Technical Expertise
+              </button>
+              <button
+                onClick={() => setSkillTab("domain")}
+                className={`text-xs font-display px-3 py-1.5 rounded-lg transition-colors ${skillTab === "domain" ? "bg-primary/15 text-primary border border-primary/30" : "bg-secondary text-muted-foreground border border-border hover:text-foreground"}`}
+              >
+                Domain Expertise
+              </button>
+            </div>
+            {activeCategories.length > 0 ? (
+              <div className="space-y-3">
+                {activeCategories.map((cat, idx) => {
+                  const key = `${skillTab}-${idx}`;
+                  const isExpanded = expandedSkills[key];
+                  return (
+                    <div key={key} className="rounded-lg bg-secondary/50 border border-border p-3">
+                      <button onClick={() => toggleSkillExpand(key)} className="flex items-center justify-between w-full text-left mb-2">
+                        <span className="text-xs font-display font-semibold text-foreground">{cat.title}</span>
+                        {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
+                      </button>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {cat.tags.map(t => (
+                          <Badge key={t} variant="secondary" className="text-[10px] font-display">{t}</Badge>
+                        ))}
+                      </div>
+                      {isExpanded && (
+                        <div className="border-t border-border pt-2 mt-1 space-y-1">
+                          <p className="text-[10px] font-display text-muted-foreground uppercase tracking-wider">Indicators</p>
+                          {cat.indicators.map((ind, j) => (
+                            <p key={j} className="text-xs text-secondary-foreground">• {ind}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">--</p>
@@ -228,7 +317,7 @@ const DeveloperProfile = () => {
           </div>
         </div>
 
-        {/* ── INTERESTS (from forked repos) ── */}
+        {/* ── INTERESTS ── */}
         {interests.length > 0 && (
           <div className="glass rounded-xl p-5">
             <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -244,9 +333,7 @@ const DeveloperProfile = () => {
                   </div>
                   <div className="text-xs text-muted-foreground space-y-0.5">
                     {g.repos.map((r: string) => (
-                      <a key={r} href={`https://github.com/${r}`} target="_blank" rel="noopener noreferrer" className="block truncate hover:text-primary transition-colors">
-                        {r}
-                      </a>
+                      <a key={r} href={`https://github.com/${r}`} target="_blank" rel="noopener noreferrer" className="block truncate hover:text-primary transition-colors">{r}</a>
                     ))}
                   </div>
                 </div>
@@ -279,7 +366,7 @@ const DeveloperProfile = () => {
           </div>
         )}
 
-        {/* ── TOP REPOSITORIES (rich cards) ── */}
+        {/* ── TOP REPOSITORIES ── */}
         {topRepos.length > 0 && (
           <div className="glass rounded-xl p-5">
             <h3 className="font-display text-sm font-semibold text-foreground mb-4">Top Repositories</h3>
@@ -294,9 +381,7 @@ const DeveloperProfile = () => {
                       <span className="flex items-center gap-0.5"><GitFork className="w-3 h-3" />{repo.forks}</span>
                     </div>
                   </div>
-                  {repo.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{repo.description}</p>
-                  )}
+                  {repo.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{repo.description}</p>}
                   <div className="flex items-center gap-2">
                     {repo.language && (
                       <span className="flex items-center gap-1 text-[10px] text-secondary-foreground">
@@ -314,7 +399,7 @@ const DeveloperProfile = () => {
           </div>
         )}
 
-        {/* ── LEGACY HIGHLIGHTS (fallback) ── */}
+        {/* ── LEGACY HIGHLIGHTS ── */}
         {topRepos.length === 0 && developer.highlights?.length > 0 && (
           <div className="glass rounded-xl p-5">
             <h3 className="font-display text-sm font-semibold text-foreground mb-4">Highlights</h3>
@@ -328,6 +413,79 @@ const DeveloperProfile = () => {
             </div>
           </div>
         )}
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* ── NEW SECTION 1: WORKING STYLES QUADRANT ── */}
+        <div className="glass rounded-xl p-5">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-4 uppercase tracking-wider">Working Styles</h3>
+          <div className="flex items-center justify-center mb-2">
+            <Badge variant="outline" className="text-xs font-display">{quadrantLabel[quadrant]}</Badge>
+          </div>
+          <div className="relative max-w-xs mx-auto">
+            {/* Axis labels */}
+            <div className="flex justify-between text-[10px] text-muted-foreground font-display uppercase tracking-wider mb-1">
+              <span>Exploration Focus</span>
+              <span>Execution Focus</span>
+            </div>
+            <div className="grid grid-cols-2 gap-0.5">
+              {[
+                { id: "narrow-exploration", label: "Deep Explorer" },
+                { id: "narrow-execution", label: "Focused Builder" },
+                { id: "broad-exploration", label: "Wide Tinkerer" },
+                { id: "broad-execution", label: "Prolific Generalist" },
+              ].map(q => (
+                <div
+                  key={q.id}
+                  className={`rounded-lg p-3 text-center text-xs font-display transition-colors ${
+                    quadrant === q.id
+                      ? "bg-warning/20 border-2 border-warning text-warning"
+                      : "bg-secondary/40 border border-border text-muted-foreground"
+                  }`}
+                >
+                  {q.label}
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between text-[10px] text-muted-foreground font-display uppercase tracking-wider mt-1">
+              <span>Narrow Scope</span>
+              <span>Broad Scope</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── NEW SECTION 2: LINKS DIVIDER ── */}
+        {contactLinks.length > 0 && (
+          <div className="py-4">
+            <div className="border-t border-border mb-6" />
+            <div className="flex justify-center gap-3 flex-wrap">
+              {contactLinks.map(link => (
+                <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-display px-4 py-2 rounded-full bg-secondary text-secondary-foreground border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors">
+                  <link.icon className="w-3.5 h-3.5" />
+                  {link.label} · <span className="text-muted-foreground truncate max-w-[120px]">{new URL(link.url).hostname}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── NEW SECTION 3: LOOKUP ANOTHER CONTRIBUTOR ── */}
+        <div className="glass rounded-xl p-5">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-3 uppercase tracking-wider">Lookup Another Contributor</h3>
+          <div className="flex gap-2 max-w-md">
+            <Input
+              placeholder="Enter GitHub username..."
+              value={lookupUsername}
+              onChange={e => setLookupUsername(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleLookup()}
+              className="text-sm"
+            />
+            <Button size="sm" onClick={handleLookup} disabled={!lookupUsername.trim()}>
+              <Search className="w-3.5 h-3.5 mr-1.5" />
+              try now
+            </Button>
+          </div>
+        </div>
       </main>
     </div>
   );
