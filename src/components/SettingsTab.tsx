@@ -7,8 +7,6 @@ const SettingsTab = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
-    exa_api_key: "",
-    parallel_api_key: "",
     target_role: "",
     target_company: "",
     webhook_url: "",
@@ -23,8 +21,6 @@ const SettingsTab = () => {
           map[r.key] = r.value;
         });
         setForm((prev) => ({
-          exa_api_key: map.exa_api_key || prev.exa_api_key,
-          parallel_api_key: map.parallel_api_key || prev.parallel_api_key,
           target_role: map.target_role || prev.target_role,
           target_company: map.target_company || prev.target_company,
           webhook_url: map.webhook_url || prev.webhook_url,
@@ -58,8 +54,6 @@ const SettingsTab = () => {
   }
 
   const fields = [
-    { key: "exa_api_key", label: "Exa API Key", type: "password", placeholder: "exa-..." },
-    { key: "parallel_api_key", label: "Parallel API Key", type: "password", placeholder: "par-..." },
     { key: "target_role", label: "Default Target Role", type: "text", placeholder: "Senior Software Engineer" },
     { key: "target_company", label: "Default Target Company", type: "text", placeholder: "Acme Inc" },
     { key: "webhook_url", label: "Webhook URL", type: "url", placeholder: "https://hooks.example.com/..." },
@@ -73,7 +67,7 @@ const SettingsTab = () => {
         </div>
         <div>
           <h2 className="font-display text-lg font-semibold text-foreground">Settings</h2>
-          <p className="text-sm text-muted-foreground">API keys and default configuration</p>
+          <p className="text-sm text-muted-foreground">Default search configuration</p>
         </div>
       </div>
       <div className="space-y-4">

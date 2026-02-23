@@ -1,4 +1,4 @@
-import { Search, Loader2, Gem, ExternalLink, SlidersHorizontal, MapPin, X, Zap, ChevronDown, ChevronUp, GripVertical, Plus, ArrowRight, AlertTriangle, Settings, UserPlus, Check } from "lucide-react";
+import { Search, Loader2, Gem, ExternalLink, SlidersHorizontal, MapPin, X, Zap, ChevronDown, ChevronUp, GripVertical, Plus, ArrowRight, UserPlus, Check } from "lucide-react";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -126,19 +126,6 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
   const [isExpanding, setIsExpanding] = useState(false);
   const [expandCount, setExpandCount] = useState(0);
 
-  // Setup guard — check if API keys are configured
-  const { data: settingsData } = useQuery({
-    queryKey: ["settings-check"],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from("settings").select("key, value");
-      if (!data) return { configured: false };
-      const map: Record<string, string> = {};
-      data.forEach((r: any) => { map[r.key] = r.value; });
-      return { configured: !!(map.exa_api_key || map.parallel_api_key) };
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-  const isConfigured = settingsData?.configured !== false;
 
   // Auto-submit for re-run from history
   useEffect(() => {
@@ -417,24 +404,6 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
   return (
     <div className="flex gap-4">
       <div className="flex-1 min-w-0">
-        {/* Setup guard banner */}
-        {!isConfigured && (
-          <div className="glass rounded-xl p-4 mb-4 border border-amber-500/30 bg-amber-500/5">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
-              <div className="flex-1">
-                <p className="font-display text-sm font-semibold text-foreground">API keys not configured</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Set up your Exa or Parallel API key in Settings to start searching for candidates.</p>
-              </div>
-              {onNavigate && (
-                <button onClick={() => onNavigate("settings")} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 font-display text-xs font-semibold hover:bg-amber-500/20 transition-colors shrink-0">
-                  <Settings className="w-3.5 h-3.5" /> Go to Settings
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Search bar */}
         <form onSubmit={handleSearch} className="relative mb-2">
           <div className="relative glass rounded-xl glow-border transition-all duration-300 focus-within:glow-sm">
