@@ -7,6 +7,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { EEAFull } from "@/components/EEASignals";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -393,28 +394,7 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
 
           {/* ===== EEA SIGNALS ===== */}
           <div className="glass rounded-xl p-5">
-            <h2 className="font-display text-sm font-semibold text-foreground mb-3">Evidence of Exceptional Ability</h2>
-            <div className="space-y-2">
-              {[
-                { key: "high_stars", label: "Star Contributor", check: (candidate?.stars || 0) > 100 },
-                { key: "many_repos", label: "Prolific Open Source", check: (candidate?.public_repos || 0) > 50 },
-                { key: "top_followers", label: "Community Following", check: (candidate?.followers || 0) > 500 },
-                { key: "hidden_gem", label: "Hidden Gem", check: candidate?.is_hidden_gem || false },
-                { key: "veteran", label: "Industry Veteran (10+ years)", check: candidate?.joined_year ? (new Date().getFullYear() - candidate.joined_year) >= 10 : false },
-                { key: "major_contributor", label: "Major Project Contributor", check: Object.values(contributedRepos).some((c: any) => c > 100) },
-              ].map((signal) => (
-                <div key={signal.key} className="flex items-center gap-3 py-1.5">
-                  {signal.check ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
-                  )}
-                  <span className={`text-sm font-display ${signal.check ? "text-foreground" : "text-muted-foreground/60"}`}>
-                    {signal.label}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <EEAFull developer={candidate || pc} />
           </div>
 
           {/* ===== OUTREACH HISTORY ===== */}

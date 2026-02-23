@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Search, Clock, Kanban, Bookmark, Settings, LogOut, Zap, Menu, X, Users } from "lucide-react";
+import { Search, Clock, Kanban, Bookmark, Settings, LogOut, Zap, Menu, X, Users, Microscope } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWatchlist } from "@/hooks/useWatchlist";
 
-export type ActiveTab = "search" | "history" | "pipeline" | "watchlist" | "bulk" | "settings";
+export type ActiveTab = "search" | "research" | "history" | "pipeline" | "watchlist" | "bulk" | "settings";
 
 interface DashboardLayoutProps {
   activeTab: ActiveTab;
@@ -13,6 +13,7 @@ interface DashboardLayoutProps {
 
 const NAV_ITEMS: { id: ActiveTab; label: string; icon: React.ElementType }[] = [
   { id: "search", label: "New Search", icon: Search },
+  { id: "research", label: "Research", icon: Microscope },
   { id: "history", label: "History", icon: Clock },
   { id: "pipeline", label: "Pipeline", icon: Kanban },
   { id: "watchlist", label: "Watchlist", icon: Bookmark },

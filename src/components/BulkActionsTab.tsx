@@ -6,6 +6,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
+import ExportButton from "@/components/ExportButton";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -249,7 +250,10 @@ const BulkActionsTab = () => {
 
   return (
     <div>
-      <h1 className="font-display text-lg font-semibold text-foreground mb-4">Bulk Actions</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="font-display text-lg font-semibold text-foreground">Bulk Actions</h1>
+        <ExportButton data={selected.size > 0 ? pipelineCandidates.filter((c: any) => selected.has(c.id)) : pipelineCandidates} filename="sourcekit-bulk" label={selected.size > 0 ? `Export ${selected.size}` : "Export All"} />
+      </div>
 
       <div className="flex flex-col lg:flex-row gap-4" style={{ minHeight: "calc(100vh - 160px)" }}>
         {/* LEFT: Candidate Table */}

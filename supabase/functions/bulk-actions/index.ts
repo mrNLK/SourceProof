@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { anthropicStream } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,9 +13,6 @@ serve(async (req) => {
 
   try {
     const { action, candidates, messages } = await req.json();
-
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!apiKey) throw new Error('LOVABLE_API_KEY not configured');
 
     let systemPrompt = "You are an expert technical recruiter AI assistant. You help analyze candidate data and provide actionable recruiting insights. Use markdown formatting for readability.";
     let userPrompt = "";
@@ -52,43 +50,20 @@ serve(async (req) => {
         });
     }
 
-    const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        stream: true,
-      }),
+    const stream = await anthropicStream(systemPrompt, userPrompt, {
+      maxTokens: 4096,
     });
 
-    if (!res.ok) {
-      if (res.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limited. Try again shortly.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (res.status === 402) {
-        return new Response(JSON.stringify({ error: 'Credits exhausted. Please add funds.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const errText = await res.text();
-      console.error('AI gateway error:', res.status, errText);
-      throw new Error(`AI gateway error: ${res.status}`);
-    }
-
-    return new Response(res.body, {
+    return new Response(stream, {
       headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
     });
   } catch (e) {
     console.error('bulk-actions error:', e);
+    if ((e as Error).message === 'RATE_LIMITED') {
+      return new Response(JSON.stringify({ error: 'Rate limited. Try again shortly.' }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

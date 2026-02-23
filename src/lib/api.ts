@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
@@ -46,4 +48,23 @@ export async function enrichLinkedIn(username: string, name: string, location: s
 
 export async function generateOutreach(githubUsername: string, candidateName?: string, roleContext?: string) {
   return invokeFunction('generate-outreach', undefined, { github_username: githubUsername, candidate_name: candidateName, role_context: roleContext });
+}
+
+let settingsCache: Record<string, string> | null = null;
+
+export async function loadSettings(): Promise<Record<string, string>> {
+  const { data } = await (supabase as any).from('settings').select('key, value');
+  const map: Record<string, string> = {};
+  if (data) {
+    data.forEach((r: any) => { map[r.key] = r.value; });
+  }
+  settingsCache = map;
+  return map;
+}
+
+export async function getSetting(key: string): Promise<string> {
+  if (!settingsCache) {
+    await loadSettings();
+  }
+  return settingsCache?.[key] || '';
 }

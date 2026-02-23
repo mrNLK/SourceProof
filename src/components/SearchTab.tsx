@@ -1,16 +1,20 @@
-import { Search, Loader2, Gem, ExternalLink, SlidersHorizontal, MapPin, X, Zap, ChevronDown, ChevronUp, GripVertical, Plus, ArrowRight } from "lucide-react";
+import { Search, Loader2, Gem, ExternalLink, SlidersHorizontal, MapPin, X, Zap, ChevronDown, ChevronUp, GripVertical, Plus, ArrowRight, AlertTriangle, Settings, UserPlus, Check } from "lucide-react";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { searchDevelopers, enrichLinkedIn } from "@/lib/api";
 import DeveloperCard from "@/components/DeveloperCard";
+import CandidateSlideOut from "@/components/CandidateSlideOut";
+import ExportButton from "@/components/ExportButton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
+import type { Developer } from "@/types/developer";
 
 interface SearchTabProps {
   initialQuery?: string;
   initialExpandedQuery?: string;
   autoSubmit?: boolean;
+  onNavigate?: (tab: string) => void;
 }
 
 interface SuggestionChip {
@@ -62,7 +66,7 @@ function computeSkillMatch(dev: any, skills: SkillFilter[]): number {
 
 type SeniorityFilter = "any" | "junior" | "mid" | "senior";
 
-const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit }: SearchTabProps) => {
+const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate }: SearchTabProps) => {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState(initialQuery || "");
   const [activeQuery, setActiveQuery] = useState("");
@@ -80,18 +84,61 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit }: SearchTab
   const [enrichedUsernames, setEnrichedUsernames] = useState<Set<string>>(new Set());
   const autoSubmitDone = useRef(false);
 
+  // Persistent filters — restore from localStorage
+  const savedFilters = useRef(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sourcekit-filters') || '{}');
+    } catch { return {}; }
+  });
+  const sf = savedFilters.current();
+
   // Seniority filter
-  const [seniorityFilter, setSeniorityFilter] = useState<SeniorityFilter>("any");
+  const [seniorityFilter, setSeniorityFilter] = useState<SeniorityFilter>(sf.seniority || "any");
 
   // Skill filters
-  const [skillFilters, setSkillFilters] = useState<SkillFilter[]>([]);
+  const [skillFilters, setSkillFilters] = useState<SkillFilter[]>(sf.skills || []);
   const [showSkillPanel, setShowSkillPanel] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  // Slide-out
+  const [slideOutDev, setSlideOutDev] = useState<Developer | null>(null);
+
+  // Additional filters
+  const [languageFilter, setLanguageFilter] = useState(sf.language || "");
+  const [minScore, setMinScore] = useState(sf.minScore || 0);
+
+  // Persist filters to localStorage
+  useEffect(() => {
+    localStorage.setItem('sourcekit-filters', JSON.stringify({
+      seniority: seniorityFilter,
+      skills: skillFilters,
+      language: languageFilter,
+      minScore,
+    }));
+  }, [seniorityFilter, skillFilters, languageFilter, minScore]);
+
+  // Batch selection
+  const [batchSelected, setBatchSelected] = useState<Set<string>>(new Set());
+  const [batchAdding, setBatchAdding] = useState(false);
 
   // Expand search
   const [expandedResults, setExpandedResults] = useState<any[]>([]);
   const [isExpanding, setIsExpanding] = useState(false);
   const [expandCount, setExpandCount] = useState(0);
+
+  // Setup guard — check if API keys are configured
+  const { data: settingsData } = useQuery({
+    queryKey: ["settings-check"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("settings").select("key, value");
+      if (!data) return { configured: false };
+      const map: Record<string, string> = {};
+      data.forEach((r: any) => { map[r.key] = r.value; });
+      return { configured: !!(map.exa_api_key || map.parallel_api_key) };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+  const isConfigured = settingsData?.configured !== false;
 
   // Auto-submit for re-run from history
   useEffect(() => {
@@ -165,6 +212,14 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit }: SearchTab
     return [...new Set(locs)] as string[];
   }, [results]);
 
+  const availableLanguages = useMemo(() => {
+    const langs = new Set<string>();
+    results.forEach((d: any) => {
+      (d.topLanguages || []).forEach((l: any) => { if (l.name) langs.add(l.name); });
+    });
+    return [...langs].sort();
+  }, [results]);
+
   const locationSuggestions = useMemo(() => {
     if (!locationFilter) return availableLocations;
     return availableLocations.filter((l: string) => l.toLowerCase().includes(locationFilter.toLowerCase()));
@@ -196,8 +251,14 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit }: SearchTab
     if (seniorityFilter !== "any") {
       list = list.filter((d: any) => estimateSeniority(d) === seniorityFilter);
     }
+    if (languageFilter) {
+      list = list.filter((d: any) => (d.topLanguages || []).some((l: any) => l.name === languageFilter));
+    }
+    if (minScore > 0) {
+      list = list.filter((d: any) => (d.score || 0) >= minScore);
+    }
     return list.slice(0, resultLimit);
-  }, [resultsWithSkillMatch, showGemsOnly, locationFilter, resultLimit, seniorityFilter, estimateSeniority]);
+  }, [resultsWithSkillMatch, showGemsOnly, locationFilter, resultLimit, seniorityFilter, estimateSeniority, languageFilter, minScore]);
 
   // Funnel counts
   const funnelCounts = useMemo(() => {
@@ -310,12 +371,70 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit }: SearchTab
     }
   };
 
+  const toggleBatchSelect = (username: string) => {
+    setBatchSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(username)) next.delete(username); else next.add(username);
+      return next;
+    });
+  };
+
+  const selectAllVisible = () => {
+    const allUsernames = filtered.map((d: any) => d.username);
+    setBatchSelected(new Set(allUsernames));
+  };
+
+  const clearBatchSelection = () => setBatchSelected(new Set());
+
+  const handleBatchAddToPipeline = async () => {
+    if (batchSelected.size === 0 || batchAdding) return;
+    setBatchAdding(true);
+    const toAdd = filtered.filter((d: any) => batchSelected.has(d.username) && !pipelineSet.has(d.username));
+    let added = 0;
+    for (const dev of toAdd) {
+      try {
+        const { error } = await supabase.from('pipeline').upsert({
+          github_username: dev.username,
+          name: dev.name,
+          avatar_url: dev.avatarUrl,
+          stage: 'sourced',
+        }, { onConflict: 'github_username' });
+        if (!error) added++;
+      } catch { /* skip */ }
+    }
+    queryClient.invalidateQueries({ queryKey: ["pipeline-usernames"] });
+    toast({
+      title: `Added ${added} candidate${added !== 1 ? 's' : ''} to pipeline`,
+      description: `${added} candidate${added !== 1 ? 's' : ''} added to Sourced stage.`,
+    });
+    setBatchSelected(new Set());
+    setBatchAdding(false);
+  };
+
   const hasActiveSkills = skillFilters.some(s => s.text.trim());
-  const hasActiveFilters = showGemsOnly || !!locationFilter || seniorityFilter !== "any";
+  const hasActiveFilters = showGemsOnly || !!locationFilter || seniorityFilter !== "any" || !!languageFilter || minScore > 0;
 
   return (
     <div className="flex gap-4">
       <div className="flex-1 min-w-0">
+        {/* Setup guard banner */}
+        {!isConfigured && (
+          <div className="glass rounded-xl p-4 mb-4 border border-amber-500/30 bg-amber-500/5">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+              <div className="flex-1">
+                <p className="font-display text-sm font-semibold text-foreground">API keys not configured</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Set up your Exa or Parallel API key in Settings to start searching for candidates.</p>
+              </div>
+              {onNavigate && (
+                <button onClick={() => onNavigate("settings")} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 font-display text-xs font-semibold hover:bg-amber-500/20 transition-colors shrink-0">
+                  <Settings className="w-3.5 h-3.5" /> Go to Settings
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Search bar */}
         <form onSubmit={handleSearch} className="relative mb-2">
           <div className="relative glass rounded-xl glow-border transition-all duration-300 focus-within:glow-sm">
@@ -481,6 +600,35 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit }: SearchTab
                     <><Zap className="w-3 h-3" /> Enrich All</>
                   )}
                 </button>
+
+                {/* Language filter */}
+                {availableLanguages.length > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-full border border-border bg-secondary">
+                    <span className="text-muted-foreground">Lang</span>
+                    <select value={languageFilter} onChange={(e) => setLanguageFilter(e.target.value)}
+                      className="bg-popover text-foreground border border-border rounded px-1.5 py-0.5 outline-none text-xs font-display cursor-pointer">
+                      <option value="">All</option>
+                      {availableLanguages.map(lang => (
+                        <option key={lang} value={lang}>{lang}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Score filter */}
+                <div className="flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-full border border-border bg-secondary">
+                  <span className="text-muted-foreground">Min Score</span>
+                  <select value={minScore} onChange={(e) => setMinScore(Number(e.target.value))}
+                    className="bg-popover text-foreground border border-border rounded px-1.5 py-0.5 outline-none text-xs font-display cursor-pointer">
+                    <option value={0}>Any</option>
+                    <option value={30}>30+</option>
+                    <option value={50}>50+</option>
+                    <option value={70}>70+</option>
+                    <option value={80}>80+</option>
+                  </select>
+                </div>
+
+                <ExportButton data={filtered} filename="sourcekit-search" />
               </div>
             </div>
 
@@ -542,15 +690,55 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit }: SearchTab
 
         {!isLoading && !error && activeQuery && (
           <>
+            {/* Batch actions bar */}
+            {filtered.length > 0 && (
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <button onClick={batchSelected.size === filtered.length ? clearBatchSelection : selectAllVisible}
+                  className="flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
+                  {batchSelected.size === filtered.length ? (
+                    <><X className="w-3 h-3" /> Deselect All</>
+                  ) : (
+                    <><Check className="w-3 h-3" /> Select All ({filtered.length})</>
+                  )}
+                </button>
+                {batchSelected.size > 0 && (
+                  <>
+                    <span className="text-xs font-display text-muted-foreground">{batchSelected.size} selected</span>
+                    <button onClick={handleBatchAddToPipeline} disabled={batchAdding}
+                      className="flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                      {batchAdding ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserPlus className="w-3 h-3" />}
+                      Add to Pipeline
+                    </button>
+                    <button onClick={clearBatchSelection}
+                      className="text-xs font-display text-muted-foreground hover:text-foreground transition-colors">
+                      Clear
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
             <div className="grid gap-3">
               {filtered.map((dev: any) => (
                 <div key={dev.id} className="relative">
+                  {/* Batch checkbox */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleBatchSelect(dev.username); }}
+                    className={`absolute top-4 left-4 z-10 w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                      batchSelected.has(dev.username)
+                        ? 'bg-primary border-primary text-primary-foreground'
+                        : 'border-border bg-secondary/50 text-transparent hover:border-primary/40'
+                    }`}
+                  >
+                    <Check className="w-3 h-3" />
+                  </button>
                   <DeveloperCard
                     developer={dev}
                     isShortlisted={shortlisted.has(dev.username)}
                     onToggleShortlist={() => toggleShortlist(dev.username)}
                     showPipelineButton
                     inPipeline={pipelineSet.has(dev.username)}
+                    onCardClick={(d) => setSlideOutDev(d)}
                   />
                   {dev.skillMatch >= 0 && (
                     <div className={`absolute bottom-3 right-3 text-[10px] font-display font-bold px-2 py-0.5 rounded-full border ${
@@ -614,6 +802,11 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit }: SearchTab
             <p className="text-[10px] text-muted-foreground font-display mt-3 text-center">Run a new search to include skill priorities in the query.</p>
           )}
         </div>
+      )}
+
+      {/* Candidate slide-out panel */}
+      {slideOutDev && (
+        <CandidateSlideOut developer={slideOutDev} onClose={() => setSlideOutDev(null)} />
       )}
     </div>
   );

@@ -5,6 +5,8 @@ import type { Developer } from "@/types/developer";
 import { enrichLinkedIn } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { EEAMini } from "@/components/EEASignals";
+import { toast } from "@/hooks/use-toast";
 
 interface DeveloperCardProps {
   developer: Developer;
@@ -12,9 +14,10 @@ interface DeveloperCardProps {
   onToggleShortlist?: () => void;
   showPipelineButton?: boolean;
   inPipeline?: boolean;
+  onCardClick?: (dev: Developer) => void;
 }
 
-const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipelineButton, inPipeline }: DeveloperCardProps) => {
+const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipelineButton, inPipeline, onCardClick }: DeveloperCardProps) => {
   const navigate = useNavigate();
   const { isWatched, toggle: toggleWatchlist } = useWatchlist();
   const [linkedinLoading, setLinkedinLoading] = useState(false);
@@ -36,8 +39,13 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
       }, { onConflict: 'github_username' });
       if (error) throw error;
       setAddedToPipeline(true);
+      toast({
+        title: `${developer.name || developer.username} added to pipeline`,
+        description: "Added to Sourced stage.",
+      });
     } catch (err) {
       console.error('Failed to add to pipeline:', err);
+      toast({ title: "Failed to add to pipeline", variant: "destructive" });
     } finally {
       setPipelineLoading(false);
     }
@@ -65,7 +73,7 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
   return (
     <div className="w-full text-left glass rounded-xl p-5 hover:glow-border transition-all duration-300 hover:glow-sm group relative">
       <button
-        onClick={() => navigate(`/developer/${developer.username}`)}
+        onClick={() => onCardClick ? onCardClick(developer) : navigate(`/developer/${developer.username}`)}
         className="w-full text-left"
       >
         <div className="flex items-start gap-4">
@@ -128,6 +136,7 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
                   In Pipeline
                 </span>
               )}
+              <EEAMini developer={developer} />
             </div>
             <p className="text-xs text-muted-foreground font-display mb-2">@{developer.username}</p>
             

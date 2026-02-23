@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { anthropicCall } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,38 +8,7 @@ const corsHeaders = {
 };
 
 const GITHUB_API = "https://api.github.com";
-const LOVABLE_AI = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const CACHE_DAYS = 7;
-
-async function aiCall(system: string, userPrompt: string): Promise<string> {
-  const apiKey = Deno.env.get('LOVABLE_API_KEY');
-  if (!apiKey) throw new Error('LOVABLE_API_KEY not configured');
-
-  const res = await fetch(LOVABLE_AI, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: userPrompt },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error('AI gateway error:', res.status, errText);
-    if (res.status === 429) throw new Error('RATE_LIMITED');
-    throw new Error(`AI gateway error: ${res.status}`);
-  }
-
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
-}
 
 function getSupabase() {
   return createClient(
@@ -86,7 +56,7 @@ function getLangColor(lang: string): string {
 // Step 1: Parse query with AI
 async function parseQuery(query: string): Promise<{ repos: { owner: string; name: string }[]; skills: string[]; location: string | null; seniority: string | null }> {
   try {
-    const text = await aiCall(
+    const text = await anthropicCall(
       'You are a technical recruiting assistant. Given a hiring query, identify the most relevant GitHub repositories where ideal candidates would be active contributors. Also generate 4 ranked skill criteria. Return valid JSON only, no markdown, no code fences: { "repos": [{"owner": "string", "name": "string"}], "skills": ["string"], "location": "string or null", "seniority": "string or null" }',
       `Parse this recruiting search query:\n\n"${query}"\n\nIdentify 3-6 GitHub repositories where the best candidates for this role would be active contributors. For example, "React experts" → repos like facebook/react, vercel/next.js. "ML infrastructure engineers" → pytorch/pytorch, huggingface/transformers, etc.`
     );
@@ -264,7 +234,7 @@ async function scoreCandidates(candidates: any[], query: string, parsedCriteria:
     }));
 
     try {
-      const text = await aiCall(
+      const text = await anthropicCall(
         'You are a technical recruiting expert. Score and summarize these GitHub contributors for the role described. For each, return a JSON array (no markdown, no code fences): [{ "username": "string", "score": 0-100, "summary": "1 concise line mentioning repos and commit counts", "about": "2-3 sentences", "is_hidden_gem": true/false }]. Hidden gem = high contributions but under 500 followers.',
         `Search query: "${query}"\nCriteria: ${JSON.stringify(parsedCriteria)}\n\nCandidates:\n${JSON.stringify(candidateInfo)}`
       );

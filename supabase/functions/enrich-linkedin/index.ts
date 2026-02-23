@@ -1,12 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { anthropicToolCall } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -65,53 +64,36 @@ serve(async (req) => {
     }
 
     // Use AI to match the best LinkedIn profile
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!apiKey) {
-      // Return best guess without AI
-      const bestResult = results.find((r: any) => r.url?.includes('linkedin.com/in/')) || results[0];
-      return new Response(JSON.stringify({ linkedin_url: bestResult?.url || null, confidence: 'low', reasoning: 'No AI matching available' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const res = await fetch(AI_GATEWAY, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: 'You are a recruiter matching GitHub developers to LinkedIn profiles. Return JSON only.' },
-          { role: 'user', content: `GitHub Developer: ${name || username}, Username: ${username}, Location: ${location || 'unknown'}, Bio: ${bio || 'none'}\n\nLinkedIn search results:\n${results.map((r: any, i: number) => `${i + 1}. ${r.title} - ${r.url}`).join('\n')}\n\nIdentify the correct LinkedIn profile. Return JSON: { "linkedin_url": string | null, "confidence": "high" | "medium" | "low", "reasoning": string }` }
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "match_linkedin",
-            description: "Match a LinkedIn profile to a GitHub developer",
-            parameters: {
-              type: "object",
-              properties: {
-                linkedin_url: { type: ["string", "null"] },
-                confidence: { type: "string", enum: ["high", "medium", "low"] },
-                reasoning: { type: "string" }
-              },
-              required: ["linkedin_url", "confidence", "reasoning"],
-              additionalProperties: false
-            }
-          }
-        }],
-        tool_choice: { type: "function", function: { name: "match_linkedin" } }
-      }),
-    });
-
     let result = { linkedin_url: results[0]?.url || null, confidence: 'low', reasoning: 'AI matching failed' };
 
-    if (res.ok) {
-      const data = await res.json();
-      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-      if (toolCall) {
-        result = JSON.parse(toolCall.function.arguments);
+    try {
+      const toolResult = await anthropicToolCall(
+        'You are a recruiter matching GitHub developers to LinkedIn profiles. Return JSON only.',
+        `GitHub Developer: ${name || username}, Username: ${username}, Location: ${location || 'unknown'}, Bio: ${bio || 'none'}\n\nLinkedIn search results:\n${results.map((r: any, i: number) => `${i + 1}. ${r.title} - ${r.url}`).join('\n')}\n\nIdentify the correct LinkedIn profile.`,
+        [{
+          name: "match_linkedin",
+          description: "Match a LinkedIn profile to a GitHub developer",
+          input_schema: {
+            type: "object",
+            properties: {
+              linkedin_url: { anyOf: [{ type: "string" }, { type: "null" }] },
+              confidence: { type: "string", enum: ["high", "medium", "low"] },
+              reasoning: { type: "string" },
+            },
+            required: ["linkedin_url", "confidence", "reasoning"],
+          },
+        }],
+        { type: "tool", name: "match_linkedin" }
+      );
+
+      if (toolResult) {
+        result = toolResult.toolInput as typeof result;
       }
+    } catch (e) {
+      console.error('AI matching error:', e);
+      // Fall back to best guess without AI
+      const bestResult = results.find((r: any) => r.url?.includes('linkedin.com/in/')) || results[0];
+      result = { linkedin_url: bestResult?.url || null, confidence: 'low', reasoning: 'No AI matching available' };
     }
 
     // Update candidate in DB
