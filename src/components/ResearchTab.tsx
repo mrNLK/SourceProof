@@ -102,6 +102,7 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy }: ResearchTab
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ url }),
@@ -158,6 +159,7 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy }: ResearchTab
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),

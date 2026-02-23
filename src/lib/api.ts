@@ -9,6 +9,7 @@ async function invokeFunction(name: string, params?: Record<string, string>, bod
     method: body ? 'POST' : 'GET',
     headers: {
       'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,

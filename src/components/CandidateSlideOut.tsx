@@ -120,7 +120,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
 
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-outreach`, {
         method: "POST",
-        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           candidate_name: dev.name,
           github_username: dev.username,

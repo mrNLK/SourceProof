@@ -98,7 +98,7 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-outreach`, {
         method: "POST",
-        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({ candidate_name: displayName, github_username: username }),
       });
       const data = await res.json();

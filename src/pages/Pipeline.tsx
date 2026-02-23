@@ -41,7 +41,7 @@ const OutreachSection = ({ pipelineId, candidateName, githubUsername }: { pipeli
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-outreach`, {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ candidate_name: candidateName, github_username: githubUsername }),
       });
       const data = await res.json();
