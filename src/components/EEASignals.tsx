@@ -36,7 +36,10 @@ export function EEAMini({ developer }: { developer: any }) {
 
   return (
     <div className="flex items-center gap-1.5">
-      <span className={`text-[10px] font-display font-semibold px-1.5 py-0.5 rounded border ${eea.tier.bgColor} ${eea.tier.color} ${eea.tier.borderColor}`}>
+      <span
+        className={`text-[10px] font-display font-semibold px-1.5 py-0.5 rounded border ${eea.tier.bgColor} ${eea.tier.color} ${eea.tier.borderColor}`}
+        title="Evidence of Exceptional Ability — measures publications, patents, open-source impact, and top-company experience. 70+ Strong, 40-69 Moderate, <40 Limited."
+      >
         EEA {eea.overallScore}
       </span>
       {topDims.map(dim => (
@@ -135,7 +138,7 @@ export function EEAFull({ developer }: { developer: any }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="font-display text-sm font-semibold text-foreground">Evidence of Exceptional Ability</h2>
+          <h2 className="font-display text-sm font-semibold text-foreground" title="EEA measures signals like publications, patents, open-source impact, and top-company experience based on USCIS O-1A visa criteria.">Evidence of Exceptional Ability</h2>
           <span className={`text-[10px] font-display font-bold px-2 py-0.5 rounded-full border ${eea.tier.bgColor} ${eea.tier.color} ${eea.tier.borderColor}`}>
             {eea.tier.label}
           </span>

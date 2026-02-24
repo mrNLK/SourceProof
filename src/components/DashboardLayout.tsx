@@ -11,14 +11,14 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const NAV_ITEMS: { id: ActiveTab; label: string; icon: React.ElementType }[] = [
-  { id: "search", label: "New Search", icon: Search },
-  { id: "research", label: "Research", icon: Microscope },
-  { id: "history", label: "History", icon: Clock },
-  { id: "pipeline", label: "Pipeline", icon: Kanban },
-  { id: "watchlist", label: "Watchlist", icon: Bookmark },
-  { id: "bulk", label: "Bulk Actions", icon: Users },
-  { id: "settings", label: "Settings", icon: Settings },
+const NAV_ITEMS: { id: ActiveTab; label: string; icon: React.ElementType; tip: string }[] = [
+  { id: "search", label: "New Search", icon: Search, tip: "Search GitHub contributors and score candidates" },
+  { id: "research", label: "Research", icon: Microscope, tip: "Build a sourcing strategy from a role or job description" },
+  { id: "history", label: "History", icon: Clock, tip: "Your past searches and research sessions" },
+  { id: "pipeline", label: "Pipeline", icon: Kanban, tip: "Active recruiting funnel \u2014 candidates you're pursuing now" },
+  { id: "watchlist", label: "Watchlist", icon: Bookmark, tip: "Tracking list for candidates to revisit later" },
+  { id: "bulk", label: "Bulk Actions", icon: Users, tip: "AI-powered batch operations on pipeline candidates" },
+  { id: "settings", label: "Settings", icon: Settings, tip: "Configure API keys, webhooks, and integrations" },
 ];
 
 const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutProps) => {
@@ -51,6 +51,7 @@ const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutPr
             <button
               key={item.id}
               onClick={() => handleNav(item.id)}
+              title={item.tip}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-primary/10 text-primary"

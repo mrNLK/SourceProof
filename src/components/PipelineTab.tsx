@@ -1,20 +1,21 @@
-import { GripVertical, Trash2, Loader2, Bookmark, BookmarkCheck, Clock, Search } from "lucide-react";
+import { GripVertical, Trash2, Loader2, Bookmark, BookmarkCheck, Clock, Search, ArrowRight } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import CandidateProfile from "@/components/CandidateProfile";
 import ExportButton from "@/components/ExportButton";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { toast } from "@/hooks/use-toast";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const STAGES = [
-  { id: "sourced", label: "Sourced", color: "bg-primary/15 text-primary border-primary/30" },
-  { id: "contacted", label: "Contacted", color: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
-  { id: "responded", label: "Responded", color: "bg-info/15 text-info border-info/30" },
-  { id: "screen", label: "Screen", color: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
-  { id: "offer", label: "Offer", color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  { id: "sourced", label: "Sourced", color: "bg-primary/15 text-primary border-primary/30", tip: "Identified and saved. Ready for outreach." },
+  { id: "contacted", label: "Contacted", color: "bg-amber-500/15 text-amber-400 border-amber-500/30", tip: "Message sent. Waiting for response." },
+  { id: "responded", label: "Responded", color: "bg-info/15 text-info border-info/30", tip: "Candidate replied. Active conversation." },
+  { id: "screen", label: "Screen", color: "bg-purple-500/15 text-purple-400 border-purple-500/30", tip: "Phone/video screen scheduled or completed." },
+  { id: "offer", label: "Offer", color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30", tip: "Offer extended or in negotiation." },
 ] as const;
 
 function daysInStage(updatedAt: string): { days: number; label: string; color: string } {
@@ -53,8 +54,14 @@ const PipelineTab = ({ onNavigateToSearch }: PipelineTabProps) => {
     mutationFn: async ({ id, stage }: { id: string; stage: string }) => {
       const { error } = await supabase.from("pipeline").update({ stage, updated_at: new Date().toISOString() }).eq("id", id);
       if (error) throw error;
+      return { id, stage };
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["pipeline"] }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["pipeline"] });
+      const candidate = candidates.find((c: any) => c.id === variables.id);
+      const stageLabel = STAGES.find(s => s.id === variables.stage)?.label || variables.stage;
+      toast({ title: `Moved ${candidate?.name || candidate?.github_username || "candidate"} to ${stageLabel}` });
+    },
   });
 
   const removeMutation = useMutation({
@@ -100,6 +107,17 @@ const PipelineTab = ({ onNavigateToSearch }: PipelineTabProps) => {
           </div>
           <p className="font-display text-sm font-semibold text-foreground mb-1">No candidates in your pipeline yet</p>
           <p className="text-xs text-muted-foreground mb-4">Search for candidates and add them to start building your pipeline.</p>
+          {/* Visual stage flow */}
+          <div className="flex items-center gap-1.5 mb-5 flex-wrap justify-center">
+            {STAGES.map((stage, i) => (
+              <div key={stage.id} className="flex items-center gap-1.5">
+                <span className={`text-[10px] font-display font-semibold px-2 py-1 rounded-md border ${stage.color}`} title={stage.tip}>
+                  {stage.label}
+                </span>
+                {i < STAGES.length - 1 && <ArrowRight className="w-3 h-3 text-muted-foreground/40" />}
+              </div>
+            ))}
+          </div>
           {onNavigateToSearch && (
             <button onClick={onNavigateToSearch}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-display text-xs font-semibold hover:bg-primary/90 transition-colors">
@@ -119,7 +137,7 @@ const PipelineTab = ({ onNavigateToSearch }: PipelineTabProps) => {
               onDrop={() => handleDrop(stage.id)}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className={`text-xs font-display font-semibold px-2 py-1 rounded-md border ${stage.color}`}>
+                <span className={`text-xs font-display font-semibold px-2 py-1 rounded-md border ${stage.color}`} title={stage.tip}>
                   {stage.label}
                 </span>
                 <span className="text-xs font-display text-muted-foreground">{items.length}</span>
@@ -190,9 +208,12 @@ const PipelineTab = ({ onNavigateToSearch }: PipelineTabProps) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            removeMutation.mutate(c.id);
+                            if (window.confirm(`Remove ${c.name || c.github_username} from pipeline?`)) {
+                              removeMutation.mutate(c.id);
+                            }
                           }}
                           className="p-1 rounded text-muted-foreground hover:text-destructive transition-all"
+                          title="Remove from pipeline"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>

@@ -438,14 +438,35 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
         )}
 
         {!activeQuery && !expandedQuery && (
-          <div className="flex flex-wrap gap-2 mb-8 mt-4">
-            {DEFAULT_SUGGESTIONS.map((chip) => (
-              <button key={chip.label} onClick={() => handleChipClick(chip)} onDoubleClick={() => handleChipSubmit(chip)}
-                className="text-xs font-display px-3 py-1.5 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
-                title="Click to preview expanded query, double-click to search">
-                {chip.label}
-              </button>
-            ))}
+          <div className="space-y-4 mb-8 mt-4">
+            {/* Onboarding — shown until dismissed */}
+            {!localStorage.getItem("sourcekit-gs-onboarding-dismissed") && (
+              <div className="glass rounded-xl p-5 space-y-3 border border-primary/20 relative">
+                <button onClick={() => { localStorage.setItem("sourcekit-gs-onboarding-dismissed", "1"); window.dispatchEvent(new Event("storage")); }} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+                <h2 className="text-sm font-display font-semibold text-foreground">Find engineers by what they've built</h2>
+                <p className="text-xs text-muted-foreground leading-relaxed">SourceKit searches GitHub contributions to find candidates based on real code — not just resumes. Describe the engineer you need, review AI-scored results, then enrich and add to your pipeline.</p>
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                  <span className="px-2 py-0.5 rounded bg-secondary">Search</span>
+                  <ArrowRight className="h-3 w-3" />
+                  <span className="px-2 py-0.5 rounded bg-secondary">Review &amp; Score</span>
+                  <ArrowRight className="h-3 w-3" />
+                  <span className="px-2 py-0.5 rounded bg-secondary">Enrich &amp; Pipeline</span>
+                </div>
+              </div>
+            )}
+
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium font-display">Example searches — click to run</p>
+            <div className="flex flex-wrap gap-2">
+              {DEFAULT_SUGGESTIONS.map((chip) => (
+                <button key={chip.label} onClick={() => handleChipSubmit(chip)}
+                  className="text-xs font-display px-3 py-1.5 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                  title={chip.expandedQuery.substring(0, 100) + "..."}>
+                  {chip.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -721,10 +742,24 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
                 </div>
               ))}
               {results.length === 0 && (
-                <p className="text-center text-muted-foreground py-12 font-display text-sm">No results found. Try a different query.</p>
+                <div className="text-center py-12 space-y-4">
+                  <p className="font-display text-sm font-medium text-foreground">No engineers found</p>
+                  <div className="text-xs text-muted-foreground space-y-1 text-left max-w-sm mx-auto font-display">
+                    <p className="font-medium text-foreground/80">Tips to improve results:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Name specific repositories (e.g. "contributors to pytorch/pytorch")</li>
+                      <li>Use technology names instead of role titles</li>
+                      <li>Remove location filters to search globally</li>
+                      <li>Try the Research tab to generate an optimized search strategy</li>
+                    </ul>
+                  </div>
+                </div>
               )}
               {results.length > 0 && filtered.length === 0 && (
-                <p className="text-center text-muted-foreground py-12 font-display text-sm">No engineers match the current filters.</p>
+                <div className="text-center py-12 space-y-3">
+                  <p className="font-display text-sm text-foreground">No engineers match the current filters.</p>
+                  <p className="text-xs text-muted-foreground font-display">Try adjusting location, seniority, or skill filters above.</p>
+                </div>
               )}
             </div>
 

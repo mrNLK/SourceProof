@@ -126,7 +126,7 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
                 )}
               </div>
               {developer.hiddenGem && (
-                <span className="flex items-center gap-1 text-warning text-xs font-display">
+                <span className="flex items-center gap-1 text-warning text-xs font-display" title="Strong contributor with low visibility — often easier to recruit">
                   <Gem className="w-3 h-3" />
                   Hidden Gem
                 </span>
@@ -189,7 +189,7 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
             }`}>
               {developer.score}
             </div>
-            <span className="text-[10px] text-muted-foreground mt-1 font-display">SCORE</span>
+            <span className="text-[10px] text-muted-foreground mt-1 font-display" title="AI relevance score (0-100). Green 70+: strong match. Amber 40-69: moderate. Red <40: weak. Based on contributions, skills, and seniority.">SCORE</span>
           </div>
         </div>
       </button>

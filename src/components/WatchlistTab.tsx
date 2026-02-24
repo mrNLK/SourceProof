@@ -170,11 +170,17 @@ const WatchlistTab = ({ onNavigateToSearch }: WatchlistTabProps) => {
           <h2 className="font-display text-lg font-semibold text-foreground mb-1">
             {filterText ? "No matches" : "No candidates in this list"}
           </h2>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-3">
             {filterText
               ? "Try a different search term."
-              : "Star candidates from Search or Pipeline to add them here."}
+              : "Bookmark candidates from Search or Pipeline to track them for later."}
           </p>
+          {!filterText && (
+            <p className="text-xs text-muted-foreground/70 mb-4">
+              <span className="font-medium text-foreground/80">Watchlist</span> = tracking for later.{" "}
+              <span className="font-medium text-foreground/80">Pipeline</span> = active recruiting.
+            </p>
+          )}
           {!filterText && onNavigateToSearch && (
             <Button variant="outline" size="sm" onClick={onNavigateToSearch}>
               Go to Search

@@ -28,12 +28,12 @@ const STAGE_COLORS: Record<string, string> = {
   offer: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
 };
 
-const QUICK_ACTIONS: { id: string; label: string; icon: any; needsSelection: boolean; minSelection?: number; maxSelection?: number }[] = [
-  { id: "refine", label: "Refine Shortlist", icon: Sparkles, needsSelection: true },
-  { id: "outreach", label: "Draft Outreach", icon: MessageSquare, needsSelection: true },
-  { id: "insights", label: "Search Insights", icon: BarChart3, needsSelection: false },
-  { id: "brief", label: "Candidate Brief", icon: FileText, needsSelection: true, maxSelection: 5 },
-  { id: "compare", label: "Compare Selected", icon: GitCompare, needsSelection: true, minSelection: 2, maxSelection: 3 },
+const QUICK_ACTIONS: { id: string; label: string; tip: string; icon: any; needsSelection: boolean; minSelection?: number; maxSelection?: number }[] = [
+  { id: "refine", label: "Refine Shortlist", tip: "AI ranks selected candidates and suggests who to prioritize", icon: Sparkles, needsSelection: true },
+  { id: "outreach", label: "Draft Outreach", tip: "Generate personalized outreach messages for each candidate", icon: MessageSquare, needsSelection: true },
+  { id: "insights", label: "Search Insights", tip: "Analyze your full pipeline \u2014 skills gaps, stage distribution, trends", icon: BarChart3, needsSelection: false },
+  { id: "brief", label: "Candidate Brief", tip: "Create a summary brief for hiring managers (max 5)", icon: FileText, needsSelection: true, maxSelection: 5 },
+  { id: "compare", label: "Compare Selected", tip: "Side-by-side comparison of 2-3 candidates", icon: GitCompare, needsSelection: true, minSelection: 2, maxSelection: 3 },
 ];
 
 function getScoreColor(score: number) {
@@ -487,6 +487,7 @@ const BulkActionsTab = () => {
                   key={action.id}
                   onClick={() => handleQuickAction(action.id)}
                   disabled={!!disabled}
+                  title={action.tip}
                   className="flex items-center gap-1 text-[10px] font-display px-2 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <action.icon className="w-3 h-3" />
