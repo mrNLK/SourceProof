@@ -180,7 +180,7 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
           </div>
 
           {/* Score */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center shrink-0 z-10 relative">
             <div className={`w-11 h-11 rounded-lg flex items-center justify-center font-display text-sm font-bold ${
               developer.score >= 70 ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" :
               developer.score >= 40 ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" :
@@ -195,7 +195,7 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
       </button>
 
       {/* Action buttons */}
-      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+      <div className="absolute top-3 right-16 flex items-center gap-1.5 z-10">
         {/* Shortlist star */}
         {onToggleShortlist && (
           <button
