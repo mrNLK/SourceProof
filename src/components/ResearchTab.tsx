@@ -5,6 +5,8 @@ import {
   Pencil, Check, ChevronDown, ChevronUp, Copy, FileText, Link
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import UpgradeModal from "@/components/UpgradeModal";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -78,6 +80,7 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy }: ResearchTab
   const [editingQuery, setEditingQuery] = useState(false);
   const [localQuery, setLocalQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["query", "repos", "companies", "skills", "eea", "overview"]));
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const inputMode = state.inputMode || "manual";
 
@@ -98,11 +101,13 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy }: ResearchTab
 
   const fetchJdFromUrl = async (url: string): Promise<string> => {
     setLoadingStep("Fetching job description...");
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || SUPABASE_KEY;
     const res = await fetch(`${SUPABASE_URL}/functions/v1/parse-jd`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ url }),
@@ -155,11 +160,13 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy }: ResearchTab
         body.company_name = state.companyName;
       }
 
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const authToken = authSession?.access_token || SUPABASE_KEY;
       const res = await fetch(`${SUPABASE_URL}/functions/v1/research-role`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
@@ -168,6 +175,10 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy }: ResearchTab
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 402 || data.error === 'trial_limit_reached') {
+          setShowUpgrade(true);
+          return;
+        }
         throw new Error(data.error || `HTTP ${res.status}`);
       }
 
@@ -746,6 +757,7 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy }: ResearchTab
           )}
         </div>
       )}
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   );
 };
