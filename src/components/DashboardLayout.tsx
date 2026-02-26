@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Clock, Kanban, Bookmark, Settings, LogOut, Zap, Menu, X, Users, Microscope } from "lucide-react";
+import { Search, Clock, Kanban, Bookmark, Settings, LogOut, Zap, Menu, X, Users, Microscope, Sparkles } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,8 +13,8 @@ interface DashboardLayoutProps {
 }
 
 const NAV_ITEMS: { id: ActiveTab; label: string; icon: React.ElementType; tip: string }[] = [
-  { id: "search", label: "New Search", icon: Search, tip: "Search GitHub contributors and score candidates" },
-  { id: "research", label: "Research", icon: Microscope, tip: "Build a sourcing strategy from a role or job description" },
+  { id: "research", label: "New Search", icon: Sparkles, tip: "Build a sourcing strategy from a role or job description" },
+  { id: "search", label: "Results", icon: Search, tip: "View search results and score candidates" },
   { id: "history", label: "History", icon: Clock, tip: "Your past searches and research sessions" },
   { id: "pipeline", label: "Pipeline", icon: Kanban, tip: "Active recruiting funnel \u2014 candidates you're pursuing now" },
   { id: "watchlist", label: "Watchlist", icon: Bookmark, tip: "Tracking list for candidates to revisit later" },

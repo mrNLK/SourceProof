@@ -9,7 +9,7 @@ import SettingsTab from "@/components/SettingsTab";
 import ResearchTab, { type ResearchState } from "@/components/ResearchTab";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>("search");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("research");
   const [rerunQuery, setRerunQuery] = useState<string | undefined>();
   const [rerunExpanded, setRerunExpanded] = useState<string | undefined>();
   const [rerunKey, setRerunKey] = useState(0);
