@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { anthropicCall, anthropicToolCall } from "../_shared/anthropic.ts";
+import { checkSearchGate, incrementSearchCount } from "../_shared/gate.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,20 @@ serve(async (req) => {
   }
 
   try {
+    // Subscription gate check
+    const gate = await checkSearchGate(req.headers.get('Authorization'));
+    if (!gate.allowed) {
+      return new Response(JSON.stringify({ 
+        error: gate.error, 
+        upgrade: true,
+        searches_used: gate.searchesUsed,
+        search_limit: gate.searchLimit,
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { action, job_title, company_name, job_description } = await req.json();
 
     if (action !== 'start') {
@@ -157,6 +172,11 @@ I need:
     }
 
     const strategy = result.toolInput;
+
+    // Increment search count for gated users
+    if (gate.userId) {
+      await incrementSearchCount(gate.userId).catch(e => console.error('Failed to increment search count:', e));
+    }
 
     return new Response(JSON.stringify({
       strategy,

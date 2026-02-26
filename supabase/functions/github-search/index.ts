@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { anthropicCall } from "../_shared/anthropic.ts";
+import { checkSearchGate, incrementSearchCount } from "../_shared/gate.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -299,6 +300,20 @@ serve(async (req) => {
   }
 
   try {
+    // Subscription gate check
+    const gate = await checkSearchGate(req.headers.get('Authorization'));
+    if (!gate.allowed) {
+      return new Response(JSON.stringify({ 
+        error: gate.error, 
+        upgrade: true,
+        searches_used: gate.searchesUsed,
+        search_limit: gate.searchLimit,
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const url = new URL(req.url);
     const query = url.searchParams.get('q') || '';
 
@@ -352,6 +367,11 @@ serve(async (req) => {
       email: c.email,
       githubUrl: c.github_url,
     }));
+
+    // Increment search count for gated users
+    if (gate.userId) {
+      await incrementSearchCount(gate.userId).catch(e => console.error('Failed to increment search count:', e));
+    }
 
     return new Response(JSON.stringify({
       results,
