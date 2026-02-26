@@ -78,31 +78,38 @@ async function parseQuery(query: string): Promise<{ repos: { owner: string; name
   return { repos: [], skills: [query], location: null, seniority: null };
 }
 
-// Step 2: Fetch contributors from repos
+// Step 2: Fetch contributors from repos — PARALLEL
 async function fetchContributors(repos: { owner: string; name: string }[], skills: string[]): Promise<Map<string, { username: string; commitCounts: Record<string, number> }>> {
   const contributorMap = new Map<string, { username: string; commitCounts: Record<string, number> }>();
 
-  for (const repo of repos.slice(0, 6)) {
-    const repoFullName = `${repo.owner}/${repo.name}`;
-    try {
-      const contributors = await githubFetch(`${GITHUB_API}/repos/${repoFullName}/contributors?per_page=30`);
-      if (!contributors || !Array.isArray(contributors)) continue;
-
-      for (const c of contributors) {
-        if (c.type !== 'User') continue;
-        const existing = contributorMap.get(c.login);
-        if (existing) {
-          existing.commitCounts[repoFullName] = c.contributions;
-        } else {
-          contributorMap.set(c.login, {
-            username: c.login,
-            commitCounts: { [repoFullName]: c.contributions },
-          });
-        }
+  // Fetch all repos in parallel instead of sequentially
+  const repoResults = await Promise.all(
+    repos.slice(0, 6).map(async (repo) => {
+      const repoFullName = `${repo.owner}/${repo.name}`;
+      try {
+        const contributors = await githubFetch(`${GITHUB_API}/repos/${repoFullName}/contributors?per_page=30`);
+        return { repoFullName, contributors };
+      } catch (e) {
+        if ((e as Error).message === 'RATE_LIMITED') throw e;
+        console.error(`Error fetching contributors for ${repoFullName}:`, e);
+        return { repoFullName, contributors: null };
       }
-    } catch (e) {
-      if ((e as Error).message === 'RATE_LIMITED') throw e;
-      console.error(`Error fetching contributors for ${repoFullName}:`, e);
+    })
+  );
+
+  for (const { repoFullName, contributors } of repoResults) {
+    if (!contributors || !Array.isArray(contributors)) continue;
+    for (const c of contributors) {
+      if (c.type !== 'User') continue;
+      const existing = contributorMap.get(c.login);
+      if (existing) {
+        existing.commitCounts[repoFullName] = c.contributions;
+      } else {
+        contributorMap.set(c.login, {
+          username: c.login,
+          commitCounts: { [repoFullName]: c.contributions },
+        });
+      }
     }
   }
 
@@ -120,7 +127,7 @@ async function fetchContributors(repos: { owner: string; name: string }[], skill
   return contributorMap;
 }
 
-// Step 3: Enrich with profile data (with caching)
+// Step 3: Enrich with profile data (with caching) — PARALLEL profiles + BATCH upsert
 async function enrichCandidates(
   contributorMap: Map<string, { username: string; commitCounts: Record<string, number> }>,
   supabase: ReturnType<typeof createClient>
@@ -188,10 +195,10 @@ async function enrichCandidates(
   );
 
   const validProfiles = freshProfiles.filter(Boolean);
+
+  // Batch upsert instead of one-by-one
   if (validProfiles.length > 0) {
-    for (const p of validProfiles) {
-      await supabase.from('candidates').upsert(p as any, { onConflict: 'github_username' });
-    }
+    await supabase.from('candidates').upsert(validProfiles as any[], { onConflict: 'github_username' });
   }
 
   const allCandidates = [];
@@ -208,69 +215,79 @@ async function enrichCandidates(
   return allCandidates;
 }
 
-// Step 4: AI scoring and summarization
+// Step 4: AI scoring — larger batches + concurrent execution
 async function scoreCandidates(candidates: any[], query: string, parsedCriteria: any): Promise<any[]> {
   if (candidates.length === 0) return candidates;
 
-  const batchSize = 12;
-  const batches = [];
+  const batchSize = 25;
+  const batches: any[][] = [];
   for (let i = 0; i < candidates.length; i += batchSize) {
     batches.push(candidates.slice(i, i + batchSize));
   }
 
+  // Run scoring batches concurrently (up to 3 at a time)
+  const concurrency = 3;
   const allScored: any[] = [];
 
-  for (const batch of batches) {
-    const candidateInfo = batch.map((c: any) => ({
-      username: c.github_username,
-      name: c.name,
-      bio: c.bio,
-      location: c.location,
-      repos: c.public_repos,
-      followers: c.followers,
-      stars: c.stars,
-      languages: (c.top_languages || []).map((l: any) => l.name),
-      contributed_repos: c.contributed_repos,
-    }));
+  for (let i = 0; i < batches.length; i += concurrency) {
+    const chunk = batches.slice(i, i + concurrency);
+    const results = await Promise.all(
+      chunk.map(async (batch) => {
+        const candidateInfo = batch.map((c: any) => ({
+          username: c.github_username,
+          name: c.name,
+          bio: c.bio,
+          location: c.location,
+          repos: c.public_repos,
+          followers: c.followers,
+          stars: c.stars,
+          languages: (c.top_languages || []).map((l: any) => l.name),
+          contributed_repos: c.contributed_repos,
+        }));
 
-    try {
-      const text = await anthropicCall(
-        'You are a technical recruiting expert. Score and summarize these GitHub contributors for the role described. For each, return a JSON array (no markdown, no code fences): [{ "username": "string", "score": 0-100, "summary": "1 concise line mentioning repos and commit counts", "about": "2-3 sentences", "is_hidden_gem": true/false }]. Hidden gem = high contributions but under 500 followers.',
-        `Search query: "${query}"\nCriteria: ${JSON.stringify(parsedCriteria)}\n\nCandidates:\n${JSON.stringify(candidateInfo)}`
-      );
+        try {
+          const text = await anthropicCall(
+            'You are a technical recruiting expert. Score and summarize these GitHub contributors for the role described. For each, return a JSON array (no markdown, no code fences): [{ "username": "string", "score": 0-100, "summary": "1 concise line mentioning repos and commit counts", "about": "2-3 sentences", "is_hidden_gem": true/false }]. Hidden gem = high contributions but under 500 followers.',
+            `Search query: "${query}"\nCriteria: ${JSON.stringify(parsedCriteria)}\n\nCandidates:\n${JSON.stringify(candidateInfo)}`
+          );
 
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        const scored: any[] = JSON.parse(jsonMatch[0]);
-        for (const s of scored) {
-          const candidate = batch.find((c: any) => c.github_username === s.username);
-          if (candidate) {
-            candidate.score = s.score;
-            candidate.summary = s.summary;
-            candidate.about = s.about;
-            candidate.is_hidden_gem = s.is_hidden_gem;
+          const jsonMatch = text.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            const scored: any[] = JSON.parse(jsonMatch[0]);
+            for (const s of scored) {
+              const candidate = batch.find((c: any) => c.github_username === s.username);
+              if (candidate) {
+                candidate.score = s.score;
+                candidate.summary = s.summary;
+                candidate.about = s.about;
+                candidate.is_hidden_gem = s.is_hidden_gem;
+              }
+            }
           }
+        } catch (e) {
+          console.error('AI scoring error:', e);
         }
-      }
-    } catch (e) {
-      console.error('AI scoring error:', e);
-    }
 
-    allScored.push(...batch);
+        return batch;
+      })
+    );
+    allScored.push(...results.flat());
   }
 
-  // Update cache with AI scores
+  // Batch upsert AI scores
   const supabase = getSupabase();
-  for (const c of allScored) {
-    if (c.summary) {
-      await supabase.from('candidates').upsert({
-        github_username: c.github_username,
-        score: c.score,
-        summary: c.summary,
-        about: c.about,
-        is_hidden_gem: c.is_hidden_gem,
-      }, { onConflict: 'github_username' });
-    }
+  const toUpdate = allScored
+    .filter((c) => c.summary)
+    .map((c) => ({
+      github_username: c.github_username,
+      score: c.score,
+      summary: c.summary,
+      about: c.about,
+      is_hidden_gem: c.is_hidden_gem,
+    }));
+
+  if (toUpdate.length > 0) {
+    await supabase.from('candidates').upsert(toUpdate as any[], { onConflict: 'github_username' });
   }
 
   return allScored.sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -293,21 +310,23 @@ serve(async (req) => {
     }
 
     const supabase = getSupabase();
+    const t0 = Date.now();
 
     // Step 1: Parse query with AI
     const parsedCriteria = await parseQuery(query);
-    console.log('Parsed criteria:', parsedCriteria);
+    console.log(`[${Date.now() - t0}ms] Parsed criteria:`, parsedCriteria);
 
-    // Step 2: Fetch contributors from identified repos
+    // Step 2: Fetch contributors from identified repos (parallel)
     const contributorMap = await fetchContributors(parsedCriteria.repos, parsedCriteria.skills);
-    console.log(`Found ${contributorMap.size} contributors`);
+    console.log(`[${Date.now() - t0}ms] Found ${contributorMap.size} contributors`);
 
-    // Step 3: Enrich with profiles (with caching)
+    // Step 3: Enrich with profiles (with caching + batch upsert)
     const candidates = await enrichCandidates(contributorMap, supabase);
-    console.log(`Enriched ${candidates.length} candidates`);
+    console.log(`[${Date.now() - t0}ms] Enriched ${candidates.length} candidates`);
 
-    // Step 4: AI scoring
+    // Step 4: AI scoring (batch size 25, concurrent)
     const scored = await scoreCandidates(candidates, query, parsedCriteria);
+    console.log(`[${Date.now() - t0}ms] Scored ${scored.length} candidates`);
 
     // Format response
     const results = scored.map((c: any) => ({
