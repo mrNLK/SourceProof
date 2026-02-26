@@ -4,12 +4,15 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 async function invokeFunction(name: string, params?: Record<string, string>, body?: Record<string, any>) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token || SUPABASE_KEY;
+
   const query = params ? `?${new URLSearchParams(params).toString()}` : '';
   const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}${query}`, {
     method: body ? 'POST' : 'GET',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -18,6 +21,9 @@ async function invokeFunction(name: string, params?: Record<string, string>, bod
     const err = await res.json().catch(() => ({ error: 'Request failed' }));
     if (res.status === 429 || err.rateLimited) {
       throw new Error('RATE_LIMITED');
+    }
+    if (res.status === 402 || err.error === 'trial_limit_reached') {
+      throw new Error('TRIAL_LIMIT_REACHED');
     }
     throw new Error(err.error || `HTTP ${res.status}`);
   }

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Search, Clock, Kanban, Bookmark, Settings, LogOut, Zap, Menu, X, Users, Microscope, Sparkles } from "lucide-react";
+import { Search, Clock, Kanban, Bookmark, Settings, LogOut, Zap, Menu, X, Users, Microscope, Sparkles, Crown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
 
 export type ActiveTab = "search" | "research" | "history" | "pipeline" | "watchlist" | "bulk" | "settings";
 
@@ -26,6 +28,7 @@ const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutPr
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { count: watchlistCount } = useWatchlist();
+  const { subscription } = useSubscription();
 
   const handleNav = (tab: ActiveTab) => {
     onTabChange(tab);
@@ -70,6 +73,36 @@ const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutPr
           );
         })}
       </nav>
+
+      {/* Usage indicator */}
+      {subscription && (
+        <div className="px-4 pb-3">
+          {subscription.plan === 'pro' ? (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+              <Crown className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-display font-semibold text-primary">Pro</span>
+            </div>
+          ) : (
+            <div className="px-3 py-2.5 rounded-lg bg-secondary border border-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className={`text-[11px] font-display font-medium ${
+                  subscription.searches_remaining !== null && subscription.searches_remaining <= 0
+                    ? 'text-destructive'
+                    : subscription.searches_remaining !== null && subscription.searches_remaining <= 3
+                      ? 'text-warning'
+                      : 'text-muted-foreground'
+                }`}>
+                  {subscription.searches_used} / {subscription.search_limit ?? 10} searches
+                </span>
+              </div>
+              <Progress
+                value={(subscription.searches_used / (subscription.search_limit ?? 10)) * 100}
+                className="h-1.5"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Bottom section */}
       <div className="border-t border-border px-3 py-4 space-y-2">

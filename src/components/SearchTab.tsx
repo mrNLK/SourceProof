@@ -6,6 +6,7 @@ import { searchDevelopers, enrichLinkedIn } from "@/lib/api";
 import DeveloperCard from "@/components/DeveloperCard";
 import CandidateSlideOut from "@/components/CandidateSlideOut";
 import ExportButton from "@/components/ExportButton";
+import UpgradeModal from "@/components/UpgradeModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
 import type { Developer } from "@/types/developer";
@@ -102,6 +103,7 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
 
   // Slide-out
   const [slideOutDev, setSlideOutDev] = useState<Developer | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   // Additional filters
   const [languageFilter, setLanguageFilter] = useState(sf.language || "");
@@ -670,11 +672,21 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
         {error && (
           <div className="glass rounded-xl p-6 text-center">
             <p className="text-destructive font-display text-sm mb-2">
-              {(error as Error).message === 'RATE_LIMITED' ? '⚡ GitHub API rate limit reached' : 'Failed to search GitHub'}
+              {(error as Error).message === 'RATE_LIMITED' ? '⚡ GitHub API rate limit reached' :
+               (error as Error).message === 'TRIAL_LIMIT_REACHED' ? '🔒 Trial limit reached' :
+               'Failed to search GitHub'}
             </p>
             <p className="text-muted-foreground text-xs">
-              {(error as Error).message === 'RATE_LIMITED' ? 'Please wait a few minutes and try again.' : (error as Error).message}
+              {(error as Error).message === 'RATE_LIMITED' ? 'Please wait a few minutes and try again.' :
+               (error as Error).message === 'TRIAL_LIMIT_REACHED' ? 'You\'ve used all 10 free searches.' :
+               (error as Error).message}
             </p>
+            {(error as Error).message === 'TRIAL_LIMIT_REACHED' && (
+              <button onClick={() => setShowUpgrade(true)}
+                className="mt-3 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-display text-xs font-semibold hover:bg-primary/90 transition-colors">
+                Upgrade to Pro
+              </button>
+            )}
           </div>
         )}
 
@@ -812,6 +824,8 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
       {slideOutDev && (
         <CandidateSlideOut developer={slideOutDev} onClose={() => setSlideOutDev(null)} />
       )}
+
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   );
 };
