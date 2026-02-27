@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { Search as SearchIcon, EyeOff, Eye, AlertCircle, Gem, ChevronDown } from 'lucide-react'
+import { Search as SearchIcon, EyeOff, Eye, AlertCircle, Gem, ChevronDown, Download } from 'lucide-react'
 import { SearchForm } from '@/components/search/SearchForm'
 import { CandidateCard } from '@/components/search/CandidateCard'
 import { FilterBar } from '@/components/search/FilterBar'
@@ -10,11 +10,20 @@ import { useSearchHistory } from '@/hooks/useSearchHistory'
 import { useSettings } from '@/hooks/useSettings'
 import { searchGitHubUsers, fetchGitHubProfile } from '@/services/github'
 import { searchCandidatesViaExa, searchGitHubContributors } from '@/services/edgeFunctions'
-import { parseSignals } from '@/lib/scoring'
+import { parseSignals, calculateScore } from '@/lib/scoring'
 import { captureException } from '@/lib/sentry'
 import { track } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
+import { exportToCSV } from '@/services/export'
 import type { Candidate, SearchQuery, SourceType } from '@/types'
+
+const QUICK_START_CHIPS: Array<{ label: string; query: string }> = [
+  { label: 'Rust systems engineers', query: 'Rust systems engineers contributing to tokio or hyper' },
+  { label: 'React accessibility experts', query: 'React accessibility experts working on reach-ui or radix' },
+  { label: 'ML infrastructure', query: 'ML infrastructure engineers contributing to pytorch or ray' },
+  { label: 'Kubernetes contributors', query: 'Kubernetes contributors working on helm or istio' },
+  { label: 'Security researchers', query: 'Security researchers contributing to OWASP or security tools' },
+]
 
 type SeniorityFilter = 'any' | 'junior' | 'mid' | 'senior'
 type MinScoreFilter = 0 | 30 | 50 | 70 | 80
@@ -66,6 +75,9 @@ function loadHidePipelined(): boolean {
   }
 }
 
+// Batch size for background GitHub profile fetching to avoid rate limits
+const PROFILE_BATCH_SIZE = 5
+
 export function SearchPage() {
   const [results, setResults] = useState<Candidate[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -81,6 +93,51 @@ export function SearchPage() {
   const { addCandidate, allCandidates } = useCandidates()
   const { history, addEntry, removeEntry, clearHistory } = useSearchHistory()
   const { settings } = useSettings()
+
+  // Background enrichment: fetch GitHub profiles and recalculate scores
+  const enrichWithGitHubProfiles = useCallback(async (candidates: Candidate[], token?: string) => {
+    const batches: Candidate[][] = []
+    for (let i = 0; i < candidates.length; i += PROFILE_BATCH_SIZE) {
+      batches.push(candidates.slice(i, i + PROFILE_BATCH_SIZE))
+    }
+
+    for (const batch of batches) {
+      const settled = await Promise.allSettled(
+        batch.map(c => fetchGitHubProfile(c.github_handle!, token))
+      )
+
+      setResults(prev => {
+        const updated = [...prev]
+        for (let i = 0; i < batch.length; i++) {
+          const result = settled[i]
+          if (result.status !== 'fulfilled') continue
+          const profile = result.value
+          const idx = updated.findIndex(c => c.id === batch[i].id)
+          if (idx === -1) continue
+          const candidate = { ...updated[idx], github_profile: profile }
+          // Re-parse signals from full profile bio + repo descriptions
+          const bioText = `${profile.bio || ''} ${profile.repositories.map(r => r.description || '').join(' ')}`
+          const profileSignals = parseSignals(bioText)
+          // Merge signals: keep existing, add new unique ones
+          const existingTypes = new Set(candidate.signals.map(s => `${s.type}:${s.label}`))
+          for (const sig of profileSignals) {
+            if (!existingTypes.has(`${sig.type}:${sig.label}`)) {
+              candidate.signals.push(sig)
+            }
+          }
+          candidate.score = calculateScore(candidate)
+          updated[idx] = candidate
+        }
+        // Re-sort by score
+        updated.sort((a, b) => b.score - a.score)
+        // Update localStorage cache
+        try {
+          localStorage.setItem('sourcekit_last_search_results', JSON.stringify(updated))
+        } catch { /* non-critical */ }
+        return updated
+      })
+    }
+  }, [])
 
   const handleSearch = useCallback(async (query: SearchQuery) => {
     setIsLoading(true)
@@ -224,7 +281,8 @@ export function SearchPage() {
           r => r.name.toLowerCase() === query.name!.toLowerCase()
         )
         if (!exists) {
-          const signals = parseSignals(`${query.name} ${query.company} ${query.role || ''}`)
+          // Only parse signals from candidate's own data (name + company), not the search query role
+          const signals = parseSignals(`${query.name} ${query.company}`)
           addResult({
             id: crypto.randomUUID(),
             name: query.name,
@@ -242,6 +300,13 @@ export function SearchPage() {
         }
       }
 
+      // Calculate scores from signals for all results
+      for (const c of newResults) {
+        c.score = calculateScore(c)
+      }
+      // Sort by score descending
+      newResults.sort((a, b) => b.score - a.score)
+
       setResults(newResults)
       // Cache results for Bulk Actions page
       try {
@@ -249,6 +314,12 @@ export function SearchPage() {
       } catch { /* quota exceeded — non-critical */ }
       addEntry(query, newResults.length)
       track('search_executed', { result_count: newResults.length, has_github: Boolean(query.github_handle), has_capability: Boolean(query.capability_query) })
+
+      // Background: fetch GitHub profiles for candidates with github_handle but no profile
+      const needsProfile = newResults.filter(c => c.github_handle && !c.github_profile)
+      if (needsProfile.length > 0) {
+        enrichWithGitHubProfiles(needsProfile, settings.github_token || undefined)
+      }
 
       if (errors.length > 0) {
         setSearchError(errors.join('. '))
@@ -259,7 +330,7 @@ export function SearchPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [settings.github_token, addEntry])
+  }, [settings.github_token, addEntry, enrichWithGitHubProfiles])
 
   const handleSave = useCallback((candidate: Candidate) => {
     addCandidate(candidate)
@@ -441,9 +512,18 @@ export function SearchPage() {
 
       {filteredResults.length > 0 && (
         <div className="space-y-3 px-4 py-2">
-          <p className="text-xs text-muted-foreground">
-            Showing {filteredResults.length} of {totalFound} engineer{totalFound !== 1 ? 's' : ''}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Showing {filteredResults.length} of {totalFound} engineer{totalFound !== 1 ? 's' : ''}
+            </p>
+            <button
+              onClick={() => exportToCSV(filteredResults)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Download className="w-3 h-3" />
+              Export CSV
+            </button>
+          </div>
           {filteredResults.map(candidate => (
             <CandidateCard
               key={candidate.id}
@@ -457,12 +537,34 @@ export function SearchPage() {
       )}
 
       {!hasSearched && (
-        <SearchHistory
-          history={history}
-          onRerun={handleSearch}
-          onDelete={removeEntry}
-          onClear={clearHistory}
-        />
+        <>
+          {/* Quick Start Chips */}
+          <div className="px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-2">Quick start — click to preview, double-click to search:</p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_START_CHIPS.map(chip => (
+                <button
+                  key={chip.label}
+                  onClick={() => {
+                    // Single click: fill the search with expanded query (preview)
+                    handleSearch({ capability_query: chip.query })
+                  }}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  title={chip.query}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <SearchHistory
+            history={history}
+            onRerun={handleSearch}
+            onDelete={removeEntry}
+            onClear={clearHistory}
+          />
+        </>
       )}
     </div>
   )

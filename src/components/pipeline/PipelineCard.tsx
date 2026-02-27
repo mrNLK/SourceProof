@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, MessageSquare, Trash2, Hash, X, Send, ArrowUpRight, Bookmark, BookmarkCheck, GripVertical } from 'lucide-react'
+import { ChevronDown, MessageSquare, Trash2, Hash, X, Send, ArrowUpRight, Bookmark, BookmarkCheck, GripVertical, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AvailabilityBadge } from '@/components/ui/AvailabilityBadge'
@@ -16,6 +16,14 @@ const STAGES: Array<{ value: CandidateStage; label: string; color: string }> = [
   { value: 'offer', label: 'Offer', color: 'text-green-400' },
 ]
 
+function getTimeInStage(candidate: Candidate): { days: number; color: string; label: string } {
+  const stageDate = candidate.updated_at || candidate.created_at
+  const days = Math.floor((Date.now() - new Date(stageDate).getTime()) / (1000 * 60 * 60 * 24))
+  if (days <= 3) return { days, color: 'text-green-400', label: `${days}d` }
+  if (days <= 7) return { days, color: 'text-amber-400', label: `${days}d` }
+  return { days, color: 'text-red-400', label: `${days}d` }
+}
+
 interface PipelineCardProps {
   candidate: Candidate
   onUpdateStage: (id: string, stage: CandidateStage) => void
@@ -26,6 +34,7 @@ interface PipelineCardProps {
   onGenerateOutreach: (candidate: Candidate) => void
   onToggleWatchlist?: (id: string) => void
   isWatchlisted?: boolean
+  compact?: boolean
 }
 
 export function PipelineCard({
@@ -38,6 +47,7 @@ export function PipelineCard({
   onGenerateOutreach,
   onToggleWatchlist,
   isWatchlisted = false,
+  compact = false,
 }: PipelineCardProps) {
   const [showStages, setShowStages] = useState(false)
   const [notes, setNotes] = useState(candidate.notes)
@@ -46,6 +56,7 @@ export function PipelineCard({
   const tagInputRef = useRef<HTMLInputElement>(null)
 
   const currentStage = STAGES.find(s => s.value === candidate.stage) || STAGES[0]
+  const timeInStage = getTimeInStage(candidate)
 
   const handleNotesBlur = () => {
     if (notes !== candidate.notes) {
@@ -69,6 +80,90 @@ export function PipelineCard({
     .toUpperCase()
     .slice(0, 2)
 
+  // Compact card for Kanban board view
+  if (compact) {
+    return (
+      <Card className="cursor-grab active:cursor-grabbing hover:border-primary/30 transition-colors">
+        <CardContent className="p-3">
+          <div className="flex items-start gap-2">
+            <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 mt-0.5" />
+            {/* Avatar */}
+            {candidate.avatar_url ? (
+              <img
+                src={candidate.avatar_url}
+                alt={candidate.name}
+                className="w-8 h-8 rounded-full object-cover border border-border shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <span className="text-[10px] font-medium text-muted-foreground">{initials}</span>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1">
+                <h4 className="text-sm font-semibold text-foreground truncate">{candidate.name}</h4>
+                <div className="flex items-center gap-1 shrink-0">
+                  {candidate.score > 0 && (
+                    <span className={cn(
+                      'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold font-mono',
+                      candidate.score >= 80
+                        ? 'bg-green-500/20 text-green-400'
+                        : candidate.score >= 60
+                          ? 'bg-amber-500/20 text-amber-400'
+                          : 'bg-zinc-500/20 text-zinc-400'
+                    )}>
+                      {candidate.score}
+                    </span>
+                  )}
+                  <span className={cn('flex items-center gap-0.5 text-[10px]', timeInStage.color)} title={`${timeInStage.days} day${timeInStage.days !== 1 ? 's' : ''} in stage`}>
+                    <Clock className="w-2.5 h-2.5" />
+                    {timeInStage.label}
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                {candidate.role || 'Engineer'}{candidate.company ? ` @ ${candidate.company}` : ''}
+              </p>
+              {/* Tags */}
+              {candidate.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {candidate.tags.slice(0, 2).map(tag => (
+                    <span key={tag} className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-mono">
+                      #{tag}
+                    </span>
+                  ))}
+                  {candidate.tags.length > 2 && (
+                    <span className="text-[10px] text-muted-foreground">+{candidate.tags.length - 2}</span>
+                  )}
+                </div>
+              )}
+              {/* Compact actions */}
+              <div className="flex items-center gap-1 mt-2">
+                <Link to={`/profile/${candidate.id}`}>
+                  <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px]">
+                    <ArrowUpRight className="w-3 h-3" />
+                  </Button>
+                </Link>
+                <Button size="sm" variant="ghost" onClick={() => onGenerateOutreach(candidate)} className="h-6 px-1.5 text-[10px]">
+                  <Send className="w-3 h-3" />
+                </Button>
+                {onToggleWatchlist && (
+                  <Button size="sm" variant="ghost" onClick={() => onToggleWatchlist(candidate.id)} className="h-6 px-1.5">
+                    {isWatchlisted ? <BookmarkCheck className="w-3 h-3 text-primary" /> : <Bookmark className="w-3 h-3" />}
+                  </Button>
+                )}
+                <Button size="sm" variant="ghost" onClick={() => onDelete(candidate.id)} className="h-6 px-1.5 text-muted-foreground hover:text-destructive ml-auto">
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Full card for List view
   return (
     <Card className="cursor-grab active:cursor-grabbing">
       <CardContent className="p-4">
@@ -113,6 +208,11 @@ export function PipelineCard({
                     </span>
                   )}
                   <AvailabilityBadge candidate={candidate} compact />
+                  {/* Time in stage indicator */}
+                  <span className={cn('flex items-center gap-0.5 text-[10px]', timeInStage.color)} title={`${timeInStage.days} day${timeInStage.days !== 1 ? 's' : ''} in stage`}>
+                    <Clock className="w-3 h-3" />
+                    {timeInStage.label}
+                  </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {candidate.role || 'Engineer'} @ {candidate.company}

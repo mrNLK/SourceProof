@@ -40,6 +40,18 @@ const TOP_UNIVERSITIES = [
   'university of illinois', 'uiuc', 'university of michigan',
 ]
 
+// Proper display names for universities (acronyms should stay uppercase)
+const UNIVERSITY_DISPLAY: Record<string, string> = {
+  'mit': 'MIT',
+  'cmu': 'CMU',
+  'uiuc': 'UIUC',
+  'eth zurich': 'ETH Zurich',
+}
+
+function formatUniversityLabel(uni: string): string {
+  return UNIVERSITY_DISPLAY[uni] || uni.replace(/\b\w/g, c => c.toUpperCase())
+}
+
 export function calculateScore(candidate: Candidate): number {
   let score = 0
   const signals = candidate.signals || []
@@ -137,7 +149,7 @@ export function parseSignals(text: string): Signal[] {
   // University detection
   for (const uni of TOP_UNIVERSITIES) {
     if (lower.includes(uni)) {
-      signals.push({ type: 'university', label: uni.replace(/\b\w/g, c => c.toUpperCase()) })
+      signals.push({ type: 'university', label: formatUniversityLabel(uni) })
     }
   }
 

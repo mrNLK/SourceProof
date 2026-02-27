@@ -1,6 +1,5 @@
-import { useState, useCallback } from 'react'
-import { GitBranch, Download, Share2, ArrowUpDown, AlertCircle, CheckCircle2, Info } from 'lucide-react'
-import { StageFilter } from '@/components/pipeline/StageFilter'
+import { useState, useCallback, useRef, useMemo } from 'react'
+import { GitBranch, Download, Share2, AlertCircle, CheckCircle2, Info, Columns3, List } from 'lucide-react'
 import { TagFilter } from '@/components/pipeline/TagFilter'
 import { PipelineCard } from '@/components/pipeline/PipelineCard'
 import { OutreachModal } from '@/components/pipeline/OutreachModal'
@@ -14,19 +13,23 @@ import { exportToCSV, exportToJSON, shareToSlack } from '@/services/export'
 import { generateOutreach } from '@/services/outreach'
 import { captureException } from '@/lib/sentry'
 import { track } from '@/lib/analytics'
-import type { Candidate } from '@/types'
+import { cn } from '@/lib/utils'
+import type { Candidate, CandidateStage } from '@/types'
+
+const STAGES: Array<{ value: CandidateStage; label: string; color: string; bgColor: string; borderColor: string }> = [
+  { value: 'sourced', label: 'Sourced', color: 'text-blue-400', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/30' },
+  { value: 'contacted', label: 'Contacted', color: 'text-amber-400', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/30' },
+  { value: 'responded', label: 'Responded', color: 'text-sky-400', bgColor: 'bg-sky-500/10', borderColor: 'border-sky-500/30' },
+  { value: 'screen', label: 'Screen', color: 'text-purple-400', bgColor: 'bg-purple-500/10', borderColor: 'border-purple-500/30' },
+  { value: 'offer', label: 'Offer', color: 'text-green-400', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/30' },
+]
 
 export function PipelinePage() {
   const {
-    candidates,
-    stageCounts,
+    allCandidates,
     allTags,
-    stageFilter,
-    setStageFilter,
     tagFilter,
     setTagFilter,
-    sortByScore,
-    setSortByScore,
     saveError,
     updateStage,
     updateNotes,
@@ -44,11 +47,34 @@ export function PipelinePage() {
   const [outreachLoading, setOutreachLoading] = useState(false)
   const [outreachSource, setOutreachSource] = useState<'ai' | 'template' | null>(null)
   const [notice, setNotice] = useState<{ type: 'error' | 'success' | 'info'; message: string } | null>(null)
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
+  const [dragOverStage, setDragOverStage] = useState<CandidateStage | null>(null)
+  const draggedIdRef = useRef<string | null>(null)
 
   const showNotice = useCallback((type: 'error' | 'success' | 'info', message: string) => {
     setNotice({ type, message })
     setTimeout(() => setNotice(null), 4000)
   }, [])
+
+  // Filter candidates by tag
+  const candidates = useMemo(() => {
+    return allCandidates.filter(c => tagFilter.length === 0 || tagFilter.some(t => c.tags.includes(t)))
+  }, [allCandidates, tagFilter])
+
+  // Group candidates by stage for Kanban view
+  const candidatesByStage = useMemo(() => {
+    const grouped: Record<CandidateStage, Candidate[]> = {
+      sourced: [],
+      contacted: [],
+      responded: [],
+      screen: [],
+      offer: [],
+    }
+    for (const c of candidates) {
+      grouped[c.stage]?.push(c)
+    }
+    return grouped
+  }, [candidates])
 
   const handleGenerateOutreach = useCallback(async (candidate: Candidate) => {
     setOutreachCandidate(candidate)
@@ -115,14 +141,43 @@ export function PipelinePage() {
     }
   }
 
-  return (
-    <div className="flex flex-col">
-      <StageFilter
-        activeStage={stageFilter}
-        onStageChange={setStageFilter}
-        counts={stageCounts}
-      />
+  // Drag and drop handlers
+  const handleDragStart = useCallback((candidateId: string) => {
+    draggedIdRef.current = candidateId
+  }, [])
 
+  const handleDragOver = useCallback((e: React.DragEvent, stage: CandidateStage) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverStage(stage)
+  }, [])
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverStage(null)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent, targetStage: CandidateStage) => {
+    e.preventDefault()
+    setDragOverStage(null)
+    const candidateId = draggedIdRef.current
+    if (!candidateId) return
+    draggedIdRef.current = null
+
+    const candidate = allCandidates.find(c => c.id === candidateId)
+    if (candidate && candidate.stage !== targetStage) {
+      updateStage(candidateId, targetStage)
+      track('pipeline_stage_changed', { from: candidate.stage, to: targetStage, method: 'drag' })
+    }
+  }, [allCandidates, updateStage])
+
+  const handleDragEnd = useCallback(() => {
+    draggedIdRef.current = null
+    setDragOverStage(null)
+  }, [])
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Tag Filter */}
       <TagFilter
         allTags={allTags}
         activeTags={tagFilter}
@@ -159,18 +214,29 @@ export function PipelinePage() {
       {/* Toolbar */}
       <div className="flex items-center justify-between px-3 sm:px-4 py-2">
         <span className="text-xs sm:text-sm text-muted-foreground">
-          {candidates.length} candidate{candidates.length !== 1 ? 's' : ''}
+          {allCandidates.length} candidate{allCandidates.length !== 1 ? 's' : ''}
         </span>
         <div className="flex items-center gap-1 sm:gap-2">
-          <Button
-            size="sm"
-            variant={sortByScore ? 'secondary' : 'ghost'}
-            onClick={() => setSortByScore(!sortByScore)}
-            className="gap-1 px-2 sm:px-3"
-          >
-            <ArrowUpDown className="w-3 h-3" />
-            <span className="hidden sm:inline">Score</span>
-          </Button>
+          <div className="flex items-center bg-secondary rounded-lg p-0.5">
+            <Button
+              size="sm"
+              variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('kanban')}
+              className="gap-1 px-2 h-7"
+            >
+              <Columns3 className="w-3 h-3" />
+              <span className="hidden sm:inline text-xs">Board</span>
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('list')}
+              className="gap-1 px-2 h-7"
+            >
+              <List className="w-3 h-3" />
+              <span className="hidden sm:inline text-xs">List</span>
+            </Button>
+          </div>
           <Button size="sm" variant="ghost" onClick={() => handleExport('csv')} className="gap-1 px-2 sm:px-3">
             <Download className="w-3 h-3" />
             <span className="hidden sm:inline">CSV</span>
@@ -186,13 +252,85 @@ export function PipelinePage() {
         </div>
       </div>
 
-      {candidates.length === 0 ? (
+      {allCandidates.length === 0 ? (
         <EmptyState
           icon={GitBranch}
           title="Pipeline is empty"
           description="Save candidates from Search to start building your pipeline"
         />
+      ) : viewMode === 'kanban' ? (
+        /* Kanban Board View */
+        <div className="flex-1 overflow-x-auto px-3 sm:px-4 pb-4">
+          <div className="flex gap-3 min-w-max">
+            {STAGES.map(stage => {
+              const stageCandidates = candidatesByStage[stage.value]
+              const isDragOver = dragOverStage === stage.value
+              return (
+                <div
+                  key={stage.value}
+                  className={cn(
+                    'w-72 flex flex-col rounded-xl border transition-colors',
+                    isDragOver
+                      ? `${stage.borderColor} ${stage.bgColor}`
+                      : 'border-border bg-secondary/30'
+                  )}
+                  onDragOver={(e) => handleDragOver(e, stage.value)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, stage.value)}
+                >
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between px-3 py-2.5 border-b border-border">
+                    <div className="flex items-center gap-2">
+                      <div className={cn('w-2.5 h-2.5 rounded-full', stage.bgColor.replace('/10', ''))} />
+                      <span className={cn('text-sm font-semibold', stage.color)}>{stage.label}</span>
+                    </div>
+                    <span className={cn(
+                      'text-xs font-mono px-1.5 py-0.5 rounded-full',
+                      stageCandidates.length > 0
+                        ? `${stage.bgColor} ${stage.color}`
+                        : 'bg-secondary text-muted-foreground'
+                    )}>
+                      {stageCandidates.length}
+                    </span>
+                  </div>
+
+                  {/* Column Body */}
+                  <div className="flex-1 p-2 space-y-2 min-h-[120px] max-h-[calc(100vh-220px)] overflow-y-auto">
+                    {stageCandidates.length === 0 ? (
+                      <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/50">
+                        Drop here
+                      </div>
+                    ) : (
+                      stageCandidates.map(candidate => (
+                        <div
+                          key={candidate.id}
+                          draggable
+                          onDragStart={() => handleDragStart(candidate.id)}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <PipelineCard
+                            candidate={candidate}
+                            onUpdateStage={updateStage}
+                            onUpdateNotes={updateNotes}
+                            onAddTag={addTag}
+                            onRemoveTag={removeTag}
+                            onDelete={deleteCandidate}
+                            onGenerateOutreach={handleGenerateOutreach}
+                            onToggleWatchlist={toggleWatchlist}
+                            isWatchlisted={isWatchlisted(candidate.id)}
+                            compact
+                          />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       ) : (
+        /* List View (original layout) */
         <div className="space-y-3 px-3 sm:px-4 pb-4">
           {candidates.map(candidate => (
             <PipelineCard
