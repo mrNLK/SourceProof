@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react'
-import { Search as SearchIcon, EyeOff, Eye, AlertCircle } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
+import { toast } from 'sonner'
+import { Search as SearchIcon, EyeOff, Eye, AlertCircle, ArrowUpDown } from 'lucide-react'
 import { SearchForm } from '@/components/search/SearchForm'
 import { CandidateCard } from '@/components/search/CandidateCard'
 import { FilterBar } from '@/components/search/FilterBar'
@@ -29,6 +30,7 @@ export function SearchPage() {
   const [hasSearched, setHasSearched] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
   const [hidePipelined, setHidePipelined] = useState(loadHidePipelined)
+  const [sortBy, setSortBy] = useState<'default' | 'stars' | 'followers' | 'repos'>('default')
 
   const { addCandidate, allCandidates } = useCandidates()
   const { history, addEntry, removeEntry, clearHistory } = useSearchHistory()
@@ -150,6 +152,7 @@ export function SearchPage() {
 
   const handleSave = useCallback((candidate: Candidate) => {
     addCandidate(candidate)
+    toast.success(`${candidate.name} added to pipeline`)
     track('candidate_pipelined', { source: candidate.source })
   }, [addCandidate])
 
@@ -159,6 +162,11 @@ export function SearchPage() {
            c.company.toLowerCase() === candidate.company.toLowerCase()
     )
   }, [allCandidates])
+
+  const handleDismiss = useCallback((candidate: Candidate) => {
+    setResults(prev => prev.filter(r => r.id !== candidate.id))
+    toast(`${candidate.name} removed from results`)
+  }, [])
 
   const toggleHidePipelined = useCallback(() => {
     setHidePipelined(prev => {
@@ -176,9 +184,27 @@ export function SearchPage() {
     ? sourceFiltered.filter(r => isSaved(r)).length
     : 0
 
-  const filteredResults = hidePipelined
+  const filteredUnsorted = hidePipelined
     ? sourceFiltered.filter(r => !isSaved(r))
     : sourceFiltered
+
+  const filteredResults = useMemo(() => {
+    if (sortBy === 'default') return filteredUnsorted
+    return [...filteredUnsorted].sort((a, b) => {
+      const gpA = a.github_profile
+      const gpB = b.github_profile
+      switch (sortBy) {
+        case 'stars':
+          return (gpB?.repositories.reduce((s, r) => s + r.stars, 0) || 0) - (gpA?.repositories.reduce((s, r) => s + r.stars, 0) || 0)
+        case 'followers':
+          return (gpB?.followers || 0) - (gpA?.followers || 0)
+        case 'repos':
+          return (gpB?.public_repos || 0) - (gpA?.public_repos || 0)
+        default:
+          return 0
+      }
+    })
+  }, [filteredUnsorted, sortBy])
 
   const sourceCounts = results.reduce((acc, r) => {
     acc[r.source] = (acc[r.source] || 0) + 1
@@ -236,11 +262,33 @@ export function SearchPage() {
 
       {filteredResults.length > 0 && (
         <div className="space-y-3 px-4 py-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {filteredResults.length === results.length
+                ? `${results.length} result${results.length !== 1 ? 's' : ''}`
+                : `${filteredResults.length} of ${results.length} results`}
+              {pipelinedCount > 0 && ` (${pipelinedCount} hidden)`}
+            </p>
+            <div className="flex items-center gap-1">
+              <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as typeof sortBy)}
+                className="text-xs bg-transparent text-muted-foreground border-none focus:outline-none cursor-pointer"
+              >
+                <option value="default">Default</option>
+                <option value="stars">Stars</option>
+                <option value="followers">Followers</option>
+                <option value="repos">Repos</option>
+              </select>
+            </div>
+          </div>
           {filteredResults.map(candidate => (
             <CandidateCard
               key={candidate.id}
               candidate={candidate}
               onSave={handleSave}
+              onDismiss={handleDismiss}
               saved={isSaved(candidate)}
               showScore={false}
             />

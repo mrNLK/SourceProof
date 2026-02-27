@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { ChevronDown, MessageSquare, Trash2, Hash, X, Send } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { AvailabilityBadge } from '@/components/ui/AvailabilityBadge'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -10,8 +11,8 @@ import type { Candidate, CandidateStage } from '@/types'
 const STAGES: Array<{ value: CandidateStage; label: string; color: string }> = [
   { value: 'sourced', label: 'Sourced', color: 'text-blue-400' },
   { value: 'contacted', label: 'Contacted', color: 'text-violet-400' },
-  { value: 'responded', label: 'Responded', color: 'text-amber-400' },
-  { value: 'screen', label: 'Screen', color: 'text-orange-400' },
+  { value: 'responded', label: 'Screening', color: 'text-amber-400' },
+  { value: 'screen', label: 'Interviewing', color: 'text-orange-400' },
   { value: 'offer', label: 'Offer', color: 'text-green-400' },
 ]
 
@@ -207,13 +208,17 @@ export function PipelineCard({
 
             {/* Actions */}
             <div className="flex gap-2 mt-3">
-              <Button size="sm" variant="outline" onClick={() => onGenerateOutreach(candidate)} className="gap-1">
-                <Send className="w-3 h-3" />
-                Outreach
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => onDelete(candidate.id)} className="gap-1 text-muted-foreground hover:text-destructive ml-auto">
-                <Trash2 className="w-3 h-3" />
-              </Button>
+              <Tooltip content="Generate outreach message">
+                <Button size="sm" variant="outline" onClick={() => onGenerateOutreach(candidate)} className="gap-1">
+                  <Send className="w-3 h-3" />
+                  Outreach
+                </Button>
+              </Tooltip>
+              <Tooltip content="Remove from pipeline">
+                <Button size="sm" variant="ghost" onClick={() => onDelete(candidate.id)} className="gap-1 text-muted-foreground hover:text-destructive ml-auto">
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </Tooltip>
             </div>
           </div>
         </div>

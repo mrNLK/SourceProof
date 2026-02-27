@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { GitBranch, Download, Share2, ArrowUpDown, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { GitBranch, Download, Share2, ArrowUpDown, AlertCircle } from 'lucide-react'
 import { StageFilter } from '@/components/pipeline/StageFilter'
 import { TagFilter } from '@/components/pipeline/TagFilter'
 import { PipelineCard } from '@/components/pipeline/PipelineCard'
@@ -40,7 +41,6 @@ export function PipelinePage() {
   const [outreachCandidate, setOutreachCandidate] = useState<Candidate | null>(null)
   const [outreachMessage, setOutreachMessage] = useState<string | null>(null)
   const [outreachLoading, setOutreachLoading] = useState(false)
-  const [notice, setNotice] = useState<{ type: 'error' | 'success'; message: string } | null>(null)
 
   const handleGenerateOutreach = useCallback(async (candidate: Candidate) => {
     setOutreachCandidate(candidate)
@@ -56,7 +56,7 @@ export function PipelinePage() {
       console.error('Outreach error:', err)
       captureException(err)
       setOutreachMessage(null)
-      showNotice('error', 'Failed to generate outreach message')
+      toast.error('Failed to generate outreach message')
     } finally {
       setOutreachLoading(false)
     }
@@ -68,35 +68,30 @@ export function PipelinePage() {
     )
   }, [setTagFilter])
 
-  const showNotice = useCallback((type: 'error' | 'success', message: string) => {
-    setNotice({ type, message })
-    setTimeout(() => setNotice(null), 4000)
-  }, [])
-
   const handleExport = () => {
     try {
       exportToCSV(candidates)
-      showNotice('success', 'Pipeline exported to CSV')
+      toast.success('Pipeline exported to CSV')
       track('export_triggered', { format: 'csv', count: candidates.length })
     } catch (err) {
       console.error('Export error:', err)
       captureException(err)
-      showNotice('error', 'Failed to export CSV')
+      toast.error('Failed to export CSV')
     }
   }
 
   const handleShareSlack = async () => {
     if (!settings.slack_webhook_url) {
-      showNotice('error', 'Set Slack webhook URL in Settings first')
+      toast.error('Set Slack webhook URL in Settings first')
       return
     }
     try {
       await shareToSlack(candidates, settings.slack_webhook_url)
-      showNotice('success', 'Shared to Slack!')
+      toast.success('Shared to Slack!')
     } catch (err) {
       console.error('Slack error:', err)
       captureException(err)
-      showNotice('error', 'Failed to share to Slack')
+      toast.error('Failed to share to Slack')
     }
   }
 
@@ -119,21 +114,6 @@ export function PipelinePage() {
         <div className="mx-3 sm:mx-4 mt-2 flex items-center gap-2 p-2.5 rounded-lg text-sm bg-destructive/10 border border-destructive/20 text-destructive">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span className="flex-1">Storage full — changes may not be saved. Export your pipeline and clear old data in Settings.</span>
-        </div>
-      )}
-
-      {/* Notice banner */}
-      {notice && (
-        <div className={`mx-3 sm:mx-4 mt-2 flex items-center gap-2 p-2.5 rounded-lg text-sm ${
-          notice.type === 'error'
-            ? 'bg-destructive/10 border border-destructive/20 text-destructive'
-            : 'bg-green-500/10 border border-green-500/20 text-green-400'
-        }`}>
-          {notice.type === 'error'
-            ? <AlertCircle className="w-4 h-4 shrink-0" />
-            : <CheckCircle2 className="w-4 h-4 shrink-0" />}
-          <span className="flex-1">{notice.message}</span>
-          <button onClick={() => setNotice(null)} className="opacity-60 hover:opacity-100 text-xs">dismiss</button>
         </div>
       )}
 

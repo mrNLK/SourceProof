@@ -15,10 +15,15 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   const [role, setRole] = useState('')
   const [githubHandle, setGithubHandle] = useState('')
   const [capabilityQuery, setCapabilityQuery] = useState('')
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name && !company && !githubHandle && !capabilityQuery) return
+    if (!name && !company && !githubHandle && !capabilityQuery) {
+      setValidationError('Enter at least one search field — a capability, name, company, or GitHub handle')
+      return
+    }
+    setValidationError(null)
     onSearch({
       name: name || undefined,
       company: company || undefined,
@@ -46,11 +51,11 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
         <div className="h-px flex-1 bg-border" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
         <Input placeholder="Company" value={company} onChange={e => setCompany(e.target.value)} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input placeholder="Role (optional)" value={role} onChange={e => setRole(e.target.value)} />
         <div className="relative">
           <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -62,6 +67,10 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
           />
         </div>
       </div>
+
+      {validationError && (
+        <p className="text-xs text-destructive px-1">{validationError}</p>
+      )}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? (

@@ -18,6 +18,25 @@ function formatTimeAgo(dateStr: string): string {
   return `${Math.floor(seconds / 86400)}d ago`
 }
 
+function dateGroup(dateStr: string): string {
+  const d = new Date(dateStr)
+  const now = new Date()
+  const diff = Math.floor((now.getTime() - d.getTime()) / 86400000)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return 'Yesterday'
+  if (diff < 7) return 'This Week'
+  return 'Older'
+}
+
+/** Remove consecutive entries with identical query params */
+function deduplicateHistory(entries: SearchHistoryEntry[]): SearchHistoryEntry[] {
+  return entries.filter((entry, i) => {
+    if (i === 0) return true
+    const prev = entries[i - 1]
+    return JSON.stringify(entry.query_params) !== JSON.stringify(prev.query_params)
+  })
+}
+
 function querySummary(q: SearchQuery): string {
   const parts: string[] = []
   if (q.capability_query) parts.push(`"${q.capability_query}"`)
@@ -94,6 +113,20 @@ function ResearchStrategyEntry({
 export function SearchHistory({ history, onRerun, onDelete, onClear }: SearchHistoryProps) {
   if (history.length === 0) return null
 
+  const dedupedHistory = deduplicateHistory(history)
+
+  // Group by date
+  const groups: { label: string; entries: SearchHistoryEntry[] }[] = []
+  let currentGroup = ''
+  for (const entry of dedupedHistory) {
+    const group = dateGroup(entry.created_at)
+    if (group !== currentGroup) {
+      currentGroup = group
+      groups.push({ label: group, entries: [] })
+    }
+    groups[groups.length - 1].entries.push(entry)
+  }
+
   return (
     <div className="px-4 py-2">
       <div className="flex items-center justify-between mb-2">
@@ -106,38 +139,45 @@ export function SearchHistory({ history, onRerun, onDelete, onClear }: SearchHis
           Clear
         </Button>
       </div>
-      <div className="space-y-1">
-        {history.map(entry =>
-          entry.metadata?.type === 'research_strategy' && entry.metadata.strategy ? (
-            <ResearchStrategyEntry key={entry.id} entry={entry} onDelete={onDelete} />
-          ) : (
-            <div
-              key={entry.id}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors group"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground truncate">{querySummary(entry.query_params)}</p>
-                <p className="text-xs text-muted-foreground">
-                  {entry.result_count} results &middot; {formatTimeAgo(entry.created_at)}
-                </p>
-              </div>
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => onRerun(entry.query_params)}
-                  className="p-1.5 rounded-md hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => onDelete(entry.id)}
-                  className="p-1.5 rounded-md hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
+      <div className="space-y-3">
+        {groups.map(group => (
+          <div key={group.label}>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 px-1">{group.label}</p>
+            <div className="space-y-1">
+              {group.entries.map(entry =>
+                entry.metadata?.type === 'research_strategy' && entry.metadata.strategy ? (
+                  <ResearchStrategyEntry key={entry.id} entry={entry} onDelete={onDelete} />
+                ) : (
+                  <div
+                    key={entry.id}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground truncate">{querySummary(entry.query_params)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {entry.result_count} results &middot; {formatTimeAgo(entry.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => onRerun(entry.query_params)}
+                        className="p-1.5 rounded-md hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(entry.id)}
+                        className="p-1.5 rounded-md hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
-          )
-        )}
+          </div>
+        ))}
       </div>
     </div>
   )

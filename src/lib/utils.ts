@@ -6,9 +6,18 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric'
-  }).format(new Date(date))
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return 'Unknown date'
+  const month = d.toLocaleDateString('en-US', { month: 'short' })
+  const day = d.getDate()
+  const year = d.getFullYear()
+  return `${month} ${day}, ${year}`
+}
+
+export function formatYear(year: number | string): string {
+  const n = typeof year === 'string' ? parseInt(year, 10) : year
+  if (isNaN(n)) return ''
+  return String(n)
 }
 
 export function truncate(str: string, length: number): string {

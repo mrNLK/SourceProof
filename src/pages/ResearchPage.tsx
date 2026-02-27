@@ -211,7 +211,7 @@ export function ResearchPage() {
           Research Strategy Builder
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
             placeholder="Job title (e.g. ML Engineer)"
             value={jobTitle}

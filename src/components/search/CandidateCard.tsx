@@ -1,7 +1,8 @@
-import { MapPin, Bookmark, ArrowUpRight, Zap, Github } from 'lucide-react'
+import { MapPin, Bookmark, ArrowUpRight, Zap, Github, ThumbsDown } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { ScoreCircle } from '@/components/ui/ScoreCircle'
 import { cn, truncate } from '@/lib/utils'
 import { SIGNAL_COLORS, SOURCE_COLORS } from '@/lib/signals'
@@ -12,6 +13,7 @@ interface CandidateCardProps {
   onSave?: (candidate: Candidate) => void
   onEnrich?: (candidate: Candidate) => void
   onViewProfile?: (candidate: Candidate) => void
+  onDismiss?: (candidate: Candidate) => void
   showScore?: boolean
   saved?: boolean
 }
@@ -21,6 +23,7 @@ export function CandidateCard({
   onSave,
   onEnrich,
   onViewProfile,
+  onDismiss,
   showScore = false,
   saved = false,
 }: CandidateCardProps) {
@@ -117,28 +120,41 @@ export function CandidateCard({
             {/* Actions */}
             <div className="flex gap-2 mt-3">
               {onEnrich && (
-                <Button size="sm" variant="outline" onClick={() => onEnrich(candidate)} className="gap-1">
-                  <Zap className="w-3 h-3" />
-                  Enrich
-                </Button>
+                <Tooltip content="Fetch GitHub profile data">
+                  <Button size="sm" variant="outline" onClick={() => onEnrich(candidate)} className="gap-1">
+                    <Zap className="w-3 h-3" />
+                    Enrich
+                  </Button>
+                </Tooltip>
               )}
               {onSave && (
-                <Button
-                  size="sm"
-                  variant={saved ? 'secondary' : 'outline'}
-                  onClick={() => onSave(candidate)}
-                  className="gap-1"
-                  disabled={saved}
-                >
-                  <Bookmark className="w-3 h-3" />
-                  {saved ? 'Saved' : 'Save'}
-                </Button>
+                <Tooltip content={saved ? 'Already in pipeline' : 'Add to pipeline'}>
+                  <Button
+                    size="sm"
+                    variant={saved ? 'secondary' : 'outline'}
+                    onClick={() => onSave(candidate)}
+                    className="gap-1"
+                    disabled={saved}
+                  >
+                    <Bookmark className="w-3 h-3" />
+                    {saved ? 'Saved' : 'Save'}
+                  </Button>
+                </Tooltip>
+              )}
+              {onDismiss && (
+                <Tooltip content="Not a fit — hide from results">
+                  <Button size="sm" variant="ghost" onClick={() => onDismiss(candidate)} className="gap-1 text-muted-foreground hover:text-destructive">
+                    <ThumbsDown className="w-3 h-3" />
+                  </Button>
+                </Tooltip>
               )}
               {onViewProfile && (
-                <Button size="sm" variant="ghost" onClick={() => onViewProfile(candidate)} className="gap-1 ml-auto">
-                  <ArrowUpRight className="w-3 h-3" />
-                  Profile
-                </Button>
+                <Tooltip content="View full profile">
+                  <Button size="sm" variant="ghost" onClick={() => onViewProfile(candidate)} className="gap-1 ml-auto">
+                    <ArrowUpRight className="w-3 h-3" />
+                    Profile
+                  </Button>
+                </Tooltip>
               )}
             </div>
           </div>

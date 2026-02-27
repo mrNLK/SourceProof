@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
-import { Search, FlaskConical, GitBranch, Settings } from 'lucide-react'
+import { Search, FlaskConical, GitBranch, Settings, MessageSquare } from 'lucide-react'
 
 const NAV_HINTS_KEY = 'sourcekit-nav-hints-dismissed'
 
@@ -39,6 +39,15 @@ export function AppShell() {
           </div>
           <h1 className="text-lg font-semibold text-foreground">SourceKit</h1>
         </div>
+        <a
+          href="https://github.com/mrNLK/SourceProof/issues/new?labels=feedback&title=Feedback"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-md hover:bg-secondary"
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Feedback</span>
+        </a>
       </header>
       <main className="flex-1 overflow-y-auto pb-20">
         <Outlet />

@@ -11,8 +11,8 @@ const stages: Array<{ value: CandidateStage | 'all'; label: string; shortLabel: 
   { value: 'all', label: 'All', shortLabel: 'All', color: 'bg-primary' },
   { value: 'sourced', label: 'Sourced', shortLabel: 'Src', color: 'bg-blue-500' },
   { value: 'contacted', label: 'Contacted', shortLabel: 'Ctd', color: 'bg-violet-500' },
-  { value: 'responded', label: 'Responded', shortLabel: 'Rsp', color: 'bg-amber-500' },
-  { value: 'screen', label: 'Screen', shortLabel: 'Scr', color: 'bg-orange-500' },
+  { value: 'responded', label: 'Screening', shortLabel: 'Scn', color: 'bg-amber-500' },
+  { value: 'screen', label: 'Interviewing', shortLabel: 'Int', color: 'bg-orange-500' },
   { value: 'offer', label: 'Offer', shortLabel: 'Ofr', color: 'bg-green-500' },
 ]
 

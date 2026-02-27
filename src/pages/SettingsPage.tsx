@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from 'react'
-import { Settings as SettingsIcon, RotateCcw, ExternalLink, Search, Database, Info, Download, Trash2, AlertTriangle, AlertCircle, CheckCircle2, CreditCard, Zap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { Settings as SettingsIcon, RotateCcw, ExternalLink, Search, Database, Info, Download, Trash2, AlertTriangle, AlertCircle, CreditCard, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -22,14 +23,8 @@ export function SettingsPage() {
   const [confirmClearHistory, setConfirmClearHistory] = useState(false)
   const [confirmClearAll, setConfirmClearAll] = useState(false)
   const [confirmClearAllFinal, setConfirmClearAllFinal] = useState(false)
-  const [notice, setNotice] = useState<{ type: 'error' | 'success'; message: string } | null>(null)
   const [plan, setPlan] = useState<PlanInfo>(loadPlan)
   const [billingLoading, setBillingLoading] = useState(false)
-
-  const showNotice = useCallback((type: 'error' | 'success', message: string) => {
-    setNotice({ type, message })
-    setTimeout(() => setNotice(null), 4000)
-  }, [])
 
   // Check for billing redirect params
   useEffect(() => {
@@ -38,11 +33,11 @@ export function SettingsPage() {
       const updatedPlan: PlanInfo = { status: 'pro', current_period_end: new Date(Date.now() + 30 * 86400000).toISOString() }
       setPlan(updatedPlan)
       savePlan(updatedPlan)
-      showNotice('success', 'Welcome to SourceKit Pro!')
+      toast.success('Welcome to SourceKit Pro!')
       track('billing_upgraded', { plan: 'pro' })
       window.history.replaceState({}, '', '/settings')
     }
-  }, [showNotice])
+  }, [])
 
   // Fetch plan status on mount if Supabase is configured
   useEffect(() => {
@@ -59,7 +54,7 @@ export function SettingsPage() {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
     if (!supabaseUrl || !supabaseKey) {
-      showNotice('error', 'Billing not configured — set Supabase env vars')
+      toast.error('Billing not configured — set Supabase env vars')
       return
     }
     setBillingLoading(true)
@@ -68,7 +63,7 @@ export function SettingsPage() {
       if (url) window.location.href = url
     } catch (err) {
       captureException(err)
-      showNotice('error', 'Could not start checkout. Try again.')
+      toast.error('Could not start checkout. Try again.')
     } finally {
       setBillingLoading(false)
     }
@@ -78,11 +73,11 @@ export function SettingsPage() {
     if (allCandidates.length === 0) return
     try {
       exportToCSV(allCandidates)
-      showNotice('success', 'Pipeline exported to CSV')
+      toast.success('Pipeline exported to CSV')
     } catch (err) {
       console.error('Export error:', err)
       captureException(err)
-      showNotice('error', 'Failed to export pipeline')
+      toast.error('Failed to export pipeline')
     }
   }
 
@@ -99,11 +94,11 @@ export function SettingsPage() {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
-      showNotice('success', 'Search history exported to JSON')
+      toast.success('Search history exported to JSON')
     } catch (err) {
       console.error('Export error:', err)
       captureException(err)
-      showNotice('error', 'Failed to export history')
+      toast.error('Failed to export history')
     }
   }
 
@@ -126,20 +121,6 @@ export function SettingsPage() {
 
   return (
     <div className="p-4 space-y-4">
-      {/* Notice banner */}
-      {notice && (
-        <div className={`flex items-center gap-2 p-2.5 rounded-lg text-sm ${
-          notice.type === 'error'
-            ? 'bg-destructive/10 border border-destructive/20 text-destructive'
-            : 'bg-green-500/10 border border-green-500/20 text-green-400'
-        }`}>
-          {notice.type === 'error'
-            ? <AlertCircle className="w-4 h-4 shrink-0" />
-            : <CheckCircle2 className="w-4 h-4 shrink-0" />}
-          <span className="flex-1">{notice.message}</span>
-        </div>
-      )}
-
       {/* Storage warning */}
       {settingsSaveError && (
         <div className="flex items-center gap-2 p-2.5 rounded-lg text-sm bg-destructive/10 border border-destructive/20 text-destructive">
