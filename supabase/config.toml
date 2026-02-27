@@ -18,8 +18,14 @@ verify_jwt = false
 [functions.bulk-actions]
 verify_jwt = false
 
-[functions.search-candidates]
+[functions.parse-jd]
 verify_jwt = false
 
-[functions.exa-websets]
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.stripe-webhook]
 verify_jwt = false
