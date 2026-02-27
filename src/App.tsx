@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
+import { clearSettingsCache } from "./lib/api";
 import Index from "./pages/Index";
 import DeveloperProfile from "./pages/DeveloperProfile";
 import Auth from "./pages/Auth";
@@ -18,9 +19,12 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setLoading(false);
+      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN') {
+        clearSettingsCache();
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {

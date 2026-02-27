@@ -88,6 +88,7 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
   const [resultLimit, setResultLimit] = useState(20);
   const [locationFilter, setLocationFilter] = useState("");
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [locationHighlight, setLocationHighlight] = useState(-1);
   const locationInputRef = useRef<HTMLInputElement>(null);
   const [enrichProgress, setEnrichProgress] = useState<{ current: number; total: number; skipped: number } | null>(null);
   const [enrichedUsernames, setEnrichedUsernames] = useState<Set<string>>(new Set());
@@ -593,17 +594,24 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, autoSubmit, onNavigate 
                   <div className="flex items-center gap-1.5 text-xs font-display px-3 py-1.5 rounded-full border border-border bg-secondary">
                     <MapPin className="w-3 h-3 text-muted-foreground" />
                     <input ref={locationInputRef} type="text" value={locationFilter}
-                      onChange={(e) => { setLocationFilter(e.target.value); setShowLocationSuggestions(true); }}
+                      onChange={(e) => { setLocationFilter(e.target.value); setShowLocationSuggestions(true); setLocationHighlight(-1); }}
                       onFocus={() => setShowLocationSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
+                      onKeyDown={(e) => {
+                        if (!showLocationSuggestions || locationSuggestions.length === 0) return;
+                        if (e.key === "ArrowDown") { e.preventDefault(); setLocationHighlight(prev => (prev + 1) % locationSuggestions.length); }
+                        else if (e.key === "ArrowUp") { e.preventDefault(); setLocationHighlight(prev => (prev <= 0 ? locationSuggestions.length - 1 : prev - 1)); }
+                        else if (e.key === "Enter" && locationHighlight >= 0) { e.preventDefault(); setLocationFilter(locationSuggestions[locationHighlight]); setShowLocationSuggestions(false); setLocationHighlight(-1); }
+                        else if (e.key === "Escape") { setShowLocationSuggestions(false); setLocationHighlight(-1); }
+                      }}
                       placeholder="Filter by location..." className="bg-transparent outline-none text-foreground placeholder:text-muted-foreground w-32" />
                     {locationFilter && <button onClick={() => setLocationFilter("")} className="text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>}
                   </div>
                   {showLocationSuggestions && locationSuggestions.length > 0 && (
                     <div className="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto">
-                      {locationSuggestions.map((loc) => (
-                        <button key={loc} onMouseDown={() => { setLocationFilter(loc); setShowLocationSuggestions(false); }}
-                          className="w-full text-left text-xs px-3 py-1.5 hover:bg-accent text-foreground font-display truncate">{loc}</button>
+                      {locationSuggestions.map((loc, idx) => (
+                        <button key={loc} onMouseDown={() => { setLocationFilter(loc); setShowLocationSuggestions(false); setLocationHighlight(-1); }}
+                          className={`w-full text-left text-xs px-3 py-1.5 hover:bg-accent text-foreground font-display truncate ${idx === locationHighlight ? 'bg-accent' : ''}`}>{loc}</button>
                       ))}
                     </div>
                   )}
