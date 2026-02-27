@@ -216,19 +216,29 @@ async function enrichCandidates(
   return allCandidates;
 }
 
-// Step 4: AI scoring — larger batches + concurrent execution
+// Step 4: AI scoring — skip candidates already scored, batch the rest
 async function scoreCandidates(candidates: any[], query: string, parsedCriteria: any): Promise<any[]> {
   if (candidates.length === 0) return candidates;
 
+  // Split into already-scored (from cache) and needs-scoring
+  const needsScoring = candidates.filter((c: any) => !c.summary || c.score === null || c.score === undefined || c.score === 0);
+  const alreadyScored = candidates.filter((c: any) => c.summary && c.score !== null && c.score !== undefined && c.score !== 0);
+
+  console.log(`Scoring: ${needsScoring.length} need AI, ${alreadyScored.length} already cached`);
+
+  if (needsScoring.length === 0) {
+    return candidates.sort((a, b) => (b.score || 0) - (a.score || 0));
+  }
+
   const batchSize = 25;
   const batches: any[][] = [];
-  for (let i = 0; i < candidates.length; i += batchSize) {
-    batches.push(candidates.slice(i, i + batchSize));
+  for (let i = 0; i < needsScoring.length; i += batchSize) {
+    batches.push(needsScoring.slice(i, i + batchSize));
   }
 
   // Run scoring batches concurrently (up to 3 at a time)
   const concurrency = 3;
-  const allScored: any[] = [];
+  const freshlyScored: any[] = [];
 
   for (let i = 0; i < batches.length; i += concurrency) {
     const chunk = batches.slice(i, i + concurrency);
@@ -272,12 +282,12 @@ async function scoreCandidates(candidates: any[], query: string, parsedCriteria:
         return batch;
       })
     );
-    allScored.push(...results.flat());
+    freshlyScored.push(...results.flat());
   }
 
-  // Batch upsert AI scores
+  // Batch upsert only freshly scored candidates
   const supabase = getSupabase();
-  const toUpdate = allScored
+  const toUpdate = freshlyScored
     .filter((c) => c.summary)
     .map((c) => ({
       github_username: c.github_username,
@@ -291,7 +301,7 @@ async function scoreCandidates(candidates: any[], query: string, parsedCriteria:
     await supabase.from('candidates').upsert(toUpdate as any[], { onConflict: 'github_username' });
   }
 
-  return allScored.sort((a, b) => (b.score || 0) - (a.score || 0));
+  return [...alreadyScored, ...freshlyScored].sort((a, b) => (b.score || 0) - (a.score || 0));
 }
 
 serve(async (req) => {
