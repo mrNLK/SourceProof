@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { clearSettingsCache } from "./lib/api";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 import DeveloperProfile from "./pages/DeveloperProfile";
 import Auth from "./pages/Auth";
@@ -44,29 +45,31 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {session ? (
-              <>
-                <Route path="/" element={<Index />} />
-                <Route path="/developer/:id" element={<DeveloperProfile />} />
-                <Route path="/auth" element={<Navigate to="/" replace />} />
-                <Route path="*" element={<NotFound />} />
-              </>
-            ) : (
-              <>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="*" element={<Navigate to="/auth" replace />} />
-              </>
-            )}
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary fallbackLabel="app">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {session ? (
+                <>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/developer/:id" element={<DeveloperProfile />} />
+                  <Route path="/auth" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<NotFound />} />
+                </>
+              ) : (
+                <>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="*" element={<Navigate to="/auth" replace />} />
+                </>
+              )}
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
