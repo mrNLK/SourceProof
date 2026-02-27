@@ -1,54 +1,128 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
-@theme {
-  --color-background: #0a0a0f;
-  --color-foreground: #e4e4e7;
-  --color-card: #12121a;
-  --color-card-foreground: #e4e4e7;
-  --color-popover: #12121a;
-  --color-popover-foreground: #e4e4e7;
-  --color-primary: #00e5a0;
-  --color-primary-foreground: #0a0a0f;
-  --color-secondary: #1a1a2e;
-  --color-secondary-foreground: #e4e4e7;
-  --color-muted: #1a1a2e;
-  --color-muted-foreground: #71717a;
-  --color-accent: #00e5a0;
-  --color-accent-foreground: #0a0a0f;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #e4e4e7;
-  --color-border: #27272a;
-  --color-input: #27272a;
-  --color-ring: #00e5a0;
-  --color-surface: #16161f;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+@layer base {
+  :root {
+    --background: 220 20% 4%;
+    --foreground: 210 20% 92%;
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+    --card: 220 18% 7%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 7%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 174 72% 52%;
+    --primary-foreground: 220 20% 4%;
+
+    --secondary: 220 16% 12%;
+    --secondary-foreground: 210 20% 75%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 12% 50%;
+
+    --accent: 174 72% 52%;
+    --accent-foreground: 220 20% 4%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 16% 14%;
+    --input: 220 16% 14%;
+    --ring: 174 72% 52%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 18% 6%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 174 72% 52%;
+    --sidebar-primary-foreground: 220 20% 4%;
+    --sidebar-accent: 220 14% 12%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 220 16% 14%;
+    --sidebar-ring: 174 72% 52%;
+
+    /* Custom tokens */
+    --glow: 174 72% 52%;
+    --surface: 220 16% 9%;
+    --surface-hover: 220 16% 12%;
+    --text-dim: 215 12% 42%;
+    --text-secondary: 215 12% 58%;
+    --success: 142 60% 50%;
+    --warning: 38 92% 60%;
+    --info: 210 80% 60%;
+
+    --font-display: 'JetBrains Mono', monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
 }
 
-* {
-  border-color: var(--color-border);
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
 }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  margin: 0;
-  min-height: 100vh;
-  min-height: 100dvh;
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(174 90% 70%));
+  }
+
+  .glow-sm {
+    box-shadow: 0 0 20px -5px hsl(var(--glow) / 0.2);
+  }
+
+  .glow-md {
+    box-shadow: 0 0 40px -10px hsl(var(--glow) / 0.25);
+  }
+
+  .glow-border {
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  .glass {
+    @apply bg-card/60 backdrop-blur-xl border border-border;
+  }
+
+  .surface {
+    background-color: hsl(var(--surface));
+  }
+
+  .grid-pattern {
+    background-image: 
+      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
 }
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--color-background); }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-muted-foreground); }
-
-.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }

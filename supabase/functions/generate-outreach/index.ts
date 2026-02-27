@@ -1,66 +1,48 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { anthropicCall } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { candidate, context } = await req.json()
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
+    const { candidate_name, github_username, role_context } = await req.json();
 
-    if (!anthropicKey) {
-      return new Response(
-        JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    if (!github_username) {
+      return new Response(JSON.stringify({ error: 'Missing github_username' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const prompt = `Write a casual, personalized outreach message to recruit this person. Keep it under 100 words. Be genuine and specific about why they'd be a good fit.
+    const systemPrompt = `You are an expert technical recruiter writing a personalized outreach message. Write a concise, warm, and professional message (3-5 sentences) to reach out to a software engineer. The tone should be friendly but not overly casual. Reference their GitHub work specifically. Do NOT use subject lines or greetings like "Hi [Name]" — just the message body. Do NOT use placeholder brackets.`;
 
-Candidate:
-- Name: ${candidate.name}
-- Current: ${candidate.role || 'Engineer'} at ${candidate.company || 'Unknown'}
-- Bio: ${candidate.bio || 'N/A'}
-- Notable signals: ${(candidate.signals || []).map((s: { label: string }) => s.label).join(', ') || 'None'}
+    const userPrompt = `Write an outreach message for ${candidate_name || github_username} (GitHub: ${github_username}).${role_context ? ` Context: ${role_context}` : ''} Keep it short and genuine.`;
 
-Your company context:
-- Company: ${context.target_company || 'Our company'}
-- Role: ${context.role_title || 'Software Engineer'}
-- Pitch: ${context.pitch || 'Exciting opportunity'}
+    const message = await anthropicCall(systemPrompt, userPrompt, {
+      model: 'claude-haiku-4-5-20251001',
+      maxTokens: 1024,
+    });
 
-Write ONLY the message, no subject line or signature.`
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 256,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    })
-
-    const data = await response.json()
-    const message = data.content?.[0]?.text || 'Failed to generate message'
-
-    return new Response(
-      JSON.stringify({ message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ message: message || 'Could not generate message.' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (e) {
+    console.error('generate-outreach error:', e);
+    if ((e as Error).message === 'RATE_LIMITED') {
+      return new Response(JSON.stringify({ error: 'Rate limited. Try again shortly.' }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : 'Unknown error' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
-})
+});
