@@ -1,5 +1,5 @@
 
-CREATE TABLE public.search_history (
+CREATE TABLE IF NOT EXISTS public.search_history (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   query text NOT NULL,
   action_type text NOT NULL DEFAULT 'search',
@@ -10,6 +10,14 @@ CREATE TABLE public.search_history (
 
 ALTER TABLE public.search_history ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read search_history" ON public.search_history FOR SELECT USING (true);
-CREATE POLICY "Allow public insert search_history" ON public.search_history FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public delete search_history" ON public.search_history FOR DELETE USING (true);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'search_history' AND policyname = 'Allow public read search_history') THEN
+    CREATE POLICY "Allow public read search_history" ON public.search_history FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'search_history' AND policyname = 'Allow public insert search_history') THEN
+    CREATE POLICY "Allow public insert search_history" ON public.search_history FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'search_history' AND policyname = 'Allow public delete search_history') THEN
+    CREATE POLICY "Allow public delete search_history" ON public.search_history FOR DELETE USING (true);
+  END IF;
+END $$;

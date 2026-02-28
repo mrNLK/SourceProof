@@ -74,6 +74,34 @@ export async function generateOutreach(githubUsername: string, candidateName?: s
   return invokeFunction('generate-outreach', undefined, { github_username: githubUsername, candidate_name: candidateName, role_context: roleContext });
 }
 
+// ── Exa Websets API ──────────────────────────────────────────────────────
+
+export async function createWebset(query: string, count?: number, criteria?: string[], enrichments?: { description: string; format?: string }[]) {
+  return invokeFunction('websets', undefined, { action: 'create', query, count, criteria, enrichments });
+}
+
+export async function listWebsets() {
+  return invokeFunction('websets', undefined, { action: 'list' });
+}
+
+export async function getWebset(websetId: string) {
+  return invokeFunction('websets', undefined, { action: 'get', websetId });
+}
+
+export async function getWebsetItems(websetId: string, cursor?: string) {
+  return invokeFunction('websets', undefined, { action: 'items', websetId, cursor });
+}
+
+export async function deleteWebset(websetId: string) {
+  return invokeFunction('websets', undefined, { action: 'delete', websetId });
+}
+
+export async function createWebsetMonitor(websetId: string, cron?: string, timezone?: string) {
+  return invokeFunction('websets', undefined, { action: 'monitor', websetId, cron, timezone });
+}
+
+// ── Settings ─────────────────────────────────────────────────────────────
+
 let settingsCache: Record<string, string> | null = null;
 
 export async function loadSettings(): Promise<Record<string, string>> {

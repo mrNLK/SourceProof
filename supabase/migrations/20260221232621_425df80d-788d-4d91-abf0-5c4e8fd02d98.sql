@@ -1,6 +1,6 @@
 
 -- Pipeline table for kanban board
-CREATE TABLE public.pipeline (
+CREATE TABLE IF NOT EXISTS public.pipeline (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   github_username TEXT NOT NULL,
   name TEXT,
@@ -15,11 +15,22 @@ CREATE TABLE public.pipeline (
 ALTER TABLE public.pipeline ENABLE ROW LEVEL SECURITY;
 
 -- Public read/write for now (no auth in this app)
-CREATE POLICY "Allow public read pipeline" ON public.pipeline FOR SELECT USING (true);
-CREATE POLICY "Allow public insert pipeline" ON public.pipeline FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update pipeline" ON public.pipeline FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete pipeline" ON public.pipeline FOR DELETE USING (true);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'pipeline' AND policyname = 'Allow public read pipeline') THEN
+    CREATE POLICY "Allow public read pipeline" ON public.pipeline FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'pipeline' AND policyname = 'Allow public insert pipeline') THEN
+    CREATE POLICY "Allow public insert pipeline" ON public.pipeline FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'pipeline' AND policyname = 'Allow public update pipeline') THEN
+    CREATE POLICY "Allow public update pipeline" ON public.pipeline FOR UPDATE USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'pipeline' AND policyname = 'Allow public delete pipeline') THEN
+    CREATE POLICY "Allow public delete pipeline" ON public.pipeline FOR DELETE USING (true);
+  END IF;
+END $$;
 
+DROP TRIGGER IF EXISTS update_pipeline_updated_at ON public.pipeline;
 CREATE TRIGGER update_pipeline_updated_at
   BEFORE UPDATE ON public.pipeline
   FOR EACH ROW
