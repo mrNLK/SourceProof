@@ -1,73 +1,110 @@
-# Welcome to your Lovable project
+# SourceKit Talent Finder
 
-## Project info
+AI-powered GitHub talent sourcing for technical recruiting. Find engineers by what they've actually built — their open-source contributions, repositories, and shipped code — not just their LinkedIn headlines.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## What It Does
 
-## How can I edit this code?
+SourceKit turns GitHub's open-source graph into a recruiting pipeline:
 
-There are several ways of editing your application.
+- **Research** — Paste a job description or describe a role, and AI builds a sourcing strategy: target repos to mine, companies to source from, skills to weight, and EEA (Evidence of Exceptional Ability) signals to detect.
+- **Search** — Finds real GitHub contributors matching your criteria, scores them 0–100, and surfaces hidden gems (high-quality, low-visibility engineers).
+- **Enrich** — Looks up LinkedIn profiles via Exa semantic search and finds contact information.
+- **Pipeline** — Kanban board to track candidates through Sourced → Contacted → Responded → Screen → Offer.
+- **Outreach** — AI writes personalized messages referencing the candidate's actual open-source work.
+- **Bulk Actions** — Compare, rank, and draft outreach for multiple candidates with an AI chat interface.
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Radix UI
+- **Backend:** Supabase (PostgreSQL, Edge Functions, Auth)
+- **AI:** Anthropic Claude (query parsing, candidate scoring, research, outreach generation)
+- **Search:** GitHub REST API (contributor mining, profile enrichment), Exa (LinkedIn lookup)
+- **Payments:** Stripe
+- **Hosting:** Vercel
+- **Analytics:** Vercel Web Analytics
 
-Changes made via Lovable will be committed automatically to this repo.
+## Getting Started
 
-**Use your preferred IDE**
+### Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js 18+ (install via [nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
+- A Supabase project
+- API keys for: GitHub, Anthropic, and Exa
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Setup
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Clone the repo
+git clone https://github.com/mrNLK/SourceProof.git
+cd SourceProof
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your actual keys (see below)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Copy `.env.example` to `.env` and fill in your values:
 
-**Use GitHub Codespaces**
+| Variable | Purpose |
+|---|---|
+| `VITE_SUPABASE_URL` | Your Supabase project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/public key |
+| `VITE_SUPABASE_PROJECT_ID` | Supabase project ID |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (Edge Functions only) |
+| `GITHUB_TOKEN` | GitHub personal access token |
+| `ANTHROPIC_API_KEY` | Anthropic API key |
+| `EXA_API_KEY` | Exa API key |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret |
+| `STRIPE_PRICE_ID` | Stripe price ID |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+> **Important:** The `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` must also be set as environment variables in your Vercel project settings for the production deployment to work.
 
-## What technologies are used for this project?
+### Deploying to Vercel
 
-This project is built with:
+1. Connect this repo to a Vercel project.
+2. Add all `VITE_*` environment variables in **Vercel → Project Settings → Environment Variables**.
+3. Deploy. The `vercel.json` config handles SPA routing automatically.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Scripts
 
-## How can I deploy this project?
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server (localhost:5173) |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build locally |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run tests (Vitest) |
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Project Structure
 
-## Can I connect a custom domain to my Lovable project?
+```
+src/
+├── components/      # UI components (search, pipeline, research, bulk actions)
+├── hooks/           # Custom React hooks (subscriptions, etc.)
+├── integrations/    # Supabase client and type definitions
+├── lib/             # API helpers and utilities
+├── pages/           # Route-level page components
+├── services/        # External service integrations (Exa/Websets)
+├── types/           # TypeScript type definitions
+└── data/            # Static data and constants
+supabase/
+└── functions/       # Supabase Edge Functions (search, enrich, research, etc.)
+```
 
-Yes, you can!
+## Documentation
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- **[Tester Guide](./TESTER_GUIDE.md)** — Full walkthrough of every feature, search tips, and workflow diagrams.
+- **[Security Policy](./SECURITY.md)** — How secrets and API keys are handled.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## License
+
+This project is proprietary. All rights reserved.
