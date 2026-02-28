@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import DeveloperProfile from "./pages/DeveloperProfile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => {
               )}
             </Routes>
           </BrowserRouter>
+          <Analytics />
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
