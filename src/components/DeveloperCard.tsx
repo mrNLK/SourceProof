@@ -163,6 +163,18 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
                   Founder/C-Suite
                 </span>
               )}
+              {(developer as any).source === 'exa' && (
+                <span className="text-[10px] font-display font-semibold px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20"
+                  title="Found via Exa semantic search">
+                  Exa
+                </span>
+              )}
+              {(developer as any).source === 'both' && (
+                <span className="text-[10px] font-display font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                  title="Found via both GitHub and Exa">
+                  GitHub + Exa
+                </span>
+              )}
               {inPipeline && (
                 <span className="text-[10px] font-display px-1.5 py-0.5 rounded bg-info/10 text-info border border-info/20">
                   In Pipeline

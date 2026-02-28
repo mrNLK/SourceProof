@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 const GITHUB_API = "https://api.github.com";
+const EXA_API = "https://api.exa.ai/search";
 const CACHE_DAYS = 7;
 
 function getSupabase() {
@@ -128,6 +129,58 @@ async function fetchContributors(repos: { owner: string; name: string }[], skill
   return contributorMap;
 }
 
+// Step 2b: Parallel Exa search (P24)
+interface ExaCandidate {
+  name: string;
+  bio: string;
+  profileUrl: string;
+  source: 'exa';
+  highlights: string[];
+}
+
+async function searchExa(query: string): Promise<ExaCandidate[]> {
+  const exaKey = Deno.env.get('EXA_API_KEY');
+  if (!exaKey) return [];
+
+  try {
+    const res = await fetch(EXA_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': exaKey },
+      body: JSON.stringify({
+        query: `${query} software engineer developer`,
+        type: 'neural',
+        useAutoprompt: true,
+        numResults: 25,
+        category: 'person',
+        contents: { text: { maxCharacters: 500 }, highlights: { numSentences: 3 } },
+      }),
+    });
+
+    if (!res.ok) {
+      console.error(`Exa API error: ${res.status}`);
+      return [];
+    }
+
+    const data = await res.json();
+    return (data.results || []).map((r: any) => ({
+      name: r.title || '',
+      bio: (r.text || '').slice(0, 300),
+      profileUrl: r.url || '',
+      source: 'exa' as const,
+      highlights: r.highlights || [],
+    }));
+  } catch (e) {
+    console.error('Exa search failed:', e);
+    return [];
+  }
+}
+
+// Extract GitHub username from Exa result URL if it's a GitHub profile
+function extractGitHubUsername(url: string): string | null {
+  const match = url.match(/github\.com\/([a-zA-Z0-9_-]+)\/?$/);
+  return match ? match[1] : null;
+}
+
 // Step 3: Enrich with profile data (with caching) — PARALLEL profiles + BATCH upsert
 async function enrichCandidates(
   contributorMap: Map<string, { username: string; commitCounts: Record<string, number> }>,
@@ -165,13 +218,36 @@ async function enrichCandidates(
         .slice(0, 4)
         .map(([name, count]) => ({ name, percentage: Math.round((count / totalLangRepos) * 100), color: getLangColor(name) }));
 
-      const highlights = repoList
-        .filter((r: any) => r.stargazers_count > 0)
-        .sort((a: any, b: any) => b.stargazers_count - a.stargazers_count)
-        .slice(0, 3)
-        .map((r: any) => `${r.name}: ${r.description || 'No description'} (${r.stargazers_count}⭐)`);
-
       const commitCounts = contributorMap.get(username)?.commitCounts || {};
+
+      // P26: Merge authored repos + contributed repos into one ranked "Notable Work" list
+      // Contributed repos (high-star repos the user committed to) ranked above minor personal repos
+      const notableWork: { text: string; impact: number }[] = [];
+
+      // Add contributed repos with commit counts (these are often the most impressive)
+      for (const [repoFullName, commits] of Object.entries(commitCounts)) {
+        notableWork.push({
+          text: `${repoFullName} (${commits} commits)`,
+          impact: (commits as number) * 100, // weight contributed repos heavily
+        });
+      }
+
+      // Add authored repos sorted by stars
+      for (const r of repoList.filter((r: any) => r.stargazers_count > 0)) {
+        // Skip if already in contributed repos
+        const fullName = r.full_name || `${username}/${r.name}`;
+        if (commitCounts[fullName]) continue;
+        notableWork.push({
+          text: `${r.name}: ${r.description || 'No description'} (${r.stargazers_count.toLocaleString()} stars)`,
+          impact: r.stargazers_count,
+        });
+      }
+
+      const highlights = notableWork
+        .sort((a, b) => b.impact - a.impact)
+        .slice(0, 5)
+        .map(w => w.text);
+      if (highlights.length === 0) highlights.push(`${profile.public_repos} public repositories`);
 
       return {
         github_username: username,
@@ -183,7 +259,7 @@ async function enrichCandidates(
         public_repos: profile.public_repos,
         stars: totalStars,
         top_languages: topLanguages,
-        highlights: highlights.length ? highlights : [`${profile.public_repos} public repositories`],
+        highlights,
         is_hidden_gem: totalStars > 50 && profile.followers < 500,
         joined_year: new Date(profile.created_at).getFullYear(),
         contributed_repos: commitCounts,
@@ -391,13 +467,35 @@ serve(async (req) => {
       console.log(`[${Date.now() - t0}ms] Parsed criteria:`, parsedCriteria);
     }
 
-    // Step 2: Fetch contributors from identified repos (parallel)
-    const contributorMap = await fetchContributors(parsedCriteria.repos, parsedCriteria.skills);
-    console.log(`[${Date.now() - t0}ms] Found ${contributorMap.size} contributors`);
+    // Step 2: Fetch contributors + Exa search IN PARALLEL (P24)
+    const [contributorMap, exaCandidates] = await Promise.all([
+      fetchContributors(parsedCriteria.repos, parsedCriteria.skills),
+      query ? searchExa(query) : Promise.resolve([]),
+    ]);
+    console.log(`[${Date.now() - t0}ms] Found ${contributorMap.size} GitHub contributors, ${exaCandidates.length} Exa results`);
+
+    // Merge Exa results: extract GitHub usernames from Exa URLs and add to contributor map
+    for (const exa of exaCandidates) {
+      const ghUsername = extractGitHubUsername(exa.profileUrl);
+      if (ghUsername && !contributorMap.has(ghUsername)) {
+        contributorMap.set(ghUsername, { username: ghUsername, commitCounts: {} });
+      }
+    }
 
     // Step 3: Enrich with profiles (with caching + batch upsert)
     const candidates = await enrichCandidates(contributorMap, supabase);
     console.log(`[${Date.now() - t0}ms] Enriched ${candidates.length} candidates`);
+
+    // Tag candidates with their source (P24)
+    const exaGitHubUsernames = new Set(
+      exaCandidates.map(e => extractGitHubUsername(e.profileUrl)).filter(Boolean) as string[]
+    );
+    const githubUsernames = new Set(Array.from(contributorMap.keys()));
+    for (const c of candidates) {
+      const inGithub = githubUsernames.has(c.github_username);
+      const inExa = exaGitHubUsernames.has(c.github_username);
+      c._source = inGithub && inExa ? 'both' : inExa ? 'exa' : 'github';
+    }
 
     // Step 4: AI scoring (batch size 25, concurrent)
     const scored = await scoreCandidates(candidates, query, parsedCriteria);
@@ -428,6 +526,7 @@ serve(async (req) => {
         twitterUsername: c.twitter_username,
         email: c.email,
         githubUrl: c.github_url,
+        source: c._source || 'github',
         ...(ungettable ? { reachability: ungettable.reachability, reachabilityReason: ungettable.reason } : {}),
       };
     });

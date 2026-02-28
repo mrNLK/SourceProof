@@ -288,37 +288,38 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
             </div>
           )}
 
-          {/* ===== CONTRIBUTED REPOS ===== */}
-          {Object.keys(contributedRepos).length > 0 && (
+          {/* ===== NOTABLE WORK (P26: merged contributed + authored, ranked by impact) ===== */}
+          {(highlights.length > 0 || Object.keys(contributedRepos).length > 0) && (
             <div className="glass rounded-xl p-4">
-              <h3 className="font-display text-xs font-semibold text-foreground mb-2">Contributed To</h3>
-              <div className="space-y-1.5">
-                {Object.entries(contributedRepos).map(([repo, count]) => (
-                  <a key={repo} href={`https://github.com/${repo}`} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/50 border border-border hover:border-primary/30 transition-colors group/repo">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-display text-foreground group-hover/repo:text-primary transition-colors">{repo}</span>
-                      <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover/repo:opacity-100 transition-opacity" />
-                    </div>
-                    <span className="text-[11px] font-display text-muted-foreground">{count as number} commits</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
+              <h3 className="font-display text-xs font-semibold text-foreground mb-2">Notable Work</h3>
 
-          {/* ===== HIGHLIGHTS ===== */}
-          {highlights.length > 0 && (
-            <div className="glass rounded-xl p-4">
-              <h3 className="font-display text-xs font-semibold text-foreground mb-2">Key Achievements</h3>
-              <ul className="space-y-1.5">
-                {highlights.map((h: string, i: number) => (
-                  <li key={i} className="text-sm text-secondary-foreground flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                    {h}
-                  </li>
-                ))}
-              </ul>
+              {/* Contributed repos (shown first with commit counts) */}
+              {Object.keys(contributedRepos).length > 0 && (
+                <div className="space-y-1.5 mb-3">
+                  {Object.entries(contributedRepos).map(([repo, count]) => (
+                    <a key={repo} href={`https://github.com/${repo}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/50 border border-border hover:border-primary/30 transition-colors group/repo">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-display text-foreground group-hover/repo:text-primary transition-colors">{repo}</span>
+                        <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover/repo:opacity-100 transition-opacity" />
+                      </div>
+                      <span className="text-[11px] font-display text-muted-foreground">{count as number} commits</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {/* Highlights (authored repos / other achievements) */}
+              {highlights.length > 0 && (
+                <ul className="space-y-1.5">
+                  {highlights.map((h: string, i: number) => (
+                    <li key={i} className="text-sm text-secondary-foreground flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
 
