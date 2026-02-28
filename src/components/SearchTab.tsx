@@ -1,4 +1,4 @@
-import { Search, Loader2, ExternalLink, SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, ExternalLink, SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import SuggestionChips from "@/components/search/SuggestionChips";
 import SearchFilters from "@/components/search/SearchFilters";
 import SearchFunnel from "@/components/search/SearchFunnel";
 import SearchResults from "@/components/search/SearchResults";
+import SearchProgress from "@/components/search/SearchProgress";
 import SkillPriorities from "@/components/search/SkillPriorities";
 
 // ---------------------------------------------------------------------------
@@ -364,19 +365,11 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialTargetRepos, aut
           </div>
         )}
 
-        {isLoading && (
-          <div className="glass rounded-xl p-6 mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="font-display text-sm font-semibold text-foreground">Analyzing your query with AI...</span>
-            </div>
-            <div className="space-y-2">
-              {["Understanding your query...", "Fetching contributors from repositories...", "Scoring and ranking candidates..."].map(l => (
-                <div key={l} className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-primary animate-pulse" /><span className="text-xs font-display text-foreground">{l}</span></div>
-              ))}
-            </div>
-          </div>
-        )}
+        <SearchProgress
+          isLoading={isLoading}
+          hasTargetRepos={!!activeTargetRepos && activeTargetRepos.length > 0}
+          repoCount={activeTargetRepos?.length}
+        />
 
         {parsedCriteria && !isLoading && (
           <div className="glass rounded-xl p-4 mb-6">
