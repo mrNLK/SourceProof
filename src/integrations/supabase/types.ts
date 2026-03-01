@@ -303,21 +303,32 @@ export type Database = {
       }
       settings: {
         Row: {
+          user_id: string
           key: string
-          updated_at: string
           value: string
+          updated_at: string
         }
         Insert: {
+          user_id: string
           key: string
-          updated_at?: string
           value?: string
+          updated_at?: string
         }
         Update: {
+          user_id?: string
           key?: string
-          updated_at?: string
           value?: string
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       watchlist_items: {
         Row: {

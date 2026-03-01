@@ -1,15 +1,25 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import DashboardLayout, { type ActiveTab } from "@/components/DashboardLayout";
 import SearchTab from "@/components/SearchTab";
-import PipelineTab from "@/components/PipelineTab";
-import HistoryTab from "@/components/HistoryTab";
 import WatchlistTab from "@/components/WatchlistTab";
-import BulkActionsTab from "@/components/BulkActionsTab";
-import WebsetsTab from "@/components/WebsetsTab";
-import SettingsTab from "@/components/SettingsTab";
-import ResearchTab, { type ResearchState } from "@/components/ResearchTab";
+import type { ResearchState } from "@/components/ResearchTab";
 import { toast } from "@/hooks/use-toast";
+
+// Lazy-loaded tabs (conditionally rendered — only loaded when active)
+const PipelineTab = lazy(() => import("@/components/PipelineTab"));
+const HistoryTab = lazy(() => import("@/components/HistoryTab"));
+const BulkActionsTab = lazy(() => import("@/components/BulkActionsTab"));
+const WebsetsTab = lazy(() => import("@/components/WebsetsTab"));
+const SettingsTab = lazy(() => import("@/components/SettingsTab"));
+const ResearchTab = lazy(() => import("@/components/ResearchTab"));
+
+const TabFallback = () => (
+  <div className="flex items-center justify-center py-24">
+    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+  </div>
+);
 
 // P28: Structured strategy data passed through to SearchTab
 export interface StrategyHandoff {
@@ -94,22 +104,26 @@ const Index = () => {
           onNavigate={(tab) => setActiveTab(tab as ActiveTab)}
         />
       </div>
-      {activeTab === "research" && (
-        <ResearchTab
-          state={researchState}
-          onStateChange={setResearchState}
-          onSearchWithStrategy={handleSearchWithStrategy}
-          onNavigateToWebsets={() => setActiveTab("websets")}
-        />
-      )}
-      {activeTab === "history" && <HistoryTab onRerun={handleRerun} />}
-      {activeTab === "pipeline" && <PipelineTab onNavigateToSearch={() => setActiveTab("search")} />}
+      <Suspense fallback={<TabFallback />}>
+        {activeTab === "research" && (
+          <ResearchTab
+            state={researchState}
+            onStateChange={setResearchState}
+            onSearchWithStrategy={handleSearchWithStrategy}
+            onNavigateToWebsets={() => setActiveTab("websets")}
+          />
+        )}
+        {activeTab === "history" && <HistoryTab onRerun={handleRerun} />}
+        {activeTab === "pipeline" && <PipelineTab onNavigateToSearch={() => setActiveTab("search")} />}
+      </Suspense>
       <div style={{ display: activeTab === "watchlist" ? undefined : "none" }}>
         <WatchlistTab onNavigateToSearch={() => setActiveTab("search")} />
       </div>
-      {activeTab === "bulk" && <BulkActionsTab />}
-      {activeTab === "websets" && <WebsetsTab />}
-      {activeTab === "settings" && <SettingsTab />}
+      <Suspense fallback={<TabFallback />}>
+        {activeTab === "bulk" && <BulkActionsTab />}
+        {activeTab === "websets" && <WebsetsTab />}
+        {activeTab === "settings" && <SettingsTab />}
+      </Suspense>
     </DashboardLayout>
   );
 };

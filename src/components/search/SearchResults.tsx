@@ -1,5 +1,6 @@
 import { Loader2, Plus, X, Check, UserPlus } from "lucide-react";
 import DeveloperCard from "@/components/DeveloperCard";
+import ExportButton from "@/components/ExportButton";
 import type { Developer } from "@/types/developer";
 
 interface SearchResultsProps {
@@ -40,6 +41,7 @@ const SearchResults = ({
             <><Check className="w-3 h-3" /> Select All ({filtered.length})</>
           )}
         </button>
+        <ExportButton data={filtered} filename="sourcekit-search" label="Export" />
         {batchSelected.size > 0 && (
           <>
             <span className="text-xs font-display text-muted-foreground">{batchSelected.size} selected</span>

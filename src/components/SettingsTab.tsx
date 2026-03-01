@@ -30,12 +30,11 @@ const SettingsTab = () => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
-      let query = (supabase as any).from("settings").select("key, value");
-      if (userId) query = query.eq("user_id", userId);
-      const { data } = await query;
+      if (!userId) { setLoading(false); return; }
+      const { data } = await supabase.from("settings").select("key, value").eq("user_id", userId);
       if (data) {
         const map: Record<string, string> = {};
-        data.forEach((r: any) => { map[r.key] = r.value; });
+        data.forEach((r) => { map[r.key] = r.value; });
         setForm((prev) => ({
           target_role: map.target_role || prev.target_role,
           target_company: map.target_company || prev.target_company,
@@ -79,10 +78,13 @@ const SettingsTab = () => {
     }
 
     setSaving(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+    if (!userId) { toast({ title: "Please sign in to save settings", variant: "destructive" }); setSaving(false); return; }
     const entries = Object.entries(form);
     let hasError = false;
     for (const [key, value] of entries) {
-      const { error } = await (supabase as any).from("settings").upsert({ key, value }, { onConflict: "key" });
+      const { error } = await supabase.from("settings").upsert({ user_id: userId, key, value }, { onConflict: "user_id,key" });
       if (error) {
         setFieldSaved(key, "error");
         hasError = true;

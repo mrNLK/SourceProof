@@ -4,12 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 async function fetchSettings(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
   const userId = session?.user?.id;
-  let query = (supabase as any).from('settings').select('key, value');
-  if (userId) query = query.eq('user_id', userId);
-  const { data } = await query;
+  if (!userId) return {};
+  const { data } = await supabase.from('settings').select('key, value').eq('user_id', userId);
   const map: Record<string, string> = {};
   if (data) {
-    data.forEach((r: any) => { map[r.key] = r.value; });
+    data.forEach((r) => { map[r.key] = r.value; });
   }
   return map;
 }
