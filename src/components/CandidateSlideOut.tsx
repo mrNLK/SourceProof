@@ -2,13 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import {
   X, Star, MapPin, Clock, MessageSquare, Loader2, Sparkles, Copy, ClipboardCheck,
   ExternalLink, UserPlus, Check, Bookmark, BookmarkCheck, Github, Mail, Twitter,
-  Linkedin, ChevronDown, Tag, StickyNote, Plus,
+  Linkedin, ChevronDown, Tag, StickyNote, Plus, History,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { EEAFull } from "@/components/EEASignals";
+import { notifyStageChange } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+import OutreachTemplateEditor from "@/components/OutreachTemplateEditor";
 import type { Developer } from "@/types/developer";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -18,6 +20,14 @@ const OUTREACH_TONES = [
   { id: 'professional', label: 'Professional', prompt: 'concise, warm, and professional' },
   { id: 'casual', label: 'Casual', prompt: 'friendly, casual, and genuine — like a peer reaching out' },
   { id: 'technical', label: 'Technical', prompt: 'technically specific, referencing their actual projects and contributions' },
+] as const;
+
+const STAGES = [
+  { id: 'sourced', label: 'Sourced', color: 'bg-primary/15 text-primary border-primary/30' },
+  { id: 'contacted', label: 'Contacted', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+  { id: 'responded', label: 'Responded', color: 'bg-info/15 text-info border-info/30' },
+  { id: 'screen', label: 'Screen', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+  { id: 'offer', label: 'Offer', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
 ] as const;
 
 interface CandidateSlideOutProps {
@@ -44,6 +54,11 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
   const [outreachTone, setOutreachTone] = useState<string>("professional");
   const [copiedMsg, setCopiedMsg] = useState(false);
   const [toneOpen, setToneOpen] = useState(false);
+  const [outreachMode, setOutreachMode] = useState<"ai" | "template">("ai");
+  const [stageOpen, setStageOpen] = useState(false);
+  const [localStage, setLocalStage] = useState<string>("sourced");
+  const [copiedHistoryId, setCopiedHistoryId] = useState<string | null>(null);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   // FEAT-004: Notes and tags
   const [notes, setNotes] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
@@ -59,11 +74,11 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Check if already in pipeline (fetch notes + tags)
+  // Check if already in pipeline (fetch notes + tags + stage)
   const { data: pipelineRow } = useQuery({
     queryKey: ["pipeline-check", dev.username],
     queryFn: async () => {
-      const { data } = await supabase.from("pipeline").select("id, notes, tags").eq("github_username", dev.username).maybeSingle();
+      const { data } = await supabase.from("pipeline").select("id, notes, tags, stage").eq("github_username", dev.username).maybeSingle();
       return data;
     },
   });
@@ -73,8 +88,25 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
       setAddedToPipeline(true);
       setNotes(pipelineRow.notes || "");
       setTags(pipelineRow.tags || []);
+      setLocalStage(pipelineRow.stage || "sourced");
     }
   }, [pipelineRow]);
+
+  // Outreach history
+  const { data: outreachHistory = [] } = useQuery({
+    queryKey: ["outreach-history", pipelineRow?.id],
+    queryFn: async () => {
+      if (!pipelineRow?.id) return [];
+      const { data, error } = await supabase
+        .from("outreach_history")
+        .select("*")
+        .eq("pipeline_id", pipelineRow.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!pipelineRow?.id,
+  });
 
   // Fetch enriched candidate data
   const { data: candidate } = useQuery({
@@ -102,15 +134,21 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     if (addedToPipeline || pipelineLoading) return;
     setPipelineLoading(true);
     try {
+      // Migrate pre-pipeline notes if any
+      const prePipelineNotes = notes.trim() || localStorage.getItem(`sourcekit-notes:${dev.username}`) || "";
       await supabase.from("pipeline").upsert({
         github_username: dev.username,
         name: dev.name,
         avatar_url: dev.avatarUrl,
         stage: "sourced",
+        ...(prePipelineNotes ? { notes: prePipelineNotes } : {}),
       }, { onConflict: "github_username" });
+      // Clean up localStorage notes after migration
+      localStorage.removeItem(`sourcekit-notes:${dev.username}`);
       setAddedToPipeline(true);
       queryClient.invalidateQueries({ queryKey: ["pipeline"] });
       queryClient.invalidateQueries({ queryKey: ["pipeline-usernames"] });
+      queryClient.invalidateQueries({ queryKey: ["pipeline-check", dev.username] });
       toast({ title: `Added ${dev.name || dev.username} to pipeline` });
     } catch (err) {
       console.error("Failed to add to pipeline:", err);
@@ -118,6 +156,25 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     } finally {
       setPipelineLoading(false);
     }
+  };
+
+  // Stage change handler
+  const handleStageChange = async (newStage: string) => {
+    if (!pipelineRow?.id) return;
+    const fromStage = localStage;
+    setLocalStage(newStage);
+    setStageOpen(false);
+    await supabase.from("pipeline").update({ stage: newStage }).eq("id", pipelineRow.id);
+    queryClient.invalidateQueries({ queryKey: ["pipeline"] });
+    queryClient.invalidateQueries({ queryKey: ["pipeline-check", dev.username] });
+    notifyStageChange({
+      pipeline_id: pipelineRow.id,
+      github_username: dev.username,
+      candidate_name: dev.name || dev.username,
+      from_stage: fromStage,
+      to_stage: newStage,
+    });
+    toast({ title: `Moved to ${STAGES.find(s => s.id === newStage)?.label || newStage}` });
   };
 
   const handleGenerate = async () => {
@@ -159,6 +216,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     // Save to outreach_history if the candidate has a pipeline entry
     if (pipelineRow?.id) {
       await supabase.from("outreach_history").insert({ pipeline_id: pipelineRow.id, message: outreachDraft });
+      queryClient.invalidateQueries({ queryKey: ["outreach-history", pipelineRow.id] });
     }
     setOutreachMsg(outreachDraft);
     setOutreachEditing(false);
@@ -171,14 +229,30 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     setTimeout(() => setCopiedMsg(false), 1500);
   };
 
-  // FEAT-004: Save notes
+  // Load pre-pipeline notes from localStorage if not in pipeline
+  useEffect(() => {
+    if (!pipelineRow && dev.username) {
+      const saved = localStorage.getItem(`sourcekit-notes:${dev.username}`);
+      if (saved) setNotes(saved);
+    }
+  }, [pipelineRow, dev.username]);
+
+  // FEAT-004: Save notes (pipeline or localStorage)
   const handleSaveNotes = useCallback(async () => {
-    if (!pipelineRow?.id) return;
     setNotesSaving(true);
-    await supabase.from("pipeline").update({ notes }).eq("id", pipelineRow.id);
+    if (pipelineRow?.id) {
+      await supabase.from("pipeline").update({ notes }).eq("id", pipelineRow.id);
+    } else {
+      // Pre-pipeline: save to localStorage
+      if (notes.trim()) {
+        localStorage.setItem(`sourcekit-notes:${dev.username}`, notes);
+      } else {
+        localStorage.removeItem(`sourcekit-notes:${dev.username}`);
+      }
+    }
     setNotesSaving(false);
     toast({ title: "Notes saved" });
-  }, [notes, pipelineRow]);
+  }, [notes, pipelineRow, dev.username]);
 
   // FEAT-004: Add tag
   const handleAddTag = useCallback(async () => {
@@ -294,26 +368,60 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
                 <Twitter className="w-3.5 h-3.5" /> @{dev.twitterUsername}
               </a>
             )}
+
+            {/* Stage changer (pipeline only) */}
+            {addedToPipeline && pipelineRow && (
+              <div className="relative">
+                <button
+                  onClick={() => setStageOpen(!stageOpen)}
+                  className={`flex items-center gap-1.5 text-xs font-display font-semibold px-3 py-2 rounded-lg border ${
+                    (STAGES.find(s => s.id === localStage) || STAGES[0]).color
+                  } transition-colors`}
+                >
+                  {(STAGES.find(s => s.id === localStage) || STAGES[0]).label}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {stageOpen && (
+                  <div className="absolute top-full mt-1 left-0 bg-popover border border-border rounded-lg shadow-lg z-50 min-w-[140px]">
+                    {STAGES.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => handleStageChange(s.id)}
+                        className={`w-full text-left text-xs font-display px-3 py-2 hover:bg-accent transition-colors ${
+                          s.id === localStage ? "text-primary font-semibold" : "text-foreground"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ===== NOTES & TAGS (FEAT-004) ===== */}
-          {addedToPipeline && pipelineRow && (
-            <div className="glass rounded-xl p-4 space-y-3">
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <StickyNote className="w-3.5 h-3.5 text-muted-foreground" />
-                  <h3 className="font-display text-xs font-semibold text-foreground">Notes</h3>
-                </div>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  onBlur={handleSaveNotes}
-                  rows={3}
-                  placeholder="Add notes about this candidate..."
-                  className="w-full bg-secondary/50 border border-border rounded-lg p-2.5 text-xs text-foreground font-body outline-none resize-none focus:border-primary/30 placeholder:text-muted-foreground"
-                />
-                {notesSaving && <span className="text-[10px] text-muted-foreground font-display">Saving...</span>}
+          <div className="glass rounded-xl p-4 space-y-3">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <StickyNote className="w-3.5 h-3.5 text-muted-foreground" />
+                <h3 className="font-display text-xs font-semibold text-foreground">
+                  Notes
+                  {!addedToPipeline && <span className="text-muted-foreground/60 font-normal ml-1">(saved locally)</span>}
+                </h3>
               </div>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={handleSaveNotes}
+                rows={3}
+                placeholder="Add notes about this candidate..."
+                className="w-full bg-secondary/50 border border-border rounded-lg p-2.5 text-xs text-foreground font-body outline-none resize-none focus:border-primary/30 placeholder:text-muted-foreground"
+              />
+              {notesSaving && <span className="text-[10px] text-muted-foreground font-display">Saving...</span>}
+            </div>
+            {/* Tags (pipeline-only) */}
+            {addedToPipeline && pipelineRow && (
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Tag className="w-3.5 h-3.5 text-muted-foreground" />
@@ -358,8 +466,8 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
                   </button>
                 </form>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* ===== ABOUT ===== */}
           {about && (
@@ -432,14 +540,47 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
           <div className="glass rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-display text-xs font-semibold text-foreground">Outreach</h3>
-              {/* Tone selector */}
+              {/* Mode switcher */}
+              <div className="flex items-center gap-1 bg-secondary/60 rounded-lg p-0.5">
+                <button
+                  onClick={() => setOutreachMode("ai")}
+                  className={`text-[10px] font-display px-2.5 py-1 rounded-md transition-colors ${
+                    outreachMode === "ai" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  AI Generate
+                </button>
+                <button
+                  onClick={() => setOutreachMode("template")}
+                  className={`text-[10px] font-display px-2.5 py-1 rounded-md transition-colors ${
+                    outreachMode === "template" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Templates
+                </button>
+              </div>
+            </div>
+
+            {outreachMode === "template" ? (
+              <OutreachTemplateEditor
+                developer={dev}
+                onUseMessage={(msg) => {
+                  setOutreachMsg(msg);
+                  setOutreachDraft(msg);
+                  setOutreachMode("ai"); // switch back to show the result
+                }}
+              />
+            ) : (
+            <>
+            {/* Tone selector */}
+            <div className="flex items-center justify-between mb-3">
               <div className="relative">
                 <button onClick={() => setToneOpen(!toneOpen)}
                   className="flex items-center gap-1 text-[10px] font-display px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground transition-colors">
                   {OUTREACH_TONES.find(t => t.id === outreachTone)?.label} <ChevronDown className="w-2.5 h-2.5" />
                 </button>
                 {toneOpen && (
-                  <div className="absolute top-full mt-1 right-0 bg-popover border border-border rounded-lg shadow-lg z-10 min-w-[120px]">
+                  <div className="absolute top-full mt-1 left-0 bg-popover border border-border rounded-lg shadow-lg z-10 min-w-[120px]">
                     {OUTREACH_TONES.map(t => (
                       <button key={t.id} onClick={() => { setOutreachTone(t.id); setToneOpen(false); }}
                         className={`w-full text-left text-xs font-display px-3 py-1.5 hover:bg-accent transition-colors ${t.id === outreachTone ? 'text-primary' : 'text-foreground'}`}>
@@ -506,7 +647,60 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
                 Context: {settings.target_role}{settings.target_company ? ` at ${settings.target_company}` : ''}
               </p>
             )}
+            </>
+            )}
           </div>
+
+          {/* ===== OUTREACH HISTORY ===== */}
+          {pipelineRow && outreachHistory.length > 0 && (
+            <div className="glass rounded-xl p-4">
+              <div className="flex items-center gap-1.5 mb-3">
+                <History className="w-3.5 h-3.5 text-muted-foreground" />
+                <h3 className="font-display text-xs font-semibold text-foreground">
+                  Past Messages ({outreachHistory.length})
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {outreachHistory.map((h: any) => {
+                  const isExpanded = expandedHistoryId === h.id;
+                  const msgText: string = h.message || "";
+                  const truncated = msgText.length > 120 && !isExpanded;
+                  return (
+                    <div key={h.id} className="group/msg p-3 rounded-lg bg-secondary/50 border border-border relative">
+                      <p className="text-xs text-secondary-foreground leading-relaxed pr-7">
+                        {truncated ? msgText.slice(0, 120) + "..." : msgText}
+                      </p>
+                      {msgText.length > 120 && (
+                        <button
+                          onClick={() => setExpandedHistoryId(isExpanded ? null : h.id)}
+                          className="text-[10px] text-primary font-display mt-1 hover:underline"
+                        >
+                          {isExpanded ? "Show less" : "Show more"}
+                        </button>
+                      )}
+                      <div className="flex items-center mt-1.5">
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" />
+                          {new Date(h.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(msgText);
+                          setCopiedHistoryId(h.id);
+                          setTimeout(() => setCopiedHistoryId(null), 1500);
+                        }}
+                        className="absolute top-2.5 right-2.5 p-1 rounded-md text-muted-foreground hover:text-foreground opacity-0 group-hover/msg:opacity-100 transition-opacity"
+                        title="Copy message"
+                      >
+                        {copiedHistoryId === h.id ? <ClipboardCheck className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Stats footer */}
           <div className="glass rounded-xl p-4">
