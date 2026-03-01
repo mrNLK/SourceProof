@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { getAuthenticatedUser, unauthorizedResponse } from '../_shared/auth.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: getCorsHeaders(req) })
   }
+
+  const user = await getAuthenticatedUser(req);
+  if (!user) return unauthorizedResponse(getCorsHeaders(req));
 
   try {
     const { query, role, company } = await req.json()

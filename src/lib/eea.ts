@@ -2,7 +2,7 @@
  * EEA — Evidence of Exceptional Ability
  *
  * Based on the 6 USCIS O-1A / EB-1A criteria, adapted for tech talent
- * sourcing. Plus 2 supplementary GitHub-specific signals that strengthen
+ * sourcing. Plus 5 supplementary GitHub-specific signals that strengthen
  * the overall picture.
  *
  * USCIS Criteria (primary — weighted 10% each = 60% total):

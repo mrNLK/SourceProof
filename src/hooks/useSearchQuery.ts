@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getCurrentUserId } from "@/integrations/supabase/client";
 import {
   searchDevelopers,
   searchDevelopersStreaming,
@@ -13,14 +13,8 @@ import { toast } from "@/hooks/use-toast";
 import type { Developer } from "@/types/developer";
 import { isLikelyBot } from "@/lib/search-helpers";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export interface StrategyHandoff {
-  targetRepos?: string[];
-  skills?: string[];
-}
+import type { StrategyHandoff } from "@/types/strategy";
+export type { StrategyHandoff };
 
 export interface StreamStep {
   step: string;
@@ -228,7 +222,9 @@ export function useSearchQuery({
       }
       (async () => {
         try {
+          const userId = await getCurrentUserId();
           const insertRow: Record<string, unknown> = {
+            user_id: userId,
             query: query || activeQuery,
             action_type: "search",
             result_count: baseResults.length,
@@ -259,7 +255,9 @@ export function useSearchQuery({
       historySavedForQuery.current = activeQuery;
       (async () => {
         try {
+          const errUserId = await getCurrentUserId();
           await supabase.from("search_history").insert({
+            user_id: errUserId,
             query: query || activeQuery,
             action_type: "search",
             result_count: 0,

@@ -1,10 +1,20 @@
-import { useTheme } from "next-themes";
+import { useSyncExternalStore } from "react";
 import { Toaster as Sonner, toast } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
+function getTheme() {
+  return (typeof localStorage !== "undefined" && localStorage.getItem("sourcekit-theme")) || "dark";
+}
+
+function subscribeTheme(cb: () => void) {
+  const handler = (e: StorageEvent) => { if (e.key === "sourcekit-theme") cb(); };
+  window.addEventListener("storage", handler);
+  return () => window.removeEventListener("storage", handler);
+}
+
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  const theme = useSyncExternalStore(subscribeTheme, getTheme, () => "dark");
 
   return (
     <Sonner

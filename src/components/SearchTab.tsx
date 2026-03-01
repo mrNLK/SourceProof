@@ -2,7 +2,7 @@ import { Search, Loader2, ExternalLink, SlidersHorizontal, ChevronDown, ChevronU
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getCurrentUserId } from "@/integrations/supabase/client";
 import { enrichLinkedIn } from "@/lib/api";
 import { useSearchQuery, type StreamStep, type StrategyHandoff } from "@/hooks/useSearchQuery";
 import CandidateSlideOut from "@/components/CandidateSlideOut";
@@ -249,7 +249,9 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
     setBatchAdding(true);
     const toAdd = filtered.filter((d) => batchSelected.has(d.username) && !pipelineSet.has(d.username));
     let added = 0;
-    for (const dev of toAdd) { try { const { error } = await supabase.from('pipeline').upsert({ github_username: dev.username, name: dev.name, avatar_url: dev.avatarUrl, stage: 'sourced' }, { onConflict: 'github_username' }); if (!error) added++; } catch {} }
+    const userId = await getCurrentUserId();
+    if (!userId) { setBatchAdding(false); return; }
+    for (const dev of toAdd) { try { const { error } = await supabase.from('pipeline').upsert({ user_id: userId, github_username: dev.username, name: dev.name, avatar_url: dev.avatarUrl, stage: 'sourced' }, { onConflict: 'user_id,github_username' }); if (!error) added++; } catch { /* ignore individual failures */ } }
     queryClient.invalidateQueries({ queryKey: ["pipeline-usernames"] });
     toast({ title: `Added ${added} candidate${added !== 1 ? 's' : ''} to pipeline`, description: `${added} candidate${added !== 1 ? 's' : ''} added to Sourced stage.` });
     setBatchSelected(new Set());

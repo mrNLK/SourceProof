@@ -127,7 +127,7 @@ const BulkActionsTab = () => {
   const toggleSelect = (id: string) => {
     setSelected(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };
@@ -158,11 +158,13 @@ const BulkActionsTab = () => {
     if (action === "chat" && extraMessages) body.messages = extraMessages;
 
     try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const authToken = authSession?.access_token || SUPABASE_KEY;
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/bulk-actions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${SUPABASE_KEY}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify(body),
       });

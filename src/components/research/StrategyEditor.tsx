@@ -47,11 +47,7 @@ const CATEGORY_STYLES: Record<string, { label: string; bg: string; text: string;
 // Props
 // ---------------------------------------------------------------------------
 
-// P28: Structured strategy handoff
-interface StrategyHandoff {
-  targetRepos?: string[];
-  skills?: string[];
-}
+import type { StrategyHandoff } from "@/types/strategy";
 
 interface StrategyEditorProps {
   strategy: SearchStrategy;

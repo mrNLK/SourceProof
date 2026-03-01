@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getCurrentUserId } from "@/integrations/supabase/client";
 
 export function useWatchlist() {
   const queryClient = useQueryClient();
@@ -37,7 +37,10 @@ export function useWatchlist() {
         const { error } = await supabase.from("watchlist_items").delete().eq("id", existing.id);
         if (error) throw error;
       } else {
+        const userId = await getCurrentUserId();
+        if (!userId) throw new Error('Not authenticated');
         const { error } = await supabase.from("watchlist_items").insert({
+          user_id: userId,
           candidate_username: username,
           candidate_name: name || null,
           candidate_avatar_url: avatarUrl || null,

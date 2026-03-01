@@ -63,12 +63,8 @@ export function useEEAWebset(options?: UseEEAWebsetOptions) {
       // Note: Monitor creation requires the edge function to support it.
       // For now we create the webset and log the monitor config for future use.
       // The edge function can be extended to accept a monitor param.
-      console.log('Monitor config for future setup:', {
-        websetId: result.id,
-        cron: config.monitorCron,
-        query: config.searchQuery,
-        criteria: payload.criteria,
-      });
+      // TODO: Monitor creation requires the edge function to support it.
+      // Config: websetId=result.id, cron=config.monitorCron, query=config.searchQuery
 
       setCreatedWebsetId(result.id);
 

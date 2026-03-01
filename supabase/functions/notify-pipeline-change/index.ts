@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { getAuthenticatedUser, unauthorizedResponse } from '../_shared/auth.ts';
 
 function getSupabase() {
   return createClient(
@@ -13,6 +14,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
+
+  const user = await getAuthenticatedUser(req);
+  if (!user) return unauthorizedResponse(getCorsHeaders(req));
 
   try {
     const {
@@ -32,10 +36,11 @@ serve(async (req) => {
 
     const supabase = getSupabase();
 
-    // Get webhook URLs from settings
+    // Get webhook URLs from settings for the authenticated user
     const { data: settings } = await supabase
       .from('settings')
       .select('key, value')
+      .eq('user_id', user.id)
       .in('key', ['webhook_url', 'slack_webhook_url']);
 
     const settingsMap: Record<string, string> = {};

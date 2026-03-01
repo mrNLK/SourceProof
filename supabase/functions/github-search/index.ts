@@ -505,7 +505,7 @@ recruitable = false if they are a founder, CEO, CTO, VP, or have >10K followers.
 
 // Step 5: Flag ungettable candidates (P10)
 const UNRECRUTABLE_TITLES = /\b(founder|co-founder|cofounder|ceo|chief executive|cto|chief technology|coo|chief operating|vp |vice president|managing partner|general partner|venture partner|president)\b/i;
-const FOLLOWER_THRESHOLD = 500;
+const FOLLOWER_THRESHOLD = 10000;
 
 function flagUngettable(candidates: any[]): any[] {
   return candidates.map(c => {

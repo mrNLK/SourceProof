@@ -21,6 +21,7 @@ vi.mock("@/integrations/supabase/client", () => ({
       delete: () => ({ eq: mockEq }),
     })),
   },
+  getCurrentUserId: vi.fn().mockResolvedValue("test-user-id"),
 }));
 
 import { useWatchlist } from "../useWatchlist";
@@ -154,6 +155,7 @@ describe("useWatchlist", () => {
 
     await waitFor(() => {
       expect(mockInsert).toHaveBeenCalledWith({
+        user_id: "test-user-id",
         candidate_username: "charlie",
         candidate_name: "Charlie",
         candidate_avatar_url: "https://avatar.url",

@@ -5,7 +5,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getCurrentUserId } from "@/integrations/supabase/client";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { toast } from "@/hooks/use-toast";
 import { EEAFull } from "@/components/EEASignals";
@@ -112,16 +112,19 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
     setGenerating(true);
     setGeneratedMsg(null);
     try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const token = authSession?.access_token || SUPABASE_KEY;
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-outreach`, {
         method: "POST",
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ candidate_name: displayName || username, github_username: username }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to generate outreach");
       setGeneratedMsg(data.message);
       toast({ title: "Outreach message generated" });
-      await supabase.from("outreach_history").insert({ pipeline_id: pc.id, message: data.message });
+      const ohUserId = await getCurrentUserId();
+      await supabase.from("outreach_history").insert({ user_id: ohUserId, pipeline_id: pc.id, message: data.message });
       queryClient.invalidateQueries({ queryKey: ["outreach-history", pc.id] });
     } catch (e) {
       console.error("Outreach generation failed:", e);

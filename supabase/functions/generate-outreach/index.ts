@@ -1,11 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { anthropicCall } from "../_shared/anthropic.ts";
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { getAuthenticatedUser, unauthorizedResponse } from '../_shared/auth.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
+
+  const user = await getAuthenticatedUser(req);
+  if (!user) return unauthorizedResponse(getCorsHeaders(req));
 
   try {
     const { candidate_name, github_username, role_context } = await req.json();

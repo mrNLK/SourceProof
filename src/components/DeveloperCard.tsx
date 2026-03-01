@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { Developer } from "@/types/developer";
 import { enrichLinkedIn } from "@/lib/api";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getCurrentUserId } from "@/integrations/supabase/client";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { EEAMini } from "@/components/EEASignals";
 import { toast } from "@/hooks/use-toast";
@@ -31,12 +31,15 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
 
   const doAddToPipeline = async () => {
     try {
+      const userId = await getCurrentUserId();
+      if (!userId) throw new Error('Not authenticated');
       const { error } = await supabase.from('pipeline').upsert({
+        user_id: userId,
         github_username: developer.username,
         name: developer.name,
         avatar_url: developer.avatarUrl,
         stage: 'sourced',
-      }, { onConflict: 'github_username' });
+      }, { onConflict: 'user_id,github_username' });
       if (error) throw error;
       setAddedToPipeline(true);
       toast({

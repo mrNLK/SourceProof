@@ -21,11 +21,7 @@ const TabFallback = () => (
   </div>
 );
 
-// P28: Structured strategy data passed through to SearchTab
-export interface StrategyHandoff {
-  targetRepos?: string[];
-  skills?: string[];
-}
+import type { StrategyHandoff } from "@/types/strategy";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -36,7 +32,7 @@ const Index = () => {
       if (saved && ["search", "research", "history", "pipeline", "watchlist", "bulk", "websets", "settings"].includes(saved)) {
         return saved as ActiveTab;
       }
-    } catch {}
+    } catch { /* ignore invalid localStorage */ }
     return "research";
   });
   const [rerunQuery, setRerunQuery] = useState<string | undefined>();

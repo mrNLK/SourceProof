@@ -5,7 +5,7 @@ import {
   Linkedin, ChevronDown, Tag, StickyNote, Plus, History,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getCurrentUserId } from "@/integrations/supabase/client";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { EEAFull } from "@/components/EEASignals";
 import { notifyStageChange } from "@/lib/api";
@@ -136,13 +136,16 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     try {
       // Migrate pre-pipeline notes if any
       const prePipelineNotes = notes.trim() || localStorage.getItem(`sourcekit-notes:${dev.username}`) || "";
+      const userId = await getCurrentUserId();
+      if (!userId) throw new Error('Not authenticated');
       await supabase.from("pipeline").upsert({
+        user_id: userId,
         github_username: dev.username,
         name: dev.name,
         avatar_url: dev.avatarUrl,
         stage: "sourced",
         ...(prePipelineNotes ? { notes: prePipelineNotes } : {}),
-      }, { onConflict: "github_username" });
+      }, { onConflict: "user_id,github_username" });
       // Clean up localStorage notes after migration
       localStorage.removeItem(`sourcekit-notes:${dev.username}`);
       setAddedToPipeline(true);
@@ -189,9 +192,11 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
         `Tone: ${tone.prompt}`,
       ].filter(Boolean).join('. ');
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || SUPABASE_KEY;
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-outreach`, {
         method: "POST",
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           candidate_name: dev.name,
           github_username: dev.username,
@@ -215,7 +220,8 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     if (!outreachDraft.trim()) return;
     // Save to outreach_history if the candidate has a pipeline entry
     if (pipelineRow?.id) {
-      await supabase.from("outreach_history").insert({ pipeline_id: pipelineRow.id, message: outreachDraft });
+      const ohUserId = await getCurrentUserId();
+      await supabase.from("outreach_history").insert({ user_id: ohUserId, pipeline_id: pipelineRow.id, message: outreachDraft });
       queryClient.invalidateQueries({ queryKey: ["outreach-history", pipelineRow.id] });
     }
     setOutreachMsg(outreachDraft);

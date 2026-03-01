@@ -3,7 +3,7 @@ import { Layers, Plus, RefreshCw, Trash2, ArrowLeft, ChevronDown, ChevronUp, Loa
 import { toast } from '@/hooks/use-toast'
 import { useWebsets } from '@/hooks/useWebsets'
 import { createWebset, deleteWebset } from '@/services/websets'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, getCurrentUserId } from '@/integrations/supabase/client'
 import WebsetEEAView from '@/components/websets/WebsetEEAView'
 import EEAErrorBoundary from '@/components/websets/EEAErrorBoundary'
 import { EEAViewSkeleton } from '@/components/websets/EEASkeleton'
@@ -35,13 +35,16 @@ const WebsetsTab = () => {
     if (addingItem || addedItems.has(item.id)) return
     setAddingItem(item.id)
     try {
+      const userId = await getCurrentUserId()
+      if (!userId) throw new Error('Not authenticated')
       const username = item.url ? new URL(item.url).pathname.replace(/^\//, '').replace(/\//g, '-') : item.id
       const { error } = await supabase.from('pipeline').upsert({
+        user_id: userId,
         github_username: username,
         name: item.title || username,
         avatar_url: '',
         stage: 'sourced',
-      }, { onConflict: 'github_username' })
+      }, { onConflict: 'user_id,github_username' })
       if (error) throw error
       setAddedItems(prev => new Set(prev).add(item.id))
       toast({ title: `${item.title || 'Item'} added to pipeline`, description: 'Added to Sourced stage.' })
@@ -61,13 +64,16 @@ const WebsetsTab = () => {
       for (const item of batchItems) {
         if (addedItems.has(item.id)) continue
         try {
+          const batchUserId = await getCurrentUserId()
+          if (!batchUserId) throw new Error('Not authenticated')
           const username = item.url ? new URL(item.url).pathname.replace(/^\//, '').replace(/\//g, '-') : item.id
           const { error } = await supabase.from('pipeline').upsert({
+            user_id: batchUserId,
             github_username: username,
             name: item.title || username,
             avatar_url: '',
             stage: 'sourced',
-          }, { onConflict: 'github_username' })
+          }, { onConflict: 'user_id,github_username' })
           if (error) throw error
           setAddedItems(prev => new Set(prev).add(item.id))
           added++

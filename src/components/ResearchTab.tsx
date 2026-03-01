@@ -28,11 +28,7 @@ export interface ResearchState {
   jdText?: string;
 }
 
-// P28: Structured strategy handoff
-interface StrategyHandoff {
-  targetRepos?: string[];
-  skills?: string[];
-}
+import type { StrategyHandoff } from "@/types/strategy";
 
 interface ResearchTabProps {
   state: ResearchState;

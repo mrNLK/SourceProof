@@ -49,7 +49,7 @@ export async function anthropicCall(
     method: "POST",
     headers: headers(apiKey),
     body: JSON.stringify({
-      model: options?.model || "claude-haiku-4-5-20251001",
+      model: options?.model || "claude-haiku-4-5-20241022",
       max_tokens: options?.maxTokens || 4096,
       system,
       messages: [{ role: "user", content: sanitizedPrompt }],
@@ -84,7 +84,7 @@ export async function anthropicToolCall(
   const apiKey = getApiKey();
   const sanitizedPrompt = sanitizeInput(userPrompt);
   const body: Record<string, unknown> = {
-    model: options?.model || "claude-haiku-4-5-20251001",
+    model: options?.model || "claude-haiku-4-5-20241022",
     max_tokens: options?.maxTokens || 1024,
     system,
     messages: [{ role: "user", content: sanitizedPrompt }],
@@ -126,7 +126,7 @@ export async function anthropicStream(
     method: "POST",
     headers: headers(apiKey),
     body: JSON.stringify({
-      model: options?.model || "claude-haiku-4-5-20251001",
+      model: options?.model || "claude-haiku-4-5-20241022",
       max_tokens: options?.maxTokens || 4096,
       system,
       messages: [{ role: "user", content: sanitizedPrompt }],
