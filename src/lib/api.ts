@@ -247,12 +247,13 @@ let settingsCacheUserId: string | null = null;
 export async function loadSettings(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
   const userId = session?.user?.id ?? null;
-  let query = (supabase as any).from('settings').select('key, value');
+  let query = supabase.from('settings').select('key, value');
   if (userId) query = query.eq('user_id', userId);
-  const { data } = await query;
+  const { data, error } = await query;
+  if (error) console.error('Failed to load settings:', error.message);
   const map: Record<string, string> = {};
   if (data) {
-    data.forEach((r: { key: string; value: string }) => { map[r.key] = r.value; });
+    data.forEach((r) => { map[r.key] = r.value; });
   }
   settingsCache = map;
   settingsCacheUserId = userId;

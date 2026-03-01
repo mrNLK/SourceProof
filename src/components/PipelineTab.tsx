@@ -64,9 +64,9 @@ const PipelineTab = ({ onNavigateToSearch }: PipelineTabProps) => {
   const { data: candidates = [], isLoading } = useQuery({
     queryKey: ["pipeline"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("pipeline").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("pipeline").select("id, github_username, name, avatar_url, stage, notes, tags, created_at, updated_at").order("created_at", { ascending: false }).returns<PipelineCandidate[]>();
       if (error) throw error;
-      return (data || []) as unknown as PipelineCandidate[];
+      return data || [];
     },
   });
 

@@ -41,6 +41,7 @@ export function useWebsets() {
     })
   }, [])
 
+  // supabase is a stable module-level singleton — safe to omit from deps
   const addWebsetRef = useCallback(async (ref: WebsetRef) => {
     setWebsetRefs(prev => [ref, ...prev])
     try {
@@ -53,7 +54,7 @@ export function useWebsets() {
           count: ref.count,
           status: ref.status,
           created_at: ref.createdAt,
-        }, { onConflict: 'id,user_id' })
+        }, { onConflict: 'id' })
         if (error) console.error('Failed to persist webset ref:', error.message)
       }
     } catch (err) {
@@ -80,6 +81,7 @@ export function useWebsets() {
     }
   }, [activeWebset, websetRefs])
 
+  // supabase, getWebset, getWebsetItems are stable module-level imports — safe to omit from deps
   const setActiveWebsetId = useCallback(async (id: string) => {
     setIsLoading(true)
     setError(null)
