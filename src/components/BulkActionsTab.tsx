@@ -372,7 +372,7 @@ const BulkActionsTab = () => {
               </thead>
               <tbody>
                 {filtered.map((c: any) => {
-                  const languages = (c.top_languages as any[] || []).slice(0, 3);
+                  const languages = ((c.top_languages as { name: string; percentage: number; color: string }[]) || []).slice(0, 3);
                   return (
                     <tr
                       key={c.id}
@@ -416,7 +416,7 @@ const BulkActionsTab = () => {
                       </td>
                       <td className="p-2 hidden md:table-cell">
                         <div className="flex gap-1">
-                          {languages.map((l: any) => (
+                          {languages.map((l: { name: string; percentage: number; color: string }) => (
                             <span key={l.name} className="text-[9px] font-display px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">
                               {l.name}
                             </span>

@@ -274,7 +274,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     queryClient.invalidateQueries({ queryKey: ["pipeline"] });
   }, [tags, pipelineRow, queryClient]);
 
-  const topLanguages = (candidate?.top_languages as any[]) || dev.topLanguages || [];
+  const topLanguages = (candidate?.top_languages as { name: string; percentage: number; color: string }[]) || dev.topLanguages || [];
   const highlights = (candidate?.highlights as string[]) || dev.highlights || [];
   const contributedRepos = (candidate?.contributed_repos as Record<string, number>) || dev.contributedRepos || {};
   const about = candidate?.about || dev.about || null;
