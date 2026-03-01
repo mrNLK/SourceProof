@@ -22,12 +22,12 @@ export function useWebsets() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session?.user?.id) return
-      ;(supabase as any)
+      supabase
         .from('webset_refs')
         .select('id, query, count, status, created_at')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
-        .then(({ data }: { data: Array<{ id: string; query: string; count: number; status: string; created_at: string }> | null }) => {
+        .then(({ data }) => {
           if (data && data.length > 0) {
             setWebsetRefs(data.map(r => ({
               id: r.id,
@@ -45,7 +45,7 @@ export function useWebsets() {
     setWebsetRefs(prev => [ref, ...prev])
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user?.id) {
-      await (supabase as any).from('webset_refs').upsert({
+      await supabase.from('webset_refs').upsert({
         id: ref.id,
         user_id: session.user.id,
         query: ref.query,
@@ -64,7 +64,7 @@ export function useWebsets() {
     }
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user?.id) {
-      await (supabase as any).from('webset_refs').delete().eq('id', id).eq('user_id', session.user.id)
+      await supabase.from('webset_refs').delete().eq('id', id).eq('user_id', session.user.id)
     }
   }, [activeWebset])
 
@@ -84,7 +84,7 @@ export function useWebsets() {
       // Update status in DB
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user?.id) {
-        await (supabase as any).from('webset_refs').update({ status: webset.status }).eq('id', id).eq('user_id', session.user.id)
+        await supabase.from('webset_refs').update({ status: webset.status }).eq('id', id).eq('user_id', session.user.id)
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load webset'
@@ -110,7 +110,7 @@ export function useWebsets() {
       ))
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user?.id) {
-        await (supabase as any).from('webset_refs').update({ status: webset.status }).eq('id', activeWebset.id).eq('user_id', session.user.id)
+        await supabase.from('webset_refs').update({ status: webset.status }).eq('id', activeWebset.id).eq('user_id', session.user.id)
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to refresh webset'
@@ -126,7 +126,7 @@ export function useWebsets() {
     setItems([])
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user?.id) {
-      await (supabase as any).from('webset_refs').delete().eq('user_id', session.user.id)
+      await supabase.from('webset_refs').delete().eq('user_id', session.user.id)
     }
   }, [])
 
