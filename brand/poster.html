@@ -10,406 +10,274 @@
 
   :root{
     --bg:#0A0A0F;
-    --surface:#111116;
-    --elevated:#15151B;
+    --card:#111116;
+    --surface:#15151B;
     --border:#1F1F26;
     --accent:#00E5A0;
     --accent-dim:rgba(0,229,160,.12);
+    --accent-20:rgba(0,229,160,.20);
     --accent-30:rgba(0,229,160,.30);
     --fg:#FFFFFF;
     --fg2:#A1A1AA;
     --fg3:#6B7280;
+    --fg4:#3F3F46;
     --red:#EF4444;
     --amber:#F59E0B;
     --blue:#3B82F6;
     --purple:#A855F7;
-    --font-display:'JetBrains Mono',monospace;
-    --font-body:'DM Sans',system-ui,-apple-system,sans-serif;
+    --font-d:'JetBrains Mono',monospace;
+    --font-b:'DM Sans',system-ui,-apple-system,sans-serif;
   }
 
-  body{
-    background:var(--bg);
-    color:var(--fg);
-    font-family:var(--font-body);
-    -webkit-font-smoothing:antialiased;
-  }
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-b);-webkit-font-smoothing:antialiased}
 
-  /* ── POSTER CANVAS ── */
+  /* ── POSTER ── */
   .poster{
     width:2400px;
-    min-height:1350px;
-    padding:56px;
-    display:flex;
-    flex-direction:column;
-    gap:40px;
-    position:relative;
-    overflow:hidden;
+    padding:48px 56px;
+    display:flex;flex-direction:column;gap:32px;
+    position:relative;overflow:hidden;
   }
-
-  /* Subtle grid background */
   .poster::before{
-    content:'';
-    position:absolute;
-    inset:0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size:48px 48px;
-    opacity:.25;
-    pointer-events:none;
+    content:'';position:absolute;inset:0;
+    background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+    background-size:48px 48px;opacity:.18;pointer-events:none;
   }
-
-  /* Accent glow top-left */
   .poster::after{
-    content:'';
-    position:absolute;
-    top:-200px;left:-200px;
-    width:700px;height:700px;
-    background:radial-gradient(circle,rgba(0,229,160,.06),transparent 70%);
-    pointer-events:none;
+    content:'';position:absolute;top:-300px;left:-200px;width:800px;height:800px;
+    background:radial-gradient(circle,rgba(0,229,160,.05),transparent 70%);pointer-events:none;
   }
 
   /* ── HEADER ── */
-  .header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    position:relative;
-    z-index:1;
-  }
-  .logo-group{
-    display:flex;
-    align-items:center;
-    gap:16px;
-  }
-  .logo-mark{width:44px;height:44px;color:var(--accent)}
-  .wordmark{
-    font-family:var(--font-body);
-    font-size:26px;
-    letter-spacing:-.02em;
-  }
+  .header{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+  .logo-group{display:flex;align-items:center;gap:16px}
+  .logo-mark{width:40px;height:40px;color:var(--accent)}
+  .wordmark{font-family:var(--font-b);font-size:24px;letter-spacing:-.02em}
   .wordmark b{font-weight:600;color:var(--fg)}
   .wordmark span{font-weight:500;color:var(--fg3)}
-  .tagline{
-    font-family:var(--font-display);
-    font-size:13px;
-    font-weight:500;
-    color:var(--fg2);
-    letter-spacing:.03em;
-    text-transform:uppercase;
-  }
-  .url-badge{
-    font-family:var(--font-display);
-    font-size:12px;
-    color:var(--accent);
-    background:var(--accent-dim);
-    border:1px solid var(--accent-30);
-    border-radius:8px;
-    padding:6px 14px;
-    letter-spacing:.02em;
-  }
+  .tagline{font-family:var(--font-d);font-size:12px;font-weight:500;color:var(--fg2);letter-spacing:.04em;text-transform:uppercase}
+  .url-badge{font-family:var(--font-d);font-size:11px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-30);border-radius:8px;padding:6px 14px}
 
-  /* ── MAIN GRID ── */
-  .grid{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    grid-template-rows:auto auto;
-    gap:24px;
-    position:relative;
-    z-index:1;
-    flex:1;
+  /* ── MAIN LAYOUT: sidebar + grid ── */
+  .main{display:flex;gap:24px;position:relative;z-index:1;flex:1}
+
+  /* ── SIDEBAR ── */
+  .sidebar{
+    width:200px;flex-shrink:0;
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:16px 0;display:flex;flex-direction:column;
   }
+  .sb-logo{display:flex;align-items:center;gap:10px;padding:0 16px 14px;border-bottom:1px solid var(--border)}
+  .sb-logo svg{width:24px;height:24px;color:var(--accent)}
+  .sb-logo-text{font-size:13px;letter-spacing:-.01em}
+  .sb-logo-text b{font-weight:600;color:var(--fg)}
+  .sb-logo-text span{font-weight:500;color:var(--fg3)}
+  .sb-nav{padding:12px 10px;display:flex;flex-direction:column;gap:2px;flex:1}
+  .sb-item{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 10px;border-radius:8px;
+    font-family:var(--font-d);font-size:10px;font-weight:500;letter-spacing:.03em;
+    color:var(--fg3);cursor:default;
+  }
+  .sb-item.active{background:var(--accent-dim);color:var(--accent)}
+  .sb-item svg{width:14px;height:14px;flex-shrink:0}
+  .sb-item .badge{
+    margin-left:auto;font-size:9px;font-weight:600;
+    padding:1px 6px;border-radius:10px;
+    background:var(--accent-20);color:var(--accent);border:1px solid var(--accent-30);
+  }
+  .sb-bottom{padding:8px 10px;border-top:1px solid var(--border);margin-top:auto}
+  .sb-pro{
+    display:flex;align-items:center;gap:8px;
+    padding:7px 10px;border-radius:8px;
+    background:var(--accent-dim);border:1px solid var(--accent-20);
+  }
+  .sb-pro svg{width:12px;height:12px;color:var(--accent)}
+  .sb-pro span{font-family:var(--font-d);font-size:10px;font-weight:600;color:var(--accent)}
+
+  /* ── GRID ── */
+  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
 
   /* ── PANEL ── */
-  .panel{
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:16px;
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
-  }
-  .panel.span-2{grid-column:span 2}
-  .panel-header{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:18px 22px;
-    border-bottom:1px solid var(--border);
-  }
-  .panel-icon{
-    width:18px;height:18px;
-    color:var(--accent);
-    flex-shrink:0;
-  }
-  .panel-title{
-    font-family:var(--font-display);
-    font-size:11px;
-    font-weight:600;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    color:var(--fg2);
-  }
-  .panel-body{
-    padding:20px 22px;
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-  }
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .panel.c2{grid-column:span 2}
+  .panel.c3{grid-column:span 3}
+  .ph{display:flex;align-items:center;gap:8px;padding:14px 18px;border-bottom:1px solid var(--border)}
+  .ph svg{width:15px;height:15px;color:var(--accent);flex-shrink:0}
+  .ph span{font-family:var(--font-d);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg2)}
+  .pb{padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:12px}
 
-  /* ── SEARCH PANEL (top-left, span 2) ── */
-  .search-bar{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    background:var(--elevated);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:14px 18px;
-  }
-  .search-bar .icon{width:16px;height:16px;color:var(--fg3)}
-  .search-bar .text{
-    font-size:13px;color:var(--fg2);flex:1;
-    font-family:var(--font-body);
-  }
-  .search-bar .badge{
-    font-family:var(--font-display);
-    font-size:10px;font-weight:600;
-    color:var(--accent);
-    background:var(--accent-dim);
-    border:1px solid var(--accent-30);
-    border-radius:6px;
-    padding:4px 10px;
-  }
-
-  .strategy-card{
-    background:var(--elevated);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:16px 18px;
-    display:flex;flex-direction:column;gap:10px;
-  }
-  .strategy-label{
-    font-family:var(--font-display);
-    font-size:10px;font-weight:600;
-    color:var(--accent);letter-spacing:.05em;
-    text-transform:uppercase;
-  }
-  .strategy-text{
-    font-size:12px;line-height:1.6;color:var(--fg2);
-  }
-
-  .query-tags{display:flex;gap:8px;flex-wrap:wrap}
-  .query-tag{
-    font-family:var(--font-display);
-    font-size:10px;font-weight:500;
-    padding:5px 12px;border-radius:6px;
-    background:var(--elevated);
-    border:1px solid var(--border);
-    color:var(--fg2);
-  }
-  .query-tag.active{
-    color:var(--accent);
-    border-color:var(--accent-30);
-    background:var(--accent-dim);
-  }
-
-  /* ── RESULTS PANEL ── */
-  .result-row{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    padding:10px 0;
-    border-bottom:1px solid var(--border);
-  }
-  .result-row:last-child{border-bottom:none}
-  .avatar{
-    width:36px;height:36px;
-    border-radius:50%;
-    background:var(--elevated);
-    border:2px solid var(--border);
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-display);
-    font-size:12px;font-weight:600;
-    color:var(--fg3);
-    flex-shrink:0;
-  }
-  .result-info{flex:1;display:flex;flex-direction:column;gap:3px}
-  .result-name{font-size:13px;font-weight:600;color:var(--fg)}
-  .result-meta{font-size:11px;color:var(--fg3)}
-  .score-badge{
-    font-family:var(--font-display);
-    font-size:11px;font-weight:700;
-    padding:4px 10px;border-radius:6px;
-    min-width:42px;text-align:center;
-  }
-  .score-high{background:rgba(0,229,160,.15);color:var(--accent)}
-  .score-mid{background:rgba(245,158,11,.15);color:var(--amber)}
-  .score-low{background:rgba(107,114,128,.12);color:var(--fg3)}
-  .gem-badge{
-    font-size:14px;
-    margin-left:4px;
-  }
-
-  /* ── PROFILE PANEL ── */
-  .profile-header{display:flex;gap:14px;align-items:center}
-  .profile-avatar{
-    width:48px;height:48px;border-radius:50%;
-    background:linear-gradient(135deg,var(--accent-dim),var(--elevated));
-    border:2px solid var(--accent-30);
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--accent);
-  }
-  .profile-name{font-size:15px;font-weight:600;color:var(--fg)}
-  .profile-handle{font-size:11px;color:var(--fg3)}
-  .profile-bio{font-size:11px;color:var(--fg2);line-height:1.5}
-
-  .stat-row{
-    display:flex;gap:12px;
-  }
-  .stat-box{
-    flex:1;
-    background:var(--elevated);
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:10px 12px;
-    text-align:center;
-  }
-  .stat-value{
-    font-family:var(--font-display);
-    font-size:16px;font-weight:700;
-    color:var(--fg);
-  }
-  .stat-label{
-    font-size:9px;color:var(--fg3);
-    text-transform:uppercase;
-    letter-spacing:.04em;
-    margin-top:2px;
-  }
-
-  .skill-tags{display:flex;gap:6px;flex-wrap:wrap}
-  .skill-tag{
-    font-family:var(--font-display);
-    font-size:9px;font-weight:500;
-    padding:4px 10px;border-radius:5px;
-    background:var(--elevated);
-    border:1px solid var(--border);
-    color:var(--fg2);
-  }
-
-  /* ── PIPELINE PANEL (span 2) ── */
-  .pipeline-cols{
-    display:flex;gap:14px;flex:1;
-  }
-  .pipeline-col{
-    flex:1;
-    background:var(--elevated);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:12px;
-    display:flex;flex-direction:column;gap:10px;
-  }
-  .pipeline-col-head{
-    display:flex;align-items:center;justify-content:space-between;
-    padding-bottom:8px;border-bottom:1px solid var(--border);
-  }
-  .pipeline-col-title{
-    font-family:var(--font-display);
-    font-size:10px;font-weight:600;
-    color:var(--fg2);text-transform:uppercase;letter-spacing:.04em;
-  }
-  .pipeline-count{
-    font-family:var(--font-display);
-    font-size:9px;font-weight:600;
-    color:var(--fg3);
-    background:var(--bg);
-    border-radius:4px;
-    padding:2px 6px;
-  }
-  .pipeline-card{
-    background:var(--bg);
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:10px 12px;
+  /* ── 1. RESEARCH & STRATEGY ── */
+  .research-tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content}
+  .research-tab{font-family:var(--font-d);font-size:9px;font-weight:600;padding:7px 14px;color:var(--fg3);background:var(--surface)}
+  .research-tab.active{color:var(--accent);background:var(--accent-dim)}
+  .url-input{
     display:flex;align-items:center;gap:10px;
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;
   }
-  .pipeline-card .avatar{width:28px;height:28px;font-size:10px}
-  .pipeline-card-info{flex:1}
-  .pipeline-card-name{font-size:11px;font-weight:600;color:var(--fg)}
-  .pipeline-card-role{font-size:9px;color:var(--fg3)}
+  .url-input svg{width:14px;height:14px;color:var(--fg3);flex-shrink:0}
+  .url-input span{font-size:11px;color:var(--fg2);font-family:var(--font-d);font-size:10px}
+  .or-divider{display:flex;align-items:center;gap:10px}
+  .or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+  .or-divider span{font-family:var(--font-d);font-size:9px;color:var(--fg4);letter-spacing:.06em}
+  .jd-area{
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;
+    font-size:11px;color:var(--fg3);line-height:1.5;flex:1;min-height:48px;
+  }
+  .btn-primary{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--accent);color:var(--bg);
+    font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:.02em;
+    padding:10px 20px;border-radius:8px;border:none;width:fit-content;
+  }
+  .btn-ghost{
+    display:inline-flex;align-items:center;justify-content:center;
+    background:transparent;color:var(--fg3);border:1px solid var(--border);
+    font-family:var(--font-d);font-size:10px;font-weight:500;
+    padding:10px 16px;border-radius:8px;
+  }
+  .research-hint{font-size:10px;color:var(--fg4);line-height:1.4;max-width:420px}
 
-  /* ── FEATURES STRIP ── */
-  .features-strip{
-    display:flex;
-    gap:16px;
-    position:relative;
-    z-index:1;
+  /* ── 2. SEARCH RESULTS ── */
+  .filter-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .filter-btn{
+    font-family:var(--font-d);font-size:9px;font-weight:600;
+    padding:5px 12px;border-radius:6px;
+    background:var(--surface);border:1px solid var(--border);color:var(--fg2);
   }
-  .feature-chip{
-    flex:1;
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:18px 22px;
-    display:flex;align-items:center;gap:14px;
+  .filter-btn.active{color:var(--accent);border-color:var(--accent-30);background:var(--accent-dim)}
+  .seniority-pills{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+  .seniority-pill{font-family:var(--font-d);font-size:9px;font-weight:500;padding:5px 10px;color:var(--fg3);background:var(--surface);border-right:1px solid var(--border)}
+  .seniority-pill:last-child{border-right:none}
+  .seniority-pill.active{color:var(--fg);background:var(--surface)}
+  .found-label{font-family:var(--font-d);font-size:10px;color:var(--fg2)}
+  .found-count{color:var(--accent);font-weight:700}
+
+  /* Parsed criteria tags */
+  .criteria-section{display:flex;flex-direction:column;gap:6px}
+  .criteria-label{font-family:var(--font-d);font-size:9px;font-weight:600;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em}
+  .criteria-tags{display:flex;gap:5px;flex-wrap:wrap}
+  .criteria-tag{
+    font-family:var(--font-d);font-size:9px;font-weight:500;
+    padding:4px 10px;border-radius:5px;
+    background:var(--accent-dim);border:1px solid var(--accent-20);color:var(--accent);
   }
-  .feature-icon{
-    width:32px;height:32px;
-    border-radius:8px;
+
+  /* Result rows */
+  .result-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+  .result-row:last-child{border-bottom:none}
+  .av{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--surface);border:2px solid var(--border);
     display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;
+    font-family:var(--font-d);font-size:10px;font-weight:600;color:var(--fg3);flex-shrink:0;
   }
-  .feature-icon svg{width:16px;height:16px}
-  .feature-icon.teal{background:var(--accent-dim);color:var(--accent)}
-  .feature-icon.blue{background:rgba(59,130,246,.12);color:var(--blue)}
-  .feature-icon.purple{background:rgba(168,85,247,.12);color:var(--purple)}
-  .feature-icon.amber{background:rgba(245,158,11,.12);color:var(--amber)}
-  .feature-title{
-    font-family:var(--font-display);
-    font-size:11px;font-weight:600;
-    color:var(--fg);letter-spacing:.02em;
+  .ri{flex:1;display:flex;flex-direction:column;gap:2px}
+  .rn{font-size:12px;font-weight:600;color:var(--fg)}
+  .rm{font-size:10px;color:var(--fg3)}
+  .eea-label{font-family:var(--font-d);font-size:8px;font-weight:600;color:var(--fg4);margin-right:2px}
+  .sc{font-family:var(--font-d);font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;min-width:36px;text-align:center}
+  .sc-h{background:rgba(0,229,160,.15);color:var(--accent)}
+  .sc-m{background:rgba(245,158,11,.15);color:var(--amber)}
+  .sc-l{background:rgba(107,114,128,.12);color:var(--fg3)}
+  .lang-tags{display:flex;gap:4px;flex-wrap:wrap}
+  .lang-tag{font-family:var(--font-d);font-size:8px;font-weight:500;padding:2px 7px;border-radius:4px;background:var(--surface);border:1px solid var(--border);color:var(--fg3)}
+
+  /* ── 3. BULK ACTIONS ── */
+  .bulk-table{width:100%;border-collapse:collapse}
+  .bulk-table th{
+    font-family:var(--font-d);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;
+    color:var(--fg3);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);
   }
-  .feature-desc{
-    font-size:10px;color:var(--fg3);line-height:1.4;margin-top:2px;
+  .bulk-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
+  .bulk-check{width:14px;height:14px;border-radius:4px;border:2px solid var(--accent-30);background:var(--accent-dim);display:inline-flex;align-items:center;justify-content:center}
+  .bulk-check svg{width:10px;height:10px;color:var(--accent)}
+  .stage-badge{
+    font-family:var(--font-d);font-size:8px;font-weight:600;
+    padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.03em;
   }
+  .stage-sourced{background:rgba(59,130,246,.12);color:var(--blue)}
+  .stage-contacted{background:rgba(168,85,247,.12);color:var(--purple)}
+  .ai-actions{display:flex;flex-direction:column;gap:6px}
+  .ai-btn{
+    display:flex;align-items:center;gap:8px;
+    padding:8px 12px;border-radius:8px;
+    background:var(--surface);border:1px solid var(--border);
+    font-family:var(--font-d);font-size:9px;font-weight:600;color:var(--fg2);
+  }
+  .ai-btn svg{width:13px;height:13px;color:var(--accent);flex-shrink:0}
+
+  /* ── 4. WEBSETS ── */
+  .webset-form{display:flex;flex-direction:column;gap:10px}
+  .field-label{font-family:var(--font-d);font-size:9px;font-weight:600;color:var(--fg3);text-transform:uppercase;letter-spacing:.04em}
+  .field-input{
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;
+    font-size:11px;color:var(--fg2);
+  }
+  .field-row{display:flex;gap:10px}
+  .criteria-pill{
+    display:flex;align-items:center;gap:6px;
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;
+    font-size:10px;color:var(--fg2);flex:1;
+  }
+  .criteria-num{
+    font-family:var(--font-d);font-size:9px;font-weight:700;
+    width:18px;height:18px;border-radius:50%;
+    background:var(--accent-dim);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .enrich-row{display:flex;gap:10px;align-items:center}
+  .enrich-field{
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;
+    font-size:10px;color:var(--fg2);flex:1;
+  }
+  .enrich-type{
+    font-family:var(--font-d);font-size:9px;font-weight:600;
+    padding:8px 12px;border-radius:8px;
+    background:var(--surface);border:1px solid var(--border);color:var(--fg3);
+    width:80px;text-align:center;
+  }
+
+  /* ── 5. PIPELINE ── */
+  .pipe-cols{display:flex;gap:10px;flex:1}
+  .pipe-col{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+  .pipe-col-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  .pipe-col-title{font-family:var(--font-d);font-size:9px;font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:.04em}
+  .pipe-count{font-family:var(--font-d);font-size:8px;font-weight:600;color:var(--fg3);background:var(--bg);border-radius:4px;padding:2px 5px}
+  .pipe-card{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 10px;display:flex;align-items:center;gap:8px}
+  .pipe-card .av{width:24px;height:24px;font-size:8px}
+  .pipe-name{font-size:10px;font-weight:600;color:var(--fg)}
+  .pipe-role{font-size:8px;color:var(--fg3)}
+
+  /* ── FEATURES ── */
+  .features{display:flex;gap:14px;position:relative;z-index:1}
+  .feat{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:flex-start;gap:12px}
+  .feat-icon{
+    width:28px;height:28px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .feat-icon svg{width:14px;height:14px}
+  .feat-icon.c1{background:var(--accent-dim);color:var(--accent)}
+  .feat-icon.c2{background:rgba(59,130,246,.12);color:var(--blue)}
+  .feat-icon.c3{background:rgba(168,85,247,.12);color:var(--purple)}
+  .feat-icon.c4{background:rgba(245,158,11,.12);color:var(--amber)}
+  .feat-icon.c5{background:rgba(239,68,68,.12);color:var(--red)}
+  .feat-title{font-family:var(--font-d);font-size:10px;font-weight:600;color:var(--fg);letter-spacing:.01em}
+  .feat-desc{font-size:9px;color:var(--fg3);line-height:1.4;margin-top:2px}
 
   /* ── FOOTER ── */
-  .footer{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    position:relative;
-    z-index:1;
-    padding-top:8px;
-    border-top:1px solid var(--border);
-  }
-  .footer-left{
-    font-size:11px;color:var(--fg3);
-    display:flex;align-items:center;gap:8px;
-  }
-  .footer-dot{
-    width:6px;height:6px;border-radius:50%;
-    background:var(--accent);
-    box-shadow:0 0 8px var(--accent);
-  }
-  .footer-right{
-    font-family:var(--font-display);
-    font-size:10px;color:var(--fg3);
-    letter-spacing:.04em;
-  }
-
-  /* ── SVG ICON HELPERS ── */
-  .icon-svg{display:inline-block;vertical-align:middle}
+  .footer{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;padding-top:6px;border-top:1px solid var(--border)}
+  .footer-left{font-size:11px;color:var(--fg3);display:flex;align-items:center;gap:8px}
+  .footer-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .footer-right{font-family:var(--font-d);font-size:10px;color:var(--fg3)}
 </style>
 </head>
 <body>
 <div class="poster">
 
-  <!-- HEADER -->
+  <!-- ═══ HEADER ═══ -->
   <div class="header">
     <div class="logo-group">
-      <!-- SourceKit Mark -->
       <svg class="logo-mark" viewBox="0 0 256 256" fill="none">
         <path d="M88 72 L56 128 L88 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>
         <path d="M168 72 L200 128 L168 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>
@@ -423,251 +291,280 @@
     <div class="url-badge">getsourcekit.vercel.app</div>
   </div>
 
-  <!-- MAIN GRID -->
-  <div class="grid">
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
 
-    <!-- 1. AI SEARCH — spans 2 cols -->
-    <div class="panel span-2">
-      <div class="panel-header">
-        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
-        <span class="panel-title">AI-Powered Research</span>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <svg viewBox="0 0 256 256" fill="none"><path d="M88 72 L56 128 L88 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><path d="M168 72 L200 128 L168 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><line x1="128" y1="88" x2="128" y2="64" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><line x1="128" y1="192" x2="128" y2="168" stroke="currentColor" stroke-width="11" stroke-linecap="round"/><circle cx="128" cy="128" r="10" fill="currentColor"/></svg>
+        <div class="sb-logo-text"><b>Source</b><span>Kit</span></div>
       </div>
-      <div class="panel-body">
-        <div class="search-bar">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <span class="text">Senior React engineer with real-time systems experience, open source contributor</span>
-          <span class="badge">AI Research</span>
-        </div>
-        <div style="display:flex;gap:14px">
-          <div class="strategy-card" style="flex:1">
-            <div class="strategy-label">Strategy Generated</div>
-            <div class="strategy-text">Targeting engineers with 4+ years of React contributions, WebSocket/real-time libraries, and open-source activity. Searching across 12M+ GitHub profiles for commit patterns in real-time frameworks.</div>
-          </div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:10px">
-            <div class="strategy-label" style="padding:0 4px">Generated Queries</div>
-            <div class="query-tags">
-              <span class="query-tag active">react real-time websocket</span>
-              <span class="query-tag active">socket.io contributors</span>
-              <span class="query-tag">redux saga middleware</span>
-              <span class="query-tag">webrtc react hooks</span>
-              <span class="query-tag">collaborative editing CRDT</span>
-            </div>
-          </div>
+      <div class="sb-nav">
+        <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>New Search</div>
+        <div class="sb-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>Results</div>
+        <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History</div>
+        <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>Pipeline</div>
+        <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>Watchlist <span class="badge">3</span></div>
+        <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Bulk Actions</div>
+        <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.84Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>Websets</div>
+        <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+        <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>Guide</div>
+      </div>
+      <div class="sb-bottom">
+        <div class="sb-pro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 .653.494l6.147 1.187a.5.5 0 0 1 .27.84l-4.253 4.474a1 1 0 0 0-.25.77l.745 6.22a.5.5 0 0 1-.71.527l-5.6-2.682a1 1 0 0 0-.868 0l-5.6 2.682a.5.5 0 0 1-.71-.527l.745-6.22a1 1 0 0 0-.25-.77L1.56 11.39a.5.5 0 0 1 .27-.84l6.148-1.186a1 1 0 0 0 .653-.494z"/></svg>
+          <span>Pro</span>
         </div>
       </div>
     </div>
 
-    <!-- 2. RESULTS -->
-    <div class="panel">
-      <div class="panel-header">
-        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <span class="panel-title">Scored Results</span>
-      </div>
-      <div class="panel-body">
-        <div class="result-row">
-          <div class="avatar">AL</div>
-          <div class="result-info">
-            <div class="result-name">Alex Lin <span class="gem-badge">💎</span></div>
-            <div class="result-meta">San Francisco · 2.4k commits</div>
-          </div>
-          <div class="score-badge score-high">94</div>
-        </div>
-        <div class="result-row">
-          <div class="avatar">SM</div>
-          <div class="result-info">
-            <div class="result-name">Sara Müller</div>
-            <div class="result-meta">Berlin · 1.8k commits</div>
-          </div>
-          <div class="score-badge score-high">89</div>
-        </div>
-        <div class="result-row">
-          <div class="avatar">JP</div>
-          <div class="result-info">
-            <div class="result-name">James Park</div>
-            <div class="result-meta">Seoul · 3.1k commits</div>
-          </div>
-          <div class="score-badge score-high">87</div>
-        </div>
-        <div class="result-row">
-          <div class="avatar">RK</div>
-          <div class="result-info">
-            <div class="result-name">Riya Kapoor</div>
-            <div class="result-meta">Bangalore · 960 commits</div>
-          </div>
-          <div class="score-badge score-mid">72</div>
-        </div>
-        <div class="result-row">
-          <div class="avatar">TC</div>
-          <div class="result-info">
-            <div class="result-name">Tom Chen</div>
-            <div class="result-meta">Toronto · 540 commits</div>
-          </div>
-          <div class="score-badge score-low">58</div>
-        </div>
-      </div>
-    </div>
+    <!-- CONTENT GRID -->
+    <div class="grid">
 
-    <!-- 3. DEVELOPER PROFILE -->
-    <div class="panel">
-      <div class="panel-header">
-        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-        <span class="panel-title">Developer Profile</span>
-      </div>
-      <div class="panel-body">
-        <div class="profile-header">
-          <div class="profile-avatar">AL</div>
-          <div>
-            <div class="profile-name">Alex Lin</div>
-            <div class="profile-handle">@alexlin · San Francisco, CA</div>
-          </div>
+      <!-- ═══ PANEL 1: Research & Strategy ═══ -->
+      <div class="panel">
+        <div class="ph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+          <span>Research &amp; Strategy</span>
         </div>
-        <div class="profile-bio">Staff engineer building real-time collaboration tools. Core contributor to socket.io ecosystem. Previously at Figma, Vercel.</div>
-        <div class="stat-row">
-          <div class="stat-box">
-            <div class="stat-value">2,418</div>
-            <div class="stat-label">Commits</div>
+        <div class="pb">
+          <div class="research-tabs">
+            <div class="research-tab active">Role + Company</div>
+            <div class="research-tab">Job Description</div>
           </div>
-          <div class="stat-box">
-            <div class="stat-value">347</div>
-            <div class="stat-label">PRs</div>
+          <div class="url-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>https://jobs.lever.co/anthropic/staff-ml-engineer</span>
           </div>
-          <div class="stat-box">
-            <div class="stat-value">89</div>
-            <div class="stat-label">Reviews</div>
+          <div class="or-divider"><span>OR PASTE TEXT</span></div>
+          <div class="jd-area">Paste job description text here...</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:12px;height:12px"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+              Build Sourcing Strategy
+            </div>
+            <div class="btn-ghost">Clear</div>
           </div>
-        </div>
-        <div class="skill-tags">
-          <span class="skill-tag">TypeScript</span>
-          <span class="skill-tag">React</span>
-          <span class="skill-tag">WebSocket</span>
-          <span class="skill-tag">Node.js</span>
-          <span class="skill-tag">CRDT</span>
-          <span class="skill-tag">GraphQL</span>
         </div>
       </div>
-    </div>
 
-    <!-- 4. PIPELINE — spans 2 cols -->
-    <div class="panel span-2">
-      <div class="panel-header">
-        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
-        <span class="panel-title">Recruiting Pipeline</span>
+      <!-- ═══ PANEL 2: AI-Parsed Search Criteria + Results ═══ -->
+      <div class="panel c2">
+        <div class="ph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span>Search Results</span>
+          <span style="margin-left:auto;font-family:var(--font-d);font-size:10px;font-weight:600;color:var(--fg2)">Found <span style="color:var(--accent)">20</span> engineers</span>
+        </div>
+        <div class="pb">
+          <!-- Parsed criteria -->
+          <div style="display:flex;gap:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+            <div class="criteria-section" style="flex:1">
+              <div class="criteria-label">AI-Parsed Search Criteria</div>
+              <div class="criteria-tags">
+                <span class="criteria-tag">Staff ML Engineer</span>
+                <span class="criteria-tag">Anthropic</span>
+                <span class="criteria-tag">Python</span>
+                <span class="criteria-tag">PyTorch</span>
+                <span class="criteria-tag">Transformers</span>
+                <span class="criteria-tag">RLHF</span>
+              </div>
+            </div>
+            <div class="criteria-section">
+              <div class="criteria-label">Target Repos</div>
+              <div class="criteria-tags">
+                <span class="criteria-tag">huggingface/transformers</span>
+                <span class="criteria-tag">pytorch/pytorch</span>
+              </div>
+            </div>
+          </div>
+          <!-- Filter bar -->
+          <div class="filter-bar">
+            <div class="filter-btn">Filters</div>
+            <div class="filter-btn active">Hidden Gems</div>
+            <div class="filter-btn">Show Ungettable</div>
+            <div class="filter-btn">Results: 20</div>
+            <div class="filter-btn">Enrich All</div>
+            <div style="margin-left:auto"></div>
+            <div class="seniority-pills">
+              <div class="seniority-pill active">Any</div>
+              <div class="seniority-pill">Junior</div>
+              <div class="seniority-pill">Mid</div>
+              <div class="seniority-pill">Senior</div>
+            </div>
+          </div>
+          <!-- Result rows -->
+          <div class="result-row">
+            <div class="av">TW</div>
+            <div class="ri">
+              <div class="rn">Thomas Wolf <span style="font-size:12px">💎</span></div>
+              <div class="rm">@thomwolf · Paris · Co-founder Hugging Face</div>
+              <div class="lang-tags"><span class="lang-tag">Python</span><span class="lang-tag">Jupyter</span><span class="lang-tag">C++</span></div>
+            </div>
+            <div><span class="eea-label">EEA</span><span class="sc sc-h">98</span></div>
+          </div>
+          <div class="result-row">
+            <div class="av">JS</div>
+            <div class="ri">
+              <div class="rn">Joseph Spisak</div>
+              <div class="rm">@jspisak · Bay Area · PyTorch Core Team</div>
+              <div class="lang-tags"><span class="lang-tag">Jupyter</span><span class="lang-tag">Python</span></div>
+            </div>
+            <div><span class="eea-label">EEA</span><span class="sc sc-h">78</span></div>
+          </div>
+          <div class="result-row">
+            <div class="av">LW</div>
+            <div class="ri">
+              <div class="rn">Lysandre Debut</div>
+              <div class="rm">@LysandreJik · Paris · Hugging Face Engineer</div>
+              <div class="lang-tags"><span class="lang-tag">Python</span><span class="lang-tag">Rust</span></div>
+            </div>
+            <div><span class="eea-label">EEA</span><span class="sc sc-h">85</span></div>
+          </div>
+          <div class="result-row">
+            <div class="av">SG</div>
+            <div class="ri">
+              <div class="rn">Sylvain Gugger</div>
+              <div class="rm">@sgugger · NYC · HF Accelerate</div>
+              <div class="lang-tags"><span class="lang-tag">Python</span><span class="lang-tag">C</span></div>
+            </div>
+            <div><span class="eea-label">EEA</span><span class="sc sc-m">72</span></div>
+          </div>
+        </div>
       </div>
-      <div class="panel-body">
-        <div class="pipeline-cols">
-          <div class="pipeline-col">
-            <div class="pipeline-col-head">
-              <span class="pipeline-col-title">Sourced</span>
-              <span class="pipeline-count">4</span>
-            </div>
-            <div class="pipeline-card">
-              <div class="avatar">AL</div>
-              <div class="pipeline-card-info">
-                <div class="pipeline-card-name">Alex Lin</div>
-                <div class="pipeline-card-role">Staff · React, Real-time</div>
-              </div>
-            </div>
-            <div class="pipeline-card">
-              <div class="avatar">SM</div>
-              <div class="pipeline-card-info">
-                <div class="pipeline-card-name">Sara Müller</div>
-                <div class="pipeline-card-role">Senior · React, WebGL</div>
-              </div>
-            </div>
+
+      <!-- ═══ PANEL 3: Bulk Actions ═══ -->
+      <div class="panel c2">
+        <div class="ph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Bulk Actions</span>
+          <span style="margin-left:auto;font-family:var(--font-d);font-size:10px;color:var(--fg3)">2 selected of 2 candidates</span>
+        </div>
+        <div class="pb" style="flex-direction:row;gap:18px">
+          <!-- Table -->
+          <div style="flex:1">
+            <table class="bulk-table">
+              <thead><tr><th style="width:28px"></th><th>Candidate</th><th>Score</th><th>Stage</th><th>Languages</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="bulk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div></td>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="av">TW</div><div><div class="rn" style="font-size:11px">Thomas Wolf</div><div class="rm">@thomwolf</div></div></div></td>
+                  <td><span class="sc sc-h">98</span></td>
+                  <td><span class="stage-badge stage-contacted">Contacted</span></td>
+                  <td><div class="lang-tags"><span class="lang-tag">Python</span><span class="lang-tag">Jupyter</span><span class="lang-tag">C++</span></div></td>
+                </tr>
+                <tr>
+                  <td><div class="bulk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div></td>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="av">JS</div><div><div class="rn" style="font-size:11px">Joseph Spisak</div><div class="rm">@jspisak</div></div></div></td>
+                  <td><span class="sc sc-h">78</span></td>
+                  <td><span class="stage-badge stage-sourced">Sourced</span></td>
+                  <td><div class="lang-tags"><span class="lang-tag">Jupyter</span><span class="lang-tag">Python</span></div></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="pipeline-col">
-            <div class="pipeline-col-head">
-              <span class="pipeline-col-title">Contacted</span>
-              <span class="pipeline-count">2</span>
-            </div>
-            <div class="pipeline-card">
-              <div class="avatar">JP</div>
-              <div class="pipeline-card-info">
-                <div class="pipeline-card-name">James Park</div>
-                <div class="pipeline-card-role">Senior · Full-stack</div>
-              </div>
-            </div>
-            <div class="pipeline-card">
-              <div class="avatar">MR</div>
-              <div class="pipeline-card-info">
-                <div class="pipeline-card-name">Maya Rodriguez</div>
-                <div class="pipeline-card-role">Senior · Systems</div>
-              </div>
-            </div>
+          <!-- AI Actions -->
+          <div style="width:200px;display:flex;flex-direction:column;gap:6px">
+            <div style="font-family:var(--font-d);font-size:9px;font-weight:600;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em;padding-bottom:4px">AI Actions</div>
+            <div class="ai-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>Refine Shortlist</div>
+            <div class="ai-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 6H3"/><path d="M21 12H8"/><path d="M21 18H8"/></svg>Draft Outreach</div>
+            <div class="ai-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>Search Insights</div>
+            <div class="ai-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Candidate Brief</div>
+            <div class="ai-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 3h5v5"/><path d="m21 3-7 7"/><path d="M8 21H3v-5"/><path d="m3 21 7-7"/></svg>Compare Selected</div>
           </div>
-          <div class="pipeline-col">
-            <div class="pipeline-col-head">
-              <span class="pipeline-col-title">Interviewing</span>
-              <span class="pipeline-count">1</span>
+        </div>
+      </div>
+
+      <!-- ═══ PANEL 4: Websets ═══ -->
+      <div class="panel">
+        <div class="ph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.84Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+          <span>Websets · Exa AI</span>
+        </div>
+        <div class="pb">
+          <div class="webset-form">
+            <div class="field-label">Search Query</div>
+            <div class="field-input">ML engineers who contributed to transformer training frameworks</div>
+            <div class="field-label">Results</div>
+            <div class="field-input" style="width:60px;text-align:center">10</div>
+            <div class="field-label">Criteria</div>
+            <div class="criteria-pill"><span class="criteria-num">1</span>50+ commits to a top 100 ML repo on GitHub</div>
+            <div class="criteria-pill"><span class="criteria-num">2</span>Published at NeurIPS, ICML, or ICLR in last 3 years</div>
+            <div class="field-label" style="margin-top:4px">Enrichment</div>
+            <div class="enrich-row">
+              <div class="enrich-field">Contact email address</div>
+              <div class="enrich-type">Email</div>
             </div>
-            <div class="pipeline-card">
-              <div class="avatar">RK</div>
-              <div class="pipeline-card-info">
-                <div class="pipeline-card-name">Riya Kapoor</div>
-                <div class="pipeline-card-role">Senior · React Native</div>
-              </div>
-            </div>
-          </div>
-          <div class="pipeline-col">
-            <div class="pipeline-col-head">
-              <span class="pipeline-col-title">Offer</span>
-              <span class="pipeline-count">1</span>
-            </div>
-            <div class="pipeline-card">
-              <div class="avatar" style="border-color:var(--accent-30);color:var(--accent)">DK</div>
-              <div class="pipeline-card-info">
-                <div class="pipeline-card-name">David Kim</div>
-                <div class="pipeline-card-role">Staff · Infra, Go</div>
-              </div>
+            <div class="btn-primary" style="margin-top:4px">
+              Create Webset
             </div>
           </div>
         </div>
       </div>
-    </div>
 
+      <!-- ═══ PANEL 5: Pipeline ═══ -->
+      <div class="panel c3">
+        <div class="ph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+          <span>Recruiting Pipeline</span>
+        </div>
+        <div class="pb">
+          <div class="pipe-cols">
+            <div class="pipe-col">
+              <div class="pipe-col-head"><span class="pipe-col-title">Sourced</span><span class="pipe-count">3</span></div>
+              <div class="pipe-card"><div class="av">TW</div><div><div class="pipe-name">Thomas Wolf</div><div class="pipe-role">Staff · Python, Transformers</div></div></div>
+              <div class="pipe-card"><div class="av">JS</div><div><div class="pipe-name">Joseph Spisak</div><div class="pipe-role">Senior · PyTorch Core</div></div></div>
+              <div class="pipe-card"><div class="av">LD</div><div><div class="pipe-name">Lysandre Debut</div><div class="pipe-role">Senior · HF Engineer</div></div></div>
+            </div>
+            <div class="pipe-col">
+              <div class="pipe-col-head"><span class="pipe-col-title">Contacted</span><span class="pipe-count">2</span></div>
+              <div class="pipe-card"><div class="av">SG</div><div><div class="pipe-name">Sylvain Gugger</div><div class="pipe-role">Senior · Accelerate</div></div></div>
+              <div class="pipe-card"><div class="av">NR</div><div><div class="pipe-name">Naman Rastogi</div><div class="pipe-role">Senior · ML Infra</div></div></div>
+            </div>
+            <div class="pipe-col">
+              <div class="pipe-col-head"><span class="pipe-col-title">Interviewing</span><span class="pipe-count">1</span></div>
+              <div class="pipe-card"><div class="av">AZ</div><div><div class="pipe-name">Angela Zhang</div><div class="pipe-role">Staff · RLHF, Safety</div></div></div>
+            </div>
+            <div class="pipe-col">
+              <div class="pipe-col-head"><span class="pipe-col-title">Offer</span><span class="pipe-count">1</span></div>
+              <div class="pipe-card"><div class="av" style="border-color:var(--accent-30);color:var(--accent)">DK</div><div><div class="pipe-name">David Kim</div><div class="pipe-role">Staff · Infra, Go</div></div></div>
+            </div>
+            <div class="pipe-col">
+              <div class="pipe-col-head"><span class="pipe-col-title">Hired</span><span class="pipe-count">1</span></div>
+              <div class="pipe-card"><div class="av" style="border-color:var(--accent-30);color:var(--accent)">EM</div><div><div class="pipe-name">Elena Moro</div><div class="pipe-role">Senior · ML Ops</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- FEATURES STRIP -->
-  <div class="features-strip">
-    <div class="feature-chip">
-      <div class="feature-icon teal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-      </div>
-      <div>
-        <div class="feature-title">AI Research Engine</div>
-        <div class="feature-desc">Natural language to sourcing strategy. Generates optimized GitHub queries automatically.</div>
-      </div>
+  <!-- ═══ FEATURES ═══ -->
+  <div class="features">
+    <div class="feat">
+      <div class="feat-icon c1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div><div class="feat-title">AI Research</div><div class="feat-desc">Paste a JD or describe a role — AI builds a full sourcing strategy with queries</div></div>
     </div>
-    <div class="feature-chip">
-      <div class="feature-icon blue">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-      </div>
-      <div>
-        <div class="feature-title">Signal-Based Scoring</div>
-        <div class="feature-desc">AI scores candidates on commits, PRs, code quality, and contribution patterns.</div>
-      </div>
+    <div class="feat">
+      <div class="feat-icon c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
+      <div><div class="feat-title">EEA Scoring</div><div class="feat-desc">AI scores candidates on engagement, expertise, and activity from GitHub signal</div></div>
     </div>
-    <div class="feature-chip">
-      <div class="feature-icon purple">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      </div>
-      <div>
-        <div class="feature-title">Enrichment & Outreach</div>
-        <div class="feature-desc">Auto-enrich with email, LinkedIn. Generate personalized outreach from GitHub data.</div>
-      </div>
+    <div class="feat">
+      <div class="feat-icon c3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div><div class="feat-title">Bulk AI Actions</div><div class="feat-desc">Draft outreach, refine shortlists, generate briefs across candidates at once</div></div>
     </div>
-    <div class="feature-chip">
-      <div class="feature-icon amber">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
-      </div>
-      <div>
-        <div class="feature-title">Pipeline Management</div>
-        <div class="feature-desc">Kanban pipeline with stages, notes, Slack integration, and CSV export.</div>
-      </div>
+    <div class="feat">
+      <div class="feat-icon c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.84Z"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div>
+      <div><div class="feat-title">Exa Websets</div><div class="feat-desc">AI-powered candidate discovery with custom criteria and automatic verification</div></div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon c5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></div>
+      <div><div class="feat-title">Pipeline & Export</div><div class="feat-desc">Kanban pipeline with stages, Slack integration, notes, and CSV export</div></div>
     </div>
   </div>
 
-  <!-- FOOTER -->
+  <!-- ═══ FOOTER ═══ -->
   <div class="footer">
     <div class="footer-left">
       <span class="footer-dot"></span>
