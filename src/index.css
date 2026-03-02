@@ -218,11 +218,12 @@
     @apply bg-secondary/50;
   }
 
-  /* Logo mark micro-interactions */
+  /* Logo mark micro-interactions (GPU-optimized) */
   .logo-mark {
-    transition: filter 200ms ease;
+    transition: transform 200ms ease, filter 200ms ease;
   }
   .logo-mark:hover {
+    transform: scale(1.06);
     filter: drop-shadow(0 0 8px rgba(0,229,160,0.25));
   }
   .logo-mark.active {
