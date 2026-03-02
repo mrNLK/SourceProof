@@ -1,6 +1,27 @@
-import { defineConfig } from "vite";
+import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
+
+// Serve static HTML files from public/ before SPA fallback rewrites them
+function serveStaticHtml(): Plugin {
+  return {
+    name: "serve-static-html",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url && req.url.endsWith(".html") && req.url !== "/" && req.url !== "/index.html") {
+          const filePath = path.join(__dirname, "public", req.url);
+          if (fs.existsSync(filePath)) {
+            res.setHeader("Content-Type", "text/html");
+            fs.createReadStream(filePath).pipe(res);
+            return;
+          }
+        }
+        next();
+      });
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -11,7 +32,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react()],
+  plugins: [serveStaticHtml(), react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
