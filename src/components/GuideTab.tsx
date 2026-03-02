@@ -84,14 +84,12 @@ const TLDRView = () => (
       ))}
     </div>
 
-    {/* Quick Start - no numbers, inline format */}
+    {/* Quick Start - 2-column grid */}
     <div>
       <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-3">Quick Start</h2>
-      <div className="space-y-0">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
         {QUICK_START.map((step, i) => (
-          <div key={i} className={`py-2 ${
-            i < QUICK_START.length - 1 ? "border-b border-border" : ""
-          }`}>
+          <div key={i} className="py-1">
             <span className="text-sm font-semibold text-foreground">{step.title}</span>
             {" "}
             <span className="text-sm text-muted-foreground">{step.desc}</span>
@@ -100,14 +98,12 @@ const TLDRView = () => (
       </div>
     </div>
 
-    {/* Pro Tips */}
+    {/* Pro Tips - 2-column grid */}
     <div>
       <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-3">Pro Tips</h2>
-      <div className="space-y-0">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
         {PRO_TIPS.map((tip, i) => (
-          <div key={i} className={`py-2 ${
-            i < PRO_TIPS.length - 1 ? "border-b border-border" : ""
-          }`}>
+          <div key={i} className="py-1">
             <span className="text-sm font-semibold text-foreground">{tip.title}.</span>
             {" "}
             <span className="text-sm text-muted-foreground">{tip.desc}</span>
@@ -160,16 +156,12 @@ const FullGuideView = () => (
     <Card>
       <CardContent className="pt-5 pb-4">
         <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-4">Quick Start</h2>
-        <div className="space-y-0">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
           {QUICK_START.map((step, i) => (
-            <div key={i} className={`py-2.5 ${
-              i < QUICK_START.length - 1 ? "border-b border-border" : ""
-            }`}>
-              <div className="text-sm">
-                <span className="font-semibold text-foreground">{step.title}</span>
-                {" "}
-                <span className="text-muted-foreground">{step.desc}</span>
-              </div>
+            <div key={i} className="text-sm">
+              <span className="font-semibold text-foreground">{step.title}</span>
+              {" "}
+              <span className="text-muted-foreground">{step.desc}</span>
             </div>
           ))}
         </div>
@@ -180,16 +172,12 @@ const FullGuideView = () => (
     <Card>
       <CardContent className="pt-5 pb-4">
         <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-4">Pro Tips</h2>
-        <div className="space-y-0">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
           {PRO_TIPS.map((tip, i) => (
-            <div key={i} className={`py-2.5 ${
-              i < PRO_TIPS.length - 1 ? "border-b border-border" : ""
-            }`}>
-              <div className="text-sm">
-                <span className="font-semibold text-foreground">{tip.title}.</span>
-                {" "}
-                <span className="text-muted-foreground">{tip.desc}</span>
-              </div>
+            <div key={i} className="text-sm">
+              <span className="font-semibold text-foreground">{tip.title}.</span>
+              {" "}
+              <span className="text-muted-foreground">{tip.desc}</span>
             </div>
           ))}
         </div>
@@ -231,10 +219,9 @@ const FullGuideView = () => (
             <div className="text-[10px] font-display font-semibold text-primary uppercase tracking-wider mb-1">Criteria</div>
             <div className="space-y-0">
               {RECIPE_EXAMPLE.criteria.map((c, i) => (
-                <div key={i} className={`text-xs text-muted-foreground py-1.5 flex items-start gap-2 ${
+                <div key={i} className={`text-xs text-muted-foreground py-1.5 ${
                   i < RECIPE_EXAMPLE.criteria.length - 1 ? "border-b border-border" : ""
                 }`}>
-                  <span className="text-primary font-bold shrink-0">+</span>
                   {c}
                 </div>
               ))}
@@ -244,8 +231,7 @@ const FullGuideView = () => (
             <div className="text-[10px] font-display font-semibold text-primary uppercase tracking-wider mb-1">Enrichments</div>
             <div className="space-y-0">
               {RECIPE_EXAMPLE.enrichments.map((e, i) => (
-                <div key={i} className="text-[11px] text-muted-foreground py-1 flex items-start gap-2">
-                  <span className="text-primary font-bold shrink-0">+</span>
+                <div key={i} className="text-[11px] text-muted-foreground py-1">
                   {e}
                 </div>
               ))}
