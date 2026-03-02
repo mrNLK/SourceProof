@@ -13,7 +13,7 @@ Here's what it does:
 1. **Research** — Describe a role (or paste a job description) and AI builds a sourcing strategy: which repos to mine, which companies to poach from, what skills matter most
 2. **Search** — Finds real GitHub contributors who match your criteria, scores them, and highlights hidden gems
 3. **Enrich** — Looks up LinkedIn profiles, finds contact info, detects Evidence of Exceptional Ability (EEA) signals
-4. **Pipeline** — Track candidates through Sourced → Contacted → Responded → Screen → Offer
+4. **Pipeline** — Track candidates through Sourced → Contacted → Responded → Screen → In Process
 5. **Outreach** — AI writes personalized messages referencing the candidate's actual open-source work
 
 The key insight: **open-source contributions are the most honest signal of engineering ability.** This tool makes that signal searchable.
@@ -105,7 +105,7 @@ When you click "Find LinkedIn" on a candidate, the app uses **Exa** (a semantic 
 │  │  Contacted   │  │  later in    │  │  draft outreach  │  │
 │  │  Responded   │  │  custom      │  │  for multiple    │  │
 │  │  Screen      │  │  lists       │  │  candidates      │  │
-│  │  Offer       │  │              │  │                   │  │
+│  │  In Process  │  │              │  │                   │  │
 │  └──────────────┘  └──────────────┘  └──────────────────┘  │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -274,9 +274,9 @@ Click **Pipeline** in the sidebar. Five-stage kanban board:
 
 ```
 ┌──────────┐   ┌───────────┐   ┌───────────┐   ┌────────┐   ┌───────┐
-│ SOURCED  │──▶│ CONTACTED │──▶│ RESPONDED │──▶│ SCREEN │──▶│ OFFER │
-│  (blue)  │   │  (amber)  │   │ (lt blue) │   │(purple)│   │(green)│
-└──────────┘   └───────────┘   └───────────┘   └────────┘   └───────┘
+│ SOURCED  │──▶│ CONTACTED │──▶│ RESPONDED │──▶│ SCREEN │──▶│ IN PROCESS │
+│  (blue)  │   │  (amber)  │   │ (lt blue) │   │(purple)│   │  (green)   │
+└──────────┘   └───────────┘   └───────────┘   └────────┘   └────────────┘
 ```
 
 - **Drag and drop** cards between stages
