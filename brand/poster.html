@@ -127,6 +127,34 @@
   .power-chip-title{font-size:14px;font-weight:700;color:var(--fg)}
   .power-chip-desc{font-size:11px;color:var(--fg3);line-height:1.4}
 
+  /* ── WORKFLOW DIAGRAM ── */
+  .wf{
+    display:flex;align-items:stretch;gap:0;
+  }
+  .wf-step{
+    flex:1;display:flex;flex-direction:column;gap:6px;align-items:center;
+  }
+  .wf-agent{
+    font-family:var(--mono);font-size:8px;font-weight:700;
+    letter-spacing:.08em;text-transform:uppercase;
+    padding:3px 10px;border-radius:4px;
+    white-space:nowrap;
+  }
+  .wf-agent.you{background:rgba(255,255,255,.06);color:var(--fg2)}
+  .wf-agent.ai{background:rgba(139,92,246,.12);color:#a78bfa}
+  .wf-agent.exa{background:var(--accent-dim);color:var(--accent)}
+  .wf-box{
+    flex:1;width:100%;padding:12px 10px;text-align:center;
+    background:var(--card);border:1px solid var(--border);border-radius:10px;
+  }
+  .wf-title{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--fg)}
+  .wf-desc{font-size:10px;color:var(--fg3);margin-top:3px;line-height:1.4}
+  .wf-arrow{
+    display:flex;align-items:center;
+    font-family:var(--mono);font-size:14px;color:var(--fg4);
+    padding:0 6px;padding-top:22px;
+  }
+
   /* ── FLOW STRIPS ── */
   .flow{display:flex;gap:0}
   .flow-chip{
@@ -294,17 +322,49 @@
     </div>
   </div>
 
-  <!-- ═══════════ QUICK START ═══════════ -->
+  <!-- ═══════════ WORKFLOW ═══════════ -->
   <div>
-    <div class="label">Quick Start</div>
-    <div class="flow">
-      <div class="flow-chip"><div class="title">Sign In</div><div class="sub">Google OAuth</div></div>
-      <div class="flow-chip"><div class="title">Role</div><div class="sub">Type or paste JD</div></div>
-      <div class="flow-chip"><div class="title">Repos</div><div class="sub">Edit target list</div></div>
-      <div class="flow-chip"><div class="title">Search</div><div class="sub">Run + filter</div></div>
-      <div class="flow-chip"><div class="title">Review</div><div class="sub">Score + enrich</div></div>
-      <div class="flow-chip"><div class="title">Webset</div><div class="sub">Monitor pool</div></div>
-      <div class="flow-chip"><div class="title">Export</div><div class="sub">Pipeline out</div></div>
+    <div class="label">From Role to Pipeline</div>
+    <div class="wf">
+      <div class="wf-step">
+        <div class="wf-agent you">You</div>
+        <div class="wf-box">
+          <div class="wf-title">Input</div>
+          <div class="wf-desc">Role + company, JD, or job URL</div>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-agent ai">Claude + Parallel</div>
+        <div class="wf-box">
+          <div class="wf-title">AI Strategy</div>
+          <div class="wf-desc">Repos, companies, search criteria</div>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-agent you">You</div>
+        <div class="wf-box">
+          <div class="wf-title">Refine</div>
+          <div class="wf-desc">Edit repos and target list</div>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-agent exa">Exa + GitHub</div>
+        <div class="wf-box">
+          <div class="wf-title">Search</div>
+          <div class="wf-desc">Contributors scored by EEA signal</div>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-agent exa">Exa Websets</div>
+        <div class="wf-box">
+          <div class="wf-title">Pipeline</div>
+          <div class="wf-desc">Verified, enriched, monitored</div>
+        </div>
+      </div>
     </div>
   </div>
 
