@@ -15,10 +15,9 @@
   <rect x="24" y="24" width="464" height="464" rx="96" fill="url(#bg)"/>
   <rect x="24" y="24" width="464" height="464" rx="96" fill="none" stroke="#1F1F26" stroke-width="1.5"/>
   <g transform="translate(256,256) scale(1.1)" filter="url(#glow)">
-    <path d="M-40,-56 L-72,0 L-40,56" stroke="#00E5A0" stroke-width="20" stroke-linecap="round" fill="none"/>
-    <path d="M40,-56 L72,0 L40,56" stroke="#00E5A0" stroke-width="20" stroke-linecap="round" fill="none"/>
-    <line x1="0" y1="-40" x2="0" y2="-64" stroke="#00E5A0" stroke-width="11" stroke-linecap="round"/>
-    <line x1="0" y1="40" x2="0" y2="64" stroke="#00E5A0" stroke-width="11" stroke-linecap="round"/>
-    <circle cx="0" cy="0" r="10" fill="#00E5A0"/>
+    <!-- Shield outline -->
+    <path d="M0,-100 L76,-68 V12 C76,62 0,100 0,100 C0,100 -76,62 -76,12 V-68 Z" stroke="#6366F1" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Checkmark -->
+    <polyline points="-40,4 -12,36 44,-28" stroke="#6366F1" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   </g>
 </svg>

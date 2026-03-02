@@ -42,7 +42,7 @@ serve(async (req) => {
     }
 
     const { return_url } = await req.json();
-    const appUrl = return_url || Deno.env.get('APP_URL') || 'https://sourcekit.app';
+    const appUrl = return_url || Deno.env.get('APP_URL') || 'https://sourceproof.app';
 
     // Check if user already has a Stripe customer
     const { data: sub } = await supabase

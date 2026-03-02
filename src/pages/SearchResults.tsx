@@ -137,7 +137,7 @@ const SearchResults = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
               <GitBranch className="w-4 h-4 text-primary" />
             </div>
-            <span className="font-display text-sm font-semibold text-foreground hidden sm:inline">SourceKit</span>
+            <span className="font-display text-sm font-semibold text-foreground hidden sm:inline">SourceProof</span>
           </Link>
           <form onSubmit={handleSearch} className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

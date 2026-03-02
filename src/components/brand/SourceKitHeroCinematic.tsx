@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 
 /**
- * SourceKitHeroCinematic
+ * SourceProofHeroCinematic
  *
  * Particle field convergence animation for high-end landing pages.
- * Particles drift, converge toward center, mark assembles.
+ * Particles drift, converge toward center, shield assembles.
  * GPU-accelerated: transform + opacity only, no filters.
  *
  * Requires: npm install framer-motion
@@ -13,8 +13,8 @@ import { useMemo } from "react";
  *
  * Visual narrative:
  *   particles = latent GitHub signal field
- *   convergence = AI detection
- *   brackets = system lock-in
+ *   convergence = AI verification
+ *   shield = trust lock-in
  *   pulse = live signal
  */
 export default function SourceKitHeroCinematic({
@@ -51,7 +51,7 @@ export default function SourceKitHeroCinematic({
             cx={p.x}
             cy={p.y}
             r="1.6"
-            fill="#00E5A0"
+            fill="#6366F1"
             initial={{ opacity: 0 }}
             animate={{
               opacity: [0, 0.6, 0.15],
@@ -67,71 +67,16 @@ export default function SourceKitHeroCinematic({
           />
         ))}
 
-        {/* CENTER NODE */}
-        <motion.circle
-          cx="128"
-          cy="128"
-          r="10"
-          fill="#00E5A0"
-          initial={{ scale: 0 }}
-          animate={{
-            scale: [0, 1.2, 1],
-          }}
-          transition={{
-            duration: 0.6,
-            delay: 0.4,
-            repeat: Infinity,
-            repeatDelay: 3,
-          }}
-        />
-
-        {/* TOP FOCUS */}
-        <motion.line
-          x1="128"
-          y1="64"
-          x2="128"
-          y2="88"
-          stroke="#00E5A0"
-          strokeWidth="11"
-          strokeLinecap="round"
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            delay: 0.8,
-            duration: 0.4,
-            repeat: Infinity,
-            repeatDelay: 3,
-          }}
-        />
-
-        {/* BOTTOM FOCUS */}
-        <motion.line
-          x1="128"
-          y1="168"
-          x2="128"
-          y2="192"
-          stroke="#00E5A0"
-          strokeWidth="11"
-          strokeLinecap="round"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            delay: 0.8,
-            duration: 0.4,
-            repeat: Infinity,
-            repeatDelay: 3,
-          }}
-        />
-
-        {/* LEFT BRACKET */}
+        {/* SHIELD OUTLINE */}
         <motion.path
-          d="M88 72 L56 128 L88 184"
-          stroke="#00E5A0"
-          strokeWidth="20"
+          d="M128 28L204 60V140C204 190 128 228 128 228C128 228 52 190 52 140V60Z"
+          stroke="#6366F1"
+          strokeWidth="18"
           strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{
             delay: 1.2,
             duration: 0.5,
@@ -140,18 +85,19 @@ export default function SourceKitHeroCinematic({
           }}
         />
 
-        {/* RIGHT BRACKET */}
-        <motion.path
-          d="M168 72 L200 128 L168 184"
-          stroke="#00E5A0"
+        {/* CHECKMARK */}
+        <motion.polyline
+          points="88,132 116,164 172,100"
+          stroke="#6366F1"
           strokeWidth="20"
           strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, pathLength: 0 }}
+          animate={{ opacity: 1, pathLength: 1 }}
           transition={{
-            delay: 1.2,
-            duration: 0.5,
+            delay: 1.5,
+            duration: 0.4,
             repeat: Infinity,
             repeatDelay: 3,
           }}

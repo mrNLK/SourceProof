@@ -4,7 +4,7 @@ import { useRef, useMemo } from "react";
 import * as THREE from "three";
 
 /**
- * SourceKitHeroWebGL
+ * SourceProofHeroWebGL
  *
  * Cinematic particle field with cursor parallax and pulsing signal node.
  * GPU-rendered via Three.js. True depth, real-time interaction.
@@ -15,7 +15,7 @@ import * as THREE from "three";
  *   ["three", "@react-three/fiber", "@react-three/drei"]
  *
  * Use in: landing page hero only. Heavy dependency (~150KB gzipped).
- * For lighter alternatives, use SourceKitHeroMark or SourceKitHeroCinematic
+ * For lighter alternatives, use SourceProofHeroMark or SourceProofHeroCinematic
  * with framer-motion (~30KB gzipped).
  */
 
@@ -48,7 +48,7 @@ function ParticleField() {
   return (
     <Points ref={ref} positions={positions} stride={3}>
       <PointMaterial
-        color="#00E5A0"
+        color="#6366F1"
         size={0.025}
         transparent
         opacity={0.4}
@@ -70,7 +70,7 @@ function FocusNode() {
   return (
     <mesh ref={ref}>
       <sphereGeometry args={[0.12, 32, 32]} />
-      <meshBasicMaterial color="#00E5A0" />
+      <meshBasicMaterial color="#6366F1" />
     </mesh>
   );
 }

@@ -39,7 +39,7 @@ function escapeCSV(val: string | number): string {
   return str;
 }
 
-const ExportButton = ({ data, filename = "sourcekit-export", columns = DEFAULT_COLUMNS, label = "Export" }: ExportButtonProps) => {
+const ExportButton = ({ data, filename = "sourceproof-export", columns = DEFAULT_COLUMNS, label = "Export" }: ExportButtonProps) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {

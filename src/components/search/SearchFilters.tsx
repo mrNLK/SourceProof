@@ -173,7 +173,7 @@ const SearchFilters = ({
             </select>
           </div>
 
-          <ExportButton data={filtered} filename="sourcekit-search" />
+          <ExportButton data={filtered} filename="sourceproof-search" />
         </div>
       </div>
 

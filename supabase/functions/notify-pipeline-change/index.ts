@@ -103,7 +103,7 @@ serve(async (req) => {
             },
             {
               type: "context",
-              elements: [{ type: "mrkdwn", text: `SourceKit • ${new Date().toLocaleString()}` }],
+              elements: [{ type: "mrkdwn", text: `SourceProof • ${new Date().toLocaleString()}` }],
             },
           ],
         };

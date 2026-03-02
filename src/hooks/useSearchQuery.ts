@@ -244,7 +244,7 @@ export function useSearchQuery({
           await supabase.from("search_history").insert(insertRow as never);
           queryClient.invalidateQueries({ queryKey: ["search-history"] });
           if (data.creditCharged !== false) {
-            window.dispatchEvent(new Event("sourcekit-search-complete"));
+            window.dispatchEvent(new Event("sourceproof-search-complete"));
           }
         } catch {
           /* silent */

@@ -71,7 +71,7 @@ Cheers`,
 // Storage
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = "sourcekit-outreach-templates";
+const STORAGE_KEY = "sourceproof-outreach-templates";
 
 export function loadCustomTemplates(): Template[] {
   try {

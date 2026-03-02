@@ -110,8 +110,8 @@ const SettingsTab = () => {
     setTestingWebhook(key);
     try {
       const payload = key === "slack_webhook_url"
-        ? { text: "SourceKit webhook test - connection successful!" }
-        : { event: "test", message: "SourceKit webhook test", timestamp: new Date().toISOString() };
+        ? { text: "SourceProof webhook test - connection successful!" }
+        : { event: "test", message: "SourceProof webhook test", timestamp: new Date().toISOString() };
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
