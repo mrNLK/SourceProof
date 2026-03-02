@@ -108,6 +108,25 @@
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 
+  /* ── POWER ROW (compact 1-line cards) ── */
+  .power-row{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    overflow:hidden;
+  }
+  .power-chip{
+    padding:14px 18px;
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .power-chip:last-child{border-right:none}
+  .power-chip-label{
+    font-family:var(--mono);font-size:9px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+  }
+  .power-chip-title{font-size:14px;font-weight:700;color:var(--fg)}
+  .power-chip-desc{font-size:11px;color:var(--fg3);line-height:1.4}
+
   /* ── FLOW STRIPS ── */
   .flow{display:flex;gap:0}
   .flow-chip{
@@ -216,21 +235,21 @@
   <!-- ═══════════ WHAT POWERS IT ═══════════ -->
   <div>
     <div class="label">What Powers It</div>
-    <div class="cols-3">
-      <div class="card card-accent">
-        <div class="card-label">Exa Search</div>
-        <div class="card-title">Repo Discovery</div>
-        <div class="card-desc">Semantic search across GitHub. Finds repos by meaning, not keywords. LinkedIn + EEA evidence.</div>
+    <div class="power-row">
+      <div class="power-chip">
+        <span class="power-chip-label">Exa Search</span>
+        <span class="power-chip-title">Repo Discovery</span>
+        <span class="power-chip-desc">Semantic GitHub search by meaning, not keywords</span>
       </div>
-      <div class="card card-accent">
-        <div class="card-label">Exa Websets</div>
-        <div class="card-title">Talent Pools</div>
-        <div class="card-desc">Persistent, auto-updating collections. Define criteria once, get verified matches on schedule.</div>
+      <div class="power-chip">
+        <span class="power-chip-label">Exa Websets</span>
+        <span class="power-chip-title">Talent Pools</span>
+        <span class="power-chip-desc">Auto-updating candidate collections on schedule</span>
       </div>
-      <div class="card card-accent">
-        <div class="card-label">Claude + Parallel</div>
-        <div class="card-title">Strategy + Eval</div>
-        <div class="card-desc">Sourcing strategies, candidate eval, outreach. Parallel extracts JDs + runs company research.</div>
+      <div class="power-chip">
+        <span class="power-chip-label">Claude + Parallel</span>
+        <span class="power-chip-title">Strategy + Eval</span>
+        <span class="power-chip-desc">AI sourcing strategy, eval, and company research</span>
       </div>
     </div>
   </div>
