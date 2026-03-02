@@ -110,12 +110,12 @@
 
   /* ── POWER ROW (compact 1-line cards) ── */
   .power-row{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;
     background:var(--card);border:1px solid var(--border);border-radius:12px;
     overflow:hidden;
   }
   .power-chip{
-    padding:14px 18px;
+    padding:14px 18px;min-width:0;
     border-right:1px solid var(--border);
     display:flex;flex-direction:column;gap:2px;
   }
@@ -123,9 +123,10 @@
   .power-chip-label{
     font-family:var(--mono);font-size:9px;font-weight:700;
     letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+    white-space:nowrap;
   }
-  .power-chip-title{font-size:14px;font-weight:700;color:var(--fg)}
-  .power-chip-desc{font-size:11px;color:var(--fg3);line-height:1.4}
+  .power-chip-title{font-size:14px;font-weight:700;color:var(--fg);white-space:nowrap}
+  .power-chip-desc{font-size:11px;color:var(--fg3);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   /* ── WORKFLOW DIAGRAM ── */
   .wf{
@@ -267,17 +268,17 @@
       <div class="power-chip">
         <span class="power-chip-label">Exa Search</span>
         <span class="power-chip-title">Repo Discovery</span>
-        <span class="power-chip-desc">Semantic GitHub search by meaning, not keywords</span>
+        <span class="power-chip-desc">Semantic search by meaning, not keywords</span>
       </div>
       <div class="power-chip">
         <span class="power-chip-label">Exa Websets</span>
         <span class="power-chip-title">Talent Pools</span>
-        <span class="power-chip-desc">Auto-updating candidate collections on schedule</span>
+        <span class="power-chip-desc">Auto-updating collections on schedule</span>
       </div>
       <div class="power-chip">
         <span class="power-chip-label">Claude + Parallel</span>
         <span class="power-chip-title">Strategy + Eval</span>
-        <span class="power-chip-desc">AI sourcing strategy, eval, and company research</span>
+        <span class="power-chip-desc">AI strategy, candidate eval, research</span>
       </div>
     </div>
   </div>
