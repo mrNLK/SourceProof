@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SourceKit — Product Poster</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --bg:#0A0A0F;
+    --surface:#111116;
+    --elevated:#15151B;
+    --border:#1F1F26;
+    --accent:#00E5A0;
+    --accent-dim:rgba(0,229,160,.12);
+    --accent-30:rgba(0,229,160,.30);
+    --fg:#FFFFFF;
+    --fg2:#A1A1AA;
+    --fg3:#6B7280;
+    --red:#EF4444;
+    --amber:#F59E0B;
+    --blue:#3B82F6;
+    --purple:#A855F7;
+    --font-display:'JetBrains Mono',monospace;
+    --font-body:'DM Sans',system-ui,-apple-system,sans-serif;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--fg);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ── POSTER CANVAS ── */
+  .poster{
+    width:2400px;
+    min-height:1350px;
+    padding:56px;
+    display:flex;
+    flex-direction:column;
+    gap:40px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* Subtle grid background */
+  .poster::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:48px 48px;
+    opacity:.25;
+    pointer-events:none;
+  }
+
+  /* Accent glow top-left */
+  .poster::after{
+    content:'';
+    position:absolute;
+    top:-200px;left:-200px;
+    width:700px;height:700px;
+    background:radial-gradient(circle,rgba(0,229,160,.06),transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ── HEADER ── */
+  .header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:relative;
+    z-index:1;
+  }
+  .logo-group{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  .logo-mark{width:44px;height:44px;color:var(--accent)}
+  .wordmark{
+    font-family:var(--font-body);
+    font-size:26px;
+    letter-spacing:-.02em;
+  }
+  .wordmark b{font-weight:600;color:var(--fg)}
+  .wordmark span{font-weight:500;color:var(--fg3)}
+  .tagline{
+    font-family:var(--font-display);
+    font-size:13px;
+    font-weight:500;
+    color:var(--fg2);
+    letter-spacing:.03em;
+    text-transform:uppercase;
+  }
+  .url-badge{
+    font-family:var(--font-display);
+    font-size:12px;
+    color:var(--accent);
+    background:var(--accent-dim);
+    border:1px solid var(--accent-30);
+    border-radius:8px;
+    padding:6px 14px;
+    letter-spacing:.02em;
+  }
+
+  /* ── MAIN GRID ── */
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    grid-template-rows:auto auto;
+    gap:24px;
+    position:relative;
+    z-index:1;
+    flex:1;
+  }
+
+  /* ── PANEL ── */
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .panel.span-2{grid-column:span 2}
+  .panel-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:18px 22px;
+    border-bottom:1px solid var(--border);
+  }
+  .panel-icon{
+    width:18px;height:18px;
+    color:var(--accent);
+    flex-shrink:0;
+  }
+  .panel-title{
+    font-family:var(--font-display);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--fg2);
+  }
+  .panel-body{
+    padding:20px 22px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  /* ── SEARCH PANEL (top-left, span 2) ── */
+  .search-bar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--elevated);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 18px;
+  }
+  .search-bar .icon{width:16px;height:16px;color:var(--fg3)}
+  .search-bar .text{
+    font-size:13px;color:var(--fg2);flex:1;
+    font-family:var(--font-body);
+  }
+  .search-bar .badge{
+    font-family:var(--font-display);
+    font-size:10px;font-weight:600;
+    color:var(--accent);
+    background:var(--accent-dim);
+    border:1px solid var(--accent-30);
+    border-radius:6px;
+    padding:4px 10px;
+  }
+
+  .strategy-card{
+    background:var(--elevated);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px 18px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .strategy-label{
+    font-family:var(--font-display);
+    font-size:10px;font-weight:600;
+    color:var(--accent);letter-spacing:.05em;
+    text-transform:uppercase;
+  }
+  .strategy-text{
+    font-size:12px;line-height:1.6;color:var(--fg2);
+  }
+
+  .query-tags{display:flex;gap:8px;flex-wrap:wrap}
+  .query-tag{
+    font-family:var(--font-display);
+    font-size:10px;font-weight:500;
+    padding:5px 12px;border-radius:6px;
+    background:var(--elevated);
+    border:1px solid var(--border);
+    color:var(--fg2);
+  }
+  .query-tag.active{
+    color:var(--accent);
+    border-color:var(--accent-30);
+    background:var(--accent-dim);
+  }
+
+  /* ── RESULTS PANEL ── */
+  .result-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .result-row:last-child{border-bottom:none}
+  .avatar{
+    width:36px;height:36px;
+    border-radius:50%;
+    background:var(--elevated);
+    border:2px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);
+    font-size:12px;font-weight:600;
+    color:var(--fg3);
+    flex-shrink:0;
+  }
+  .result-info{flex:1;display:flex;flex-direction:column;gap:3px}
+  .result-name{font-size:13px;font-weight:600;color:var(--fg)}
+  .result-meta{font-size:11px;color:var(--fg3)}
+  .score-badge{
+    font-family:var(--font-display);
+    font-size:11px;font-weight:700;
+    padding:4px 10px;border-radius:6px;
+    min-width:42px;text-align:center;
+  }
+  .score-high{background:rgba(0,229,160,.15);color:var(--accent)}
+  .score-mid{background:rgba(245,158,11,.15);color:var(--amber)}
+  .score-low{background:rgba(107,114,128,.12);color:var(--fg3)}
+  .gem-badge{
+    font-size:14px;
+    margin-left:4px;
+  }
+
+  /* ── PROFILE PANEL ── */
+  .profile-header{display:flex;gap:14px;align-items:center}
+  .profile-avatar{
+    width:48px;height:48px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent-dim),var(--elevated));
+    border:2px solid var(--accent-30);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--accent);
+  }
+  .profile-name{font-size:15px;font-weight:600;color:var(--fg)}
+  .profile-handle{font-size:11px;color:var(--fg3)}
+  .profile-bio{font-size:11px;color:var(--fg2);line-height:1.5}
+
+  .stat-row{
+    display:flex;gap:12px;
+  }
+  .stat-box{
+    flex:1;
+    background:var(--elevated);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 12px;
+    text-align:center;
+  }
+  .stat-value{
+    font-family:var(--font-display);
+    font-size:16px;font-weight:700;
+    color:var(--fg);
+  }
+  .stat-label{
+    font-size:9px;color:var(--fg3);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    margin-top:2px;
+  }
+
+  .skill-tags{display:flex;gap:6px;flex-wrap:wrap}
+  .skill-tag{
+    font-family:var(--font-display);
+    font-size:9px;font-weight:500;
+    padding:4px 10px;border-radius:5px;
+    background:var(--elevated);
+    border:1px solid var(--border);
+    color:var(--fg2);
+  }
+
+  /* ── PIPELINE PANEL (span 2) ── */
+  .pipeline-cols{
+    display:flex;gap:14px;flex:1;
+  }
+  .pipeline-col{
+    flex:1;
+    background:var(--elevated);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .pipeline-col-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-bottom:8px;border-bottom:1px solid var(--border);
+  }
+  .pipeline-col-title{
+    font-family:var(--font-display);
+    font-size:10px;font-weight:600;
+    color:var(--fg2);text-transform:uppercase;letter-spacing:.04em;
+  }
+  .pipeline-count{
+    font-family:var(--font-display);
+    font-size:9px;font-weight:600;
+    color:var(--fg3);
+    background:var(--bg);
+    border-radius:4px;
+    padding:2px 6px;
+  }
+  .pipeline-card{
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 12px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .pipeline-card .avatar{width:28px;height:28px;font-size:10px}
+  .pipeline-card-info{flex:1}
+  .pipeline-card-name{font-size:11px;font-weight:600;color:var(--fg)}
+  .pipeline-card-role{font-size:9px;color:var(--fg3)}
+
+  /* ── FEATURES STRIP ── */
+  .features-strip{
+    display:flex;
+    gap:16px;
+    position:relative;
+    z-index:1;
+  }
+  .feature-chip{
+    flex:1;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px 22px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .feature-icon{
+    width:32px;height:32px;
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .feature-icon svg{width:16px;height:16px}
+  .feature-icon.teal{background:var(--accent-dim);color:var(--accent)}
+  .feature-icon.blue{background:rgba(59,130,246,.12);color:var(--blue)}
+  .feature-icon.purple{background:rgba(168,85,247,.12);color:var(--purple)}
+  .feature-icon.amber{background:rgba(245,158,11,.12);color:var(--amber)}
+  .feature-title{
+    font-family:var(--font-display);
+    font-size:11px;font-weight:600;
+    color:var(--fg);letter-spacing:.02em;
+  }
+  .feature-desc{
+    font-size:10px;color:var(--fg3);line-height:1.4;margin-top:2px;
+  }
+
+  /* ── FOOTER ── */
+  .footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:relative;
+    z-index:1;
+    padding-top:8px;
+    border-top:1px solid var(--border);
+  }
+  .footer-left{
+    font-size:11px;color:var(--fg3);
+    display:flex;align-items:center;gap:8px;
+  }
+  .footer-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 8px var(--accent);
+  }
+  .footer-right{
+    font-family:var(--font-display);
+    font-size:10px;color:var(--fg3);
+    letter-spacing:.04em;
+  }
+
+  /* ── SVG ICON HELPERS ── */
+  .icon-svg{display:inline-block;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="poster">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-group">
+      <!-- SourceKit Mark -->
+      <svg class="logo-mark" viewBox="0 0 256 256" fill="none">
+        <path d="M88 72 L56 128 L88 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>
+        <path d="M168 72 L200 128 L168 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>
+        <line x1="128" y1="88" x2="128" y2="64" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>
+        <line x1="128" y1="192" x2="128" y2="168" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>
+        <circle cx="128" cy="128" r="10" fill="currentColor"/>
+      </svg>
+      <div class="wordmark"><b>Source</b><span>Kit</span></div>
+      <div class="tagline">Find engineers by what they've built</div>
+    </div>
+    <div class="url-badge">getsourcekit.vercel.app</div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+
+    <!-- 1. AI SEARCH — spans 2 cols -->
+    <div class="panel span-2">
+      <div class="panel-header">
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+        <span class="panel-title">AI-Powered Research</span>
+      </div>
+      <div class="panel-body">
+        <div class="search-bar">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span class="text">Senior React engineer with real-time systems experience, open source contributor</span>
+          <span class="badge">AI Research</span>
+        </div>
+        <div style="display:flex;gap:14px">
+          <div class="strategy-card" style="flex:1">
+            <div class="strategy-label">Strategy Generated</div>
+            <div class="strategy-text">Targeting engineers with 4+ years of React contributions, WebSocket/real-time libraries, and open-source activity. Searching across 12M+ GitHub profiles for commit patterns in real-time frameworks.</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+            <div class="strategy-label" style="padding:0 4px">Generated Queries</div>
+            <div class="query-tags">
+              <span class="query-tag active">react real-time websocket</span>
+              <span class="query-tag active">socket.io contributors</span>
+              <span class="query-tag">redux saga middleware</span>
+              <span class="query-tag">webrtc react hooks</span>
+              <span class="query-tag">collaborative editing CRDT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. RESULTS -->
+    <div class="panel">
+      <div class="panel-header">
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span class="panel-title">Scored Results</span>
+      </div>
+      <div class="panel-body">
+        <div class="result-row">
+          <div class="avatar">AL</div>
+          <div class="result-info">
+            <div class="result-name">Alex Lin <span class="gem-badge">💎</span></div>
+            <div class="result-meta">San Francisco · 2.4k commits</div>
+          </div>
+          <div class="score-badge score-high">94</div>
+        </div>
+        <div class="result-row">
+          <div class="avatar">SM</div>
+          <div class="result-info">
+            <div class="result-name">Sara Müller</div>
+            <div class="result-meta">Berlin · 1.8k commits</div>
+          </div>
+          <div class="score-badge score-high">89</div>
+        </div>
+        <div class="result-row">
+          <div class="avatar">JP</div>
+          <div class="result-info">
+            <div class="result-name">James Park</div>
+            <div class="result-meta">Seoul · 3.1k commits</div>
+          </div>
+          <div class="score-badge score-high">87</div>
+        </div>
+        <div class="result-row">
+          <div class="avatar">RK</div>
+          <div class="result-info">
+            <div class="result-name">Riya Kapoor</div>
+            <div class="result-meta">Bangalore · 960 commits</div>
+          </div>
+          <div class="score-badge score-mid">72</div>
+        </div>
+        <div class="result-row">
+          <div class="avatar">TC</div>
+          <div class="result-info">
+            <div class="result-name">Tom Chen</div>
+            <div class="result-meta">Toronto · 540 commits</div>
+          </div>
+          <div class="score-badge score-low">58</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. DEVELOPER PROFILE -->
+    <div class="panel">
+      <div class="panel-header">
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        <span class="panel-title">Developer Profile</span>
+      </div>
+      <div class="panel-body">
+        <div class="profile-header">
+          <div class="profile-avatar">AL</div>
+          <div>
+            <div class="profile-name">Alex Lin</div>
+            <div class="profile-handle">@alexlin · San Francisco, CA</div>
+          </div>
+        </div>
+        <div class="profile-bio">Staff engineer building real-time collaboration tools. Core contributor to socket.io ecosystem. Previously at Figma, Vercel.</div>
+        <div class="stat-row">
+          <div class="stat-box">
+            <div class="stat-value">2,418</div>
+            <div class="stat-label">Commits</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">347</div>
+            <div class="stat-label">PRs</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">89</div>
+            <div class="stat-label">Reviews</div>
+          </div>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-tag">TypeScript</span>
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">WebSocket</span>
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">CRDT</span>
+          <span class="skill-tag">GraphQL</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. PIPELINE — spans 2 cols -->
+    <div class="panel span-2">
+      <div class="panel-header">
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+        <span class="panel-title">Recruiting Pipeline</span>
+      </div>
+      <div class="panel-body">
+        <div class="pipeline-cols">
+          <div class="pipeline-col">
+            <div class="pipeline-col-head">
+              <span class="pipeline-col-title">Sourced</span>
+              <span class="pipeline-count">4</span>
+            </div>
+            <div class="pipeline-card">
+              <div class="avatar">AL</div>
+              <div class="pipeline-card-info">
+                <div class="pipeline-card-name">Alex Lin</div>
+                <div class="pipeline-card-role">Staff · React, Real-time</div>
+              </div>
+            </div>
+            <div class="pipeline-card">
+              <div class="avatar">SM</div>
+              <div class="pipeline-card-info">
+                <div class="pipeline-card-name">Sara Müller</div>
+                <div class="pipeline-card-role">Senior · React, WebGL</div>
+              </div>
+            </div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-head">
+              <span class="pipeline-col-title">Contacted</span>
+              <span class="pipeline-count">2</span>
+            </div>
+            <div class="pipeline-card">
+              <div class="avatar">JP</div>
+              <div class="pipeline-card-info">
+                <div class="pipeline-card-name">James Park</div>
+                <div class="pipeline-card-role">Senior · Full-stack</div>
+              </div>
+            </div>
+            <div class="pipeline-card">
+              <div class="avatar">MR</div>
+              <div class="pipeline-card-info">
+                <div class="pipeline-card-name">Maya Rodriguez</div>
+                <div class="pipeline-card-role">Senior · Systems</div>
+              </div>
+            </div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-head">
+              <span class="pipeline-col-title">Interviewing</span>
+              <span class="pipeline-count">1</span>
+            </div>
+            <div class="pipeline-card">
+              <div class="avatar">RK</div>
+              <div class="pipeline-card-info">
+                <div class="pipeline-card-name">Riya Kapoor</div>
+                <div class="pipeline-card-role">Senior · React Native</div>
+              </div>
+            </div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-head">
+              <span class="pipeline-col-title">Offer</span>
+              <span class="pipeline-count">1</span>
+            </div>
+            <div class="pipeline-card">
+              <div class="avatar" style="border-color:var(--accent-30);color:var(--accent)">DK</div>
+              <div class="pipeline-card-info">
+                <div class="pipeline-card-name">David Kim</div>
+                <div class="pipeline-card-role">Staff · Infra, Go</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FEATURES STRIP -->
+  <div class="features-strip">
+    <div class="feature-chip">
+      <div class="feature-icon teal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+      </div>
+      <div>
+        <div class="feature-title">AI Research Engine</div>
+        <div class="feature-desc">Natural language to sourcing strategy. Generates optimized GitHub queries automatically.</div>
+      </div>
+    </div>
+    <div class="feature-chip">
+      <div class="feature-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+      </div>
+      <div>
+        <div class="feature-title">Signal-Based Scoring</div>
+        <div class="feature-desc">AI scores candidates on commits, PRs, code quality, and contribution patterns.</div>
+      </div>
+    </div>
+    <div class="feature-chip">
+      <div class="feature-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div>
+        <div class="feature-title">Enrichment & Outreach</div>
+        <div class="feature-desc">Auto-enrich with email, LinkedIn. Generate personalized outreach from GitHub data.</div>
+      </div>
+    </div>
+    <div class="feature-chip">
+      <div class="feature-icon amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+      </div>
+      <div>
+        <div class="feature-title">Pipeline Management</div>
+        <div class="feature-desc">Kanban pipeline with stages, notes, Slack integration, and CSV export.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <span class="footer-dot"></span>
+      <span>AI-powered candidate sourcing from GitHub signal data</span>
+    </div>
+    <div class="footer-right">getsourcekit.vercel.app</div>
+  </div>
+
+</div>
+</body>
+</html>
