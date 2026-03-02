@@ -3,281 +3,387 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SourceKit — Product Reference</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>SourceKit — Product Poster</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  body{
+    background:#050508;
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:40px;min-height:100vh;
+    font-family:'DM Sans',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ── POSTER CANVAS ── */
+  .poster{
+    width:1100px;
+    background:#0A0A0F;
+    border:1px solid #1a1a22;
+    border-radius:20px;
+    padding:56px 52px 48px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:
+      0 0 0 1px rgba(0,229,160,.04),
+      0 4px 60px rgba(0,0,0,.6),
+      0 0 120px rgba(0,229,160,.03);
+  }
+
+  /* Corner accent glows */
+  .poster::before{
+    content:'';position:absolute;top:-120px;right:-120px;
+    width:400px;height:400px;
+    background:radial-gradient(circle,rgba(0,229,160,.08) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .poster::after{
+    content:'';position:absolute;bottom:-80px;left:-80px;
+    width:300px;height:300px;
+    background:radial-gradient(circle,rgba(0,229,160,.05) 0%,transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ── VARIABLES ── */
   :root{
-    --bg:#0A0A0F;
-    --card:#13131A;
-    --border:#1E1E26;
     --accent:#00E5A0;
     --accent-dim:rgba(0,229,160,.10);
+    --accent-15:rgba(0,229,160,.15);
     --accent-20:rgba(0,229,160,.20);
+    --card:#111118;
+    --card-hover:#14141c;
+    --border:#1c1c26;
+    --border-light:#252530;
     --fg:#FFFFFF;
-    --fg2:#B0B0BA;
+    --fg2:#c0c0c8;
     --fg3:#71717A;
     --fg4:#3F3F46;
-    --d:'JetBrains Mono',monospace;
-    --b:'DM Sans',system-ui,sans-serif;
+    --mono:'JetBrains Mono',monospace;
+    --sans:'DM Sans',system-ui,sans-serif;
   }
-  body{background:var(--bg);color:var(--fg);font-family:var(--b);-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:40px 0}
 
-  .page{width:750px;padding:52px 48px 56px;display:flex;flex-direction:column;gap:36px}
+  /* ── LAYOUT GRID ── */
+  .poster-inner{
+    position:relative;z-index:1;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:32px;
+  }
 
   /* ── HEADER ── */
-  .header{display:flex;flex-direction:column;gap:14px;padding-bottom:32px;border-bottom:1px solid var(--border)}
-  .header-top{display:flex;align-items:center;gap:18px}
-  .logo-mark{width:64px;height:64px;color:var(--accent)}
-  .wordmark{font-family:var(--b);font-size:42px;letter-spacing:-.03em;font-weight:600}
-  .wordmark span{font-weight:400;color:var(--fg3)}
-  .version{
-    margin-left:auto;
-    font-family:var(--d);font-size:11px;font-weight:600;letter-spacing:.1em;
-    color:var(--accent);border:1px solid var(--accent-20);border-radius:6px;
-    padding:5px 14px;
+  .header{
+    display:flex;align-items:center;gap:20px;
+    padding-bottom:28px;
+    border-bottom:1px solid var(--border);
   }
-  .tagline{font-size:18px;color:var(--fg2);line-height:1.55}
+  .logo-mark{width:56px;height:56px;color:var(--accent);flex-shrink:0}
+  .header-text{flex:1}
+  .wordmark{
+    font-family:var(--sans);font-size:38px;letter-spacing:-.03em;font-weight:700;
+    color:var(--fg);line-height:1;
+  }
+  .wordmark span{font-weight:400;color:var(--fg3)}
+  .tagline{
+    font-size:15px;color:var(--fg3);margin-top:8px;line-height:1.5;
+  }
   .tagline strong{color:var(--accent);font-weight:600}
+  .badge{
+    font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;
+    color:var(--accent);
+    border:1px solid var(--accent-20);border-radius:6px;
+    padding:6px 16px;
+    background:var(--accent-dim);
+    flex-shrink:0;align-self:flex-start;
+  }
 
-  /* ── SECTION HEADERS ── */
-  .sh{font-family:var(--d);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3);margin-bottom:14px}
+  /* ── SECTION LABELS ── */
+  .label{
+    font-family:var(--mono);font-size:10px;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase;
+    color:var(--fg4);margin-bottom:12px;
+  }
 
-  /* ── FLOW CHIPS ── */
-  .flow{display:flex;align-items:stretch;gap:0}
+  /* ── TWO-COLUMN LAYOUT ── */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+  /* ── HERO STAT STRIP ── */
+  .hero-strip{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;
+  }
+  .hero-stat{
+    padding:20px 16px;text-align:center;
+    border-right:1px solid var(--border);
+  }
+  .hero-stat:last-child{border-right:none}
+  .hero-stat-num{
+    font-family:var(--mono);font-size:26px;font-weight:700;color:var(--accent);
+    line-height:1;
+  }
+  .hero-stat-label{font-size:11px;color:var(--fg3);margin-top:6px;font-weight:500}
+
+  /* ── FLOW STRIPS ── */
+  .flow{display:flex;gap:0}
   .flow-chip{
-    flex:1;padding:14px 10px;text-align:center;
+    flex:1;padding:14px 8px;text-align:center;
     background:var(--card);border:1px solid var(--border);
     position:relative;
   }
   .flow-chip:first-child{border-radius:10px 0 0 10px}
   .flow-chip:last-child{border-radius:0 10px 10px 0}
   .flow-chip+.flow-chip{border-left:none}
+  .flow-chip .num{
+    font-family:var(--mono);font-size:9px;font-weight:700;
+    color:var(--accent);opacity:.6;margin-bottom:4px;
+  }
+  .flow-chip .title{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--fg)}
+  .flow-chip .sub{font-size:9px;color:var(--fg4);margin-top:2px}
   .flow-chip::after{
-    content:'›';position:absolute;right:-4px;top:50%;transform:translateY(-50%);
-    font-size:16px;color:var(--fg4);z-index:1;font-weight:300;
+    content:'→';position:absolute;right:-7px;top:50%;transform:translateY(-50%);
+    font-size:11px;color:var(--fg4);z-index:2;font-family:var(--mono);font-weight:400;
   }
   .flow-chip:last-child::after{display:none}
-  .flow-title{font-family:var(--d);font-size:12px;font-weight:700;color:var(--fg);letter-spacing:.01em}
-  .flow-sub{font-size:10px;color:var(--fg3);margin-top:3px}
 
-  /* ── POWER CARDS ── */
-  .powers{display:flex;gap:14px}
-  .power-card{
-    flex:1;padding:20px 18px;
+  /* ── CARDS ── */
+  .card{
+    padding:20px;
     background:var(--card);border:1px solid var(--border);border-radius:12px;
-  }
-  .power-label{font-family:var(--d);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;color:var(--accent)}
-  .power-title{font-size:17px;font-weight:700;color:var(--fg);margin-bottom:8px}
-  .power-desc{font-size:12px;color:var(--fg3);line-height:1.55}
-
-  /* ── PIPELINE FLOW ── */
-  .pipe-flow{display:flex;gap:0}
-  .pipe-step{
-    flex:1;padding:12px 8px;text-align:center;
-    background:var(--card);border:1px solid var(--border);
     position:relative;
   }
-  .pipe-step:first-child{border-radius:10px 0 0 10px}
-  .pipe-step:last-child{border-radius:0 10px 10px 0}
-  .pipe-step+.pipe-step{border-left:none}
-  .pipe-step::after{
-    content:'›';position:absolute;right:-4px;top:50%;transform:translateY(-50%);
-    font-size:14px;color:var(--fg4);z-index:1;font-weight:300;
+  .card-accent{border-top:2px solid var(--accent)}
+  .card-label{
+    font-family:var(--mono);font-size:9px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:8px;
   }
-  .pipe-step:last-child::after{display:none}
-  .pipe-step-title{font-family:var(--d);font-size:11px;font-weight:700;color:var(--fg)}
-  .pipe-step-sub{font-size:9px;color:var(--fg3);margin-top:2px}
+  .card-title{font-size:16px;font-weight:700;color:var(--fg);margin-bottom:6px}
+  .card-desc{font-size:12px;color:var(--fg3);line-height:1.55}
 
-  /* ── EEA CARDS ── */
-  .eea-row{display:flex;gap:14px}
-  .eea-card{
-    flex:1;padding:18px 20px;
-    background:var(--card);border:1px solid var(--border);border-radius:12px;
-  }
-  .eea-title{font-size:15px;font-weight:700;color:var(--fg);margin-bottom:12px}
-  .eea-bullet{
+  /* ── BULLET LIST ── */
+  .bullets{display:flex;flex-direction:column;gap:6px}
+  .bullet{
     display:flex;align-items:flex-start;gap:10px;
     font-size:12px;color:var(--fg2);line-height:1.5;
-    padding:4px 0;
   }
-  .eea-bullet::before{
+  .bullet::before{
     content:'';width:3px;min-height:16px;border-radius:2px;
     background:var(--accent);flex-shrink:0;margin-top:2px;
   }
 
-  /* ── QUICK START ── */
-  .qs-flow{display:flex;gap:0}
-  .qs-chip{
-    flex:1;padding:12px 6px;text-align:center;
-    background:var(--card);border:1px solid var(--border);
-    position:relative;
-  }
-  .qs-chip:first-child{border-radius:10px 0 0 10px}
-  .qs-chip:last-child{border-radius:0 10px 10px 0}
-  .qs-chip+.qs-chip{border-left:none}
-  .qs-chip::after{
-    content:'›';position:absolute;right:-4px;top:50%;transform:translateY(-50%);
-    font-size:13px;color:var(--fg4);z-index:1;font-weight:300;
-  }
-  .qs-chip:last-child::after{display:none}
-  .qs-title{font-family:var(--d);font-size:11px;font-weight:700;color:var(--fg)}
-  .qs-sub{font-size:9px;color:var(--fg3);margin-top:2px}
-
-  /* ── PRO TIPS ── */
-  .tips{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  /* ── TIPS GRID ── */
+  .tips{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .tip{
     display:flex;align-items:flex-start;gap:10px;
-    font-size:12px;color:var(--fg2);line-height:1.55;
+    font-size:11px;color:var(--fg3);line-height:1.55;
+    padding:12px 14px;
+    background:var(--card);border:1px solid var(--border);border-radius:10px;
   }
   .tip::before{
-    content:'';width:3px;min-height:32px;border-radius:2px;
-    background:var(--accent);flex-shrink:0;margin-top:2px;
+    content:'';width:3px;min-height:28px;border-radius:2px;
+    background:var(--accent);flex-shrink:0;margin-top:1px;
   }
-  .tip b{color:var(--fg);font-weight:700}
+  .tip b{color:var(--fg2);font-weight:600}
 
-  /* ── STACK ── */
-  .stack-tags{display:flex;gap:8px;flex-wrap:wrap}
-  .stack-tag{
-    font-family:var(--d);font-size:11px;font-weight:500;
-    padding:7px 16px;border-radius:8px;
-    background:var(--card);border:1px solid var(--border);color:var(--fg2);
+  /* ── TECH TAGS ── */
+  .tags{display:flex;gap:8px;flex-wrap:wrap}
+  .tag{
+    font-family:var(--mono);font-size:10px;font-weight:500;
+    padding:6px 14px;border-radius:8px;
+    background:var(--card);border:1px solid var(--border);color:var(--fg3);
   }
 
   /* ── FOOTER ── */
-  .footer{text-align:center;padding-top:8px;border-top:1px solid var(--border)}
-  .footer-url{font-family:var(--d);font-size:14px;font-weight:600;color:var(--accent);letter-spacing:.02em}
+  .footer{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+  }
+  .footer-left{display:flex;align-items:center;gap:12px}
+  .footer-logo{width:24px;height:24px;color:var(--accent)}
+  .footer-name{font-size:13px;font-weight:600;color:var(--fg3)}
+  .footer-url{
+    font-family:var(--mono);font-size:13px;font-weight:600;
+    color:var(--accent);letter-spacing:.02em;
+  }
+
+  /* ── DIVIDER ── */
+  .divider{height:1px;background:var(--border)}
 </style>
 </head>
 <body>
-<div class="page">
 
-  <!-- HEADER -->
+<div class="poster">
+<div class="poster-inner">
+
+  <!-- ═══════════ HEADER ═══════════ -->
   <div class="header">
-    <div class="header-top">
-      <svg class="logo-mark" viewBox="0 0 256 256" fill="none">
+    <svg class="logo-mark" viewBox="0 0 256 256" fill="none">
+      <path d="M88 72 L56 128 L88 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>
+      <path d="M168 72 L200 128 L168 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>
+      <line x1="128" y1="88" x2="128" y2="64" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>
+      <line x1="128" y1="192" x2="128" y2="168" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>
+      <circle cx="128" cy="128" r="10" fill="currentColor"/>
+    </svg>
+    <div class="header-text">
+      <div class="wordmark">Source<span>Kit</span></div>
+      <div class="tagline">Technical sourcing powered by <strong>GitHub signal</strong>. Enter a role, get a pipeline.</div>
+    </div>
+    <div class="badge">V2.0 BETA</div>
+  </div>
+
+  <!-- ═══════════ HERO STATS ═══════════ -->
+  <div class="hero-strip">
+    <div class="hero-stat">
+      <div class="hero-stat-num">5-Step</div>
+      <div class="hero-stat-label">AI Workflow</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">EEA</div>
+      <div class="hero-stat-label">Signal Scoring</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">Live</div>
+      <div class="hero-stat-label">Webset Monitoring</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">1-Click</div>
+      <div class="hero-stat-label">Pipeline Export</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ WORKFLOW ═══════════ -->
+  <div>
+    <div class="label">Workflow</div>
+    <div class="flow">
+      <div class="flow-chip"><div class="num">01</div><div class="title">Research</div><div class="sub">Role + JD</div></div>
+      <div class="flow-chip"><div class="num">02</div><div class="title">Repo Map</div><div class="sub">Targets ID'd</div></div>
+      <div class="flow-chip"><div class="num">03</div><div class="title">Co. Map</div><div class="sub">Poach list</div></div>
+      <div class="flow-chip"><div class="num">04</div><div class="title">Tune</div><div class="sub">Edit repos</div></div>
+      <div class="flow-chip"><div class="num">05</div><div class="title">Search</div><div class="sub">Pipeline out</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ WHAT POWERS IT ═══════════ -->
+  <div>
+    <div class="label">What Powers It</div>
+    <div class="cols-3">
+      <div class="card card-accent">
+        <div class="card-label">Exa Search</div>
+        <div class="card-title">Repo Discovery</div>
+        <div class="card-desc">Semantic search across GitHub. Finds repos by meaning, not keywords. LinkedIn + EEA evidence.</div>
+      </div>
+      <div class="card card-accent">
+        <div class="card-label">Exa Websets</div>
+        <div class="card-title">Talent Pools</div>
+        <div class="card-desc">Persistent, auto-updating collections. Define criteria once, get verified matches on schedule.</div>
+      </div>
+      <div class="card card-accent">
+        <div class="card-label">Claude + Parallel</div>
+        <div class="card-title">Strategy + Eval</div>
+        <div class="card-desc">Sourcing strategies, candidate eval, outreach. Parallel extracts JDs + runs company research.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TWO-COL: WEBSETS + EEA ═══════════ -->
+  <div class="cols">
+    <!-- Left: Websets Pipeline -->
+    <div>
+      <div class="label">Websets Pipeline</div>
+      <div class="card">
+        <div class="bullets">
+          <div class="bullet"><span><b style="color:var(--fg);font-weight:700">Create</b> — Define search criteria and verification rules</span></div>
+          <div class="bullet"><span><b style="color:var(--fg);font-weight:700">Discover</b> — Neural search finds matching candidates</span></div>
+          <div class="bullet"><span><b style="color:var(--fg);font-weight:700">Verify</b> — AI agent checks each match against criteria</span></div>
+          <div class="bullet"><span><b style="color:var(--fg);font-weight:700">Enrich</b> — Pull email, publications, social profiles</span></div>
+          <div class="bullet"><span><b style="color:var(--fg);font-weight:700">Monitor</b> — Auto-append new matches over time</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: EEA Examples -->
+    <div>
+      <div class="label">EEA-Driven Sourcing</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <div class="card-title" style="font-size:14px;margin-bottom:10px">Sr. ML Engineer</div>
+          <div class="bullets">
+            <div class="bullet">Top-10 contributor, ML repo 1K+ stars</div>
+            <div class="bullet">NeurIPS / ICML / ICLR pub (3 yrs)</div>
+            <div class="bullet">Model in prod serving 1M+ users</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="font-size:14px;margin-bottom:10px">Staff Backend Eng</div>
+          <div class="bullets">
+            <div class="bullet">Core contrib: Kafka / Vitess / CRDB</div>
+            <div class="bullet">KubeCon / Strange Loop / QCon talk</div>
+            <div class="bullet">RFC adopted by an OSS project</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ QUICK START ═══════════ -->
+  <div>
+    <div class="label">Quick Start</div>
+    <div class="flow">
+      <div class="flow-chip"><div class="num">01</div><div class="title">Sign In</div><div class="sub">Google OAuth</div></div>
+      <div class="flow-chip"><div class="num">02</div><div class="title">Role</div><div class="sub">Type or paste JD</div></div>
+      <div class="flow-chip"><div class="num">03</div><div class="title">Repos</div><div class="sub">Edit target list</div></div>
+      <div class="flow-chip"><div class="num">04</div><div class="title">Search</div><div class="sub">Run + filter</div></div>
+      <div class="flow-chip"><div class="num">05</div><div class="title">Review</div><div class="sub">Score + enrich</div></div>
+      <div class="flow-chip"><div class="num">06</div><div class="title">Webset</div><div class="sub">Monitor pool</div></div>
+      <div class="flow-chip"><div class="num">07</div><div class="title">Export</div><div class="sub">Pipeline out</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PRO TIPS ═══════════ -->
+  <div>
+    <div class="label">Pro Tips</div>
+    <div class="tips">
+      <div class="tip"><span><b>Be specific.</b> "ML Infra, training pipelines" beats "ML Engineer"</span></div>
+      <div class="tip"><span><b>Hidden gems.</b> High commits + low followers = under-recruited</span></div>
+      <div class="tip"><span><b>Edit repos.</b> AI list is a start — your edits are the quality lever.</span></div>
+      <div class="tip"><span><b>Webset criteria.</b> Think DB filters. Quantifiable > aspirational.</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ STACK + FOOTER ═══════════ -->
+  <div>
+    <div class="label">Built With</div>
+    <div class="tags">
+      <div class="tag">Claude AI</div>
+      <div class="tag">Exa Search</div>
+      <div class="tag">Exa Websets</div>
+      <div class="tag">Parallel.ai</div>
+      <div class="tag">GitHub API</div>
+      <div class="tag">React + TS</div>
+      <div class="tag">Supabase</div>
+      <div class="tag">Vercel</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">
+      <svg class="footer-logo" viewBox="0 0 256 256" fill="none">
         <path d="M88 72 L56 128 L88 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>
         <path d="M168 72 L200 128 L168 184" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>
         <line x1="128" y1="88" x2="128" y2="64" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>
         <line x1="128" y1="192" x2="128" y2="168" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>
         <circle cx="128" cy="128" r="10" fill="currentColor"/>
       </svg>
-      <div class="wordmark">Source<span>Kit</span></div>
-      <div class="version">V2.0 BETA</div>
+      <span class="footer-name">SourceKit</span>
     </div>
-    <div class="tagline">Technical sourcing on <strong>GitHub signal</strong>. Enter a role, get a pipeline.<br>Powered by Exa, Claude, Parallel.</div>
-  </div>
-
-  <!-- WORKFLOW -->
-  <div>
-    <div class="sh">Workflow</div>
-    <div class="flow">
-      <div class="flow-chip"><div class="flow-title">Research</div><div class="flow-sub">Role + JD</div></div>
-      <div class="flow-chip"><div class="flow-title">Repo Map</div><div class="flow-sub">Targets ID'd</div></div>
-      <div class="flow-chip"><div class="flow-title">Co. Map</div><div class="flow-sub">Poach list</div></div>
-      <div class="flow-chip"><div class="flow-title">Tune</div><div class="flow-sub">Edit repos</div></div>
-      <div class="flow-chip"><div class="flow-title">Search</div><div class="flow-sub">Pipeline out</div></div>
-    </div>
-  </div>
-
-  <!-- WHAT POWERS IT -->
-  <div>
-    <div class="sh">What Powers It</div>
-    <div class="powers">
-      <div class="power-card">
-        <div class="power-label">Exa Search</div>
-        <div class="power-title">Repo Discovery</div>
-        <div class="power-desc">Semantic search across GitHub. Finds repos by meaning, not keywords. LinkedIn + EEA evidence.</div>
-      </div>
-      <div class="power-card">
-        <div class="power-label">Exa Websets</div>
-        <div class="power-title">Talent Pools</div>
-        <div class="power-desc">Persistent, auto-updating collections. Define criteria once, get verified matches on schedule.</div>
-      </div>
-      <div class="power-card">
-        <div class="power-label">Claude + Parallel</div>
-        <div class="power-title">Strategy + Eval</div>
-        <div class="power-desc">Sourcing strategies, candidate eval, outreach. Parallel extracts JDs + runs company research.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WEBSETS PIPELINE -->
-  <div>
-    <div class="sh">Websets Pipeline</div>
-    <div class="pipe-flow">
-      <div class="pipe-step"><div class="pipe-step-title">Create</div><div class="pipe-step-sub">Define criteria</div></div>
-      <div class="pipe-step"><div class="pipe-step-title">Discover</div><div class="pipe-step-sub">Neural search</div></div>
-      <div class="pipe-step"><div class="pipe-step-title">Verify</div><div class="pipe-step-sub">Agent checks</div></div>
-      <div class="pipe-step"><div class="pipe-step-title">Enrich</div><div class="pipe-step-sub">Email, pubs</div></div>
-      <div class="pipe-step"><div class="pipe-step-title">Monitor</div><div class="pipe-step-sub">Auto-append</div></div>
-    </div>
-  </div>
-
-  <!-- EEA-DRIVEN SOURCING -->
-  <div>
-    <div class="sh">EEA-Driven Sourcing</div>
-    <div class="eea-row">
-      <div class="eea-card">
-        <div class="eea-title">Sr. ML Engineer</div>
-        <div class="eea-bullet">Top-10 contributor, ML repo 1K+ stars</div>
-        <div class="eea-bullet">NeurIPS / ICML / ICLR pub (3 yrs)</div>
-        <div class="eea-bullet">Model in prod serving 1M+ users</div>
-      </div>
-      <div class="eea-card">
-        <div class="eea-title">Staff Backend Eng</div>
-        <div class="eea-bullet">Core contrib: Kafka / Vitess / CRDB</div>
-        <div class="eea-bullet">KubeCon / Strange Loop / QCon talk</div>
-        <div class="eea-bullet">RFC adopted by an OSS project</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- QUICK START -->
-  <div>
-    <div class="sh">Quick Start</div>
-    <div class="qs-flow">
-      <div class="qs-chip"><div class="qs-title">Sign In</div><div class="qs-sub">Google</div></div>
-      <div class="qs-chip"><div class="qs-title">Role</div><div class="qs-sub">Type / JD</div></div>
-      <div class="qs-chip"><div class="qs-title">Repos</div><div class="qs-sub">Edit list</div></div>
-      <div class="qs-chip"><div class="qs-title">Search</div><div class="qs-sub">Filter</div></div>
-      <div class="qs-chip"><div class="qs-title">Review</div><div class="qs-sub">Enrich</div></div>
-      <div class="qs-chip"><div class="qs-title">Webset</div><div class="qs-sub">Monitor</div></div>
-      <div class="qs-chip"><div class="qs-title">Pipeline</div><div class="qs-sub">Export</div></div>
-    </div>
-  </div>
-
-  <!-- PRO TIPS -->
-  <div>
-    <div class="sh">Pro Tips</div>
-    <div class="tips">
-      <div class="tip"><span><b>Be specific.</b> "ML Infra, training pipelines" beats "ML Engineer"</span></div>
-      <div class="tip"><span><b>Hidden gems.</b> High commits + low followers = under-recruited</span></div>
-      <div class="tip"><span><b>Edit repos.</b> AI list is a start. Your edits are the quality lever.</span></div>
-      <div class="tip"><span><b>Webset criteria.</b> Think DB filters. Quantifiable > aspirational.</span></div>
-    </div>
-  </div>
-
-  <!-- STACK -->
-  <div>
-    <div class="sh">Stack</div>
-    <div class="stack-tags">
-      <div class="stack-tag">Claude AI</div>
-      <div class="stack-tag">Exa Search</div>
-      <div class="stack-tag">Exa Websets</div>
-      <div class="stack-tag">Parallel.ai</div>
-      <div class="stack-tag">GitHub API</div>
-      <div class="stack-tag">React + TS</div>
-      <div class="stack-tag">Supabase</div>
-      <div class="stack-tag">Vercel</div>
-    </div>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
     <span class="footer-url">getsourcekit.vercel.app</span>
   </div>
 
 </div>
+</div>
+
 </body>
 </html>
