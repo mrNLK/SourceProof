@@ -68,7 +68,7 @@
     position:relative;z-index:1;
     display:grid;
     grid-template-columns:1fr;
-    gap:32px;
+    gap:28px;
   }
 
   /* ── HEADER ── */
@@ -105,25 +105,8 @@
   }
 
   /* ── TWO-COLUMN LAYOUT ── */
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-  .cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-
-  /* ── HERO STAT STRIP ── */
-  .hero-strip{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
-    background:var(--card);border:1px solid var(--border);border-radius:14px;
-    overflow:hidden;
-  }
-  .hero-stat{
-    padding:20px 16px;text-align:center;
-    border-right:1px solid var(--border);
-  }
-  .hero-stat:last-child{border-right:none}
-  .hero-stat-num{
-    font-family:var(--mono);font-size:26px;font-weight:700;color:var(--accent);
-    line-height:1;
-  }
-  .hero-stat-label{font-size:11px;color:var(--fg3);margin-top:6px;font-weight:500}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 
   /* ── FLOW STRIPS ── */
   .flow{display:flex;gap:0}
@@ -135,10 +118,6 @@
   .flow-chip:first-child{border-radius:10px 0 0 10px}
   .flow-chip:last-child{border-radius:0 10px 10px 0}
   .flow-chip+.flow-chip{border-left:none}
-  .flow-chip .num{
-    font-family:var(--mono);font-size:9px;font-weight:700;
-    color:var(--accent);opacity:.6;margin-bottom:4px;
-  }
   .flow-chip .title{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--fg)}
   .flow-chip .sub{font-size:9px;color:var(--fg4);margin-top:2px}
   .flow-chip::after{
@@ -234,38 +213,6 @@
     <div class="badge">V2.0 BETA</div>
   </div>
 
-  <!-- ═══════════ HERO STATS ═══════════ -->
-  <div class="hero-strip">
-    <div class="hero-stat">
-      <div class="hero-stat-num">5-Step</div>
-      <div class="hero-stat-label">AI Workflow</div>
-    </div>
-    <div class="hero-stat">
-      <div class="hero-stat-num">EEA</div>
-      <div class="hero-stat-label">Signal Scoring</div>
-    </div>
-    <div class="hero-stat">
-      <div class="hero-stat-num">Live</div>
-      <div class="hero-stat-label">Webset Monitoring</div>
-    </div>
-    <div class="hero-stat">
-      <div class="hero-stat-num">1-Click</div>
-      <div class="hero-stat-label">Pipeline Export</div>
-    </div>
-  </div>
-
-  <!-- ═══════════ WORKFLOW ═══════════ -->
-  <div>
-    <div class="label">Workflow</div>
-    <div class="flow">
-      <div class="flow-chip"><div class="num">01</div><div class="title">Research</div><div class="sub">Role + JD</div></div>
-      <div class="flow-chip"><div class="num">02</div><div class="title">Repo Map</div><div class="sub">Targets ID'd</div></div>
-      <div class="flow-chip"><div class="num">03</div><div class="title">Co. Map</div><div class="sub">Poach list</div></div>
-      <div class="flow-chip"><div class="num">04</div><div class="title">Tune</div><div class="sub">Edit repos</div></div>
-      <div class="flow-chip"><div class="num">05</div><div class="title">Search</div><div class="sub">Pipeline out</div></div>
-    </div>
-  </div>
-
   <!-- ═══════════ WHAT POWERS IT ═══════════ -->
   <div>
     <div class="label">What Powers It</div>
@@ -332,13 +279,13 @@
   <div>
     <div class="label">Quick Start</div>
     <div class="flow">
-      <div class="flow-chip"><div class="num">01</div><div class="title">Sign In</div><div class="sub">Google OAuth</div></div>
-      <div class="flow-chip"><div class="num">02</div><div class="title">Role</div><div class="sub">Type or paste JD</div></div>
-      <div class="flow-chip"><div class="num">03</div><div class="title">Repos</div><div class="sub">Edit target list</div></div>
-      <div class="flow-chip"><div class="num">04</div><div class="title">Search</div><div class="sub">Run + filter</div></div>
-      <div class="flow-chip"><div class="num">05</div><div class="title">Review</div><div class="sub">Score + enrich</div></div>
-      <div class="flow-chip"><div class="num">06</div><div class="title">Webset</div><div class="sub">Monitor pool</div></div>
-      <div class="flow-chip"><div class="num">07</div><div class="title">Export</div><div class="sub">Pipeline out</div></div>
+      <div class="flow-chip"><div class="title">Sign In</div><div class="sub">Google OAuth</div></div>
+      <div class="flow-chip"><div class="title">Role</div><div class="sub">Type or paste JD</div></div>
+      <div class="flow-chip"><div class="title">Repos</div><div class="sub">Edit target list</div></div>
+      <div class="flow-chip"><div class="title">Search</div><div class="sub">Run + filter</div></div>
+      <div class="flow-chip"><div class="title">Review</div><div class="sub">Score + enrich</div></div>
+      <div class="flow-chip"><div class="title">Webset</div><div class="sub">Monitor pool</div></div>
+      <div class="flow-chip"><div class="title">Export</div><div class="sub">Pipeline out</div></div>
     </div>
   </div>
 
