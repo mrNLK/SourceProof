@@ -15,6 +15,14 @@ import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
+/** Force a hard navigation to the static poster.html file */
+const PosterRedirect = () => {
+  useEffect(() => {
+    window.location.replace("/poster.html");
+  }, []);
+  return null;
+};
+
 const App = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +60,8 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Poster route — redirect to static HTML file */}
+              <Route path="/poster" element={<PosterRedirect />} />
               {session ? (
                 <>
                   <Route path="/" element={<Index />} />
