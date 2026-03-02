@@ -15,12 +15,17 @@ const WORKFLOW = [
 const WALKTHROUGH = [
   {
     step: "Enter a role",
-    caption: "Type a role + company, paste a JD, or drop a job URL. Claude builds your strategy.",
+    caption: "Type a role + company, paste a JD, or drop a job URL.",
     img: "/screenshots/step-1-input.png",
   },
   {
+    step: "AI builds your strategy",
+    caption: "Claude generates a search query, target repos, poach list, and skills matrix.",
+    img: "/screenshots/ai-strategy-panel.png",
+  },
+  {
     step: "Edit the repo list",
-    caption: "AI suggestions are a starting point. Your edits are the single biggest quality lever.",
+    caption: "AI suggestions are a starting point. Your edits are the biggest quality lever.",
     img: "/screenshots/step-2-repos.png",
   },
   {
@@ -29,8 +34,18 @@ const WALKTHROUGH = [
     img: "/screenshots/step-3-results.png",
   },
   {
-    step: "Review and pipeline",
-    caption: "Enrich top matches, find LinkedIn, add to pipeline. Drag between stages, export CSV.",
+    step: "Enrich top candidates",
+    caption: "Find LinkedIn, score EEA strength, pull publications and contact info.",
+    img: "/screenshots/bonus-enrichment.png",
+  },
+  {
+    step: "Create a Webset",
+    caption: "Define criteria and enrichments. Exa discovers, verifies, and monitors new matches.",
+    img: "/screenshots/webset-creation-flow.png",
+  },
+  {
+    step: "Pipeline and export",
+    caption: "Drag between stages. Bulk compare, draft outreach, export CSV.",
     img: "/screenshots/step-4-pipeline.png",
   },
 ];
