@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="512" height="512" fill="none">
-  <path d="M17 16L7 28l10 12" stroke="#00e5a0" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M30.5 14l-5 28" stroke="#00e5a0" stroke-width="4.5" stroke-linecap="round"/>
-  <path d="M39 16l10 12-10 12" stroke="#00e5a0" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="43" y="43" width="11" height="5" rx="2.5" fill="#00e5a0" transform="rotate(45 48.5 45.5)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
+  <!-- Outer brackets -->
+  <path d="M88 72 L56 128 L88 184" stroke="#00E5A0" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M168 72 L200 128 L168 184" stroke="#00E5A0" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Inner chevrons -->
+  <path d="M96 96 L112 128 L96 160" stroke="#00E5A0" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M160 96 L144 128 L160 160" stroke="#00E5A0" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Focus marks -->
+  <line x1="128" y1="88" x2="128" y2="64" stroke="#00E5A0" stroke-width="11" stroke-linecap="round"/>
+  <line x1="128" y1="168" x2="128" y2="192" stroke="#00E5A0" stroke-width="11" stroke-linecap="round"/>
+  <!-- Center node -->
+  <circle cx="128" cy="128" r="10" fill="#00E5A0"/>
 </svg>
