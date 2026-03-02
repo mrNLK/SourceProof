@@ -230,6 +230,17 @@
     filter: drop-shadow(0 0 16px rgba(0,229,160,0.35));
   }
 
+  /* Hero mark container with subtle radial field effect */
+  .hero-mark-container {
+    background:
+      radial-gradient(
+        circle,
+        rgba(0,229,160,0.08) 0%,
+        rgba(0,229,160,0.02) 40%,
+        transparent 70%
+      );
+  }
+
   /* Scrollbar hide utility */
   .scrollbar-hide {
     -ms-overflow-style: none;
