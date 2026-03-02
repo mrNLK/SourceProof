@@ -278,7 +278,7 @@ const BulkActionsTab = () => {
       />
       <div className="flex items-center justify-between mb-4">
         <h1 className="font-display text-lg font-semibold text-foreground">Bulk Actions</h1>
-        <ExportButton data={selected.size > 0 ? pipelineCandidates.filter((c: any) => selected.has(c.id)) : pipelineCandidates} filename="sourceproof-bulk" label={selected.size > 0 ? `Export ${selected.size}` : "Export All"} />
+        <ExportButton data={selected.size > 0 ? pipelineCandidates.filter((c: any) => selected.has(c.id)) : pipelineCandidates} filename="sourcekit-bulk" label={selected.size > 0 ? `Export ${selected.size}` : "Export All"} />
       </div>
 
       <div className="flex flex-col lg:flex-row gap-4" style={{ minHeight: "calc(100vh - 160px)" }}>

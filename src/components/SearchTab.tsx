@@ -64,7 +64,7 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
   const autoSubmitDone = useRef(false);
 
   // -- Filter state (FEAT-002: persisted to localStorage) --
-  const [sf] = useState<Record<string, any>>(() => { try { return JSON.parse(localStorage.getItem('sourceproof-filters') || '{}'); } catch { return {}; } });
+  const [sf] = useState<Record<string, any>>(() => { try { return JSON.parse(localStorage.getItem('sourcekit-filters') || '{}'); } catch { return {}; } });
   const [seniorityFilter, setSeniorityFilter] = useState<SeniorityFilter>(sf.seniority || "any");
   const [skillFilters, setSkillFilters] = useState<SkillFilter[]>(sf.skills || []);
   const [showSkillPanel, setShowSkillPanel] = useState(false);
@@ -115,7 +115,7 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
 
   // FEAT-002: Persist all filters to localStorage
   useEffect(() => {
-    localStorage.setItem('sourceproof-filters', JSON.stringify({
+    localStorage.setItem('sourcekit-filters', JSON.stringify({
       seniority: seniorityFilter, skills: skillFilters, language: languageFilter,
       minScore, showGemsOnly, showUngettable, resultLimit,
     }));

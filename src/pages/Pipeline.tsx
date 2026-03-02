@@ -171,7 +171,7 @@ const Pipeline = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
               <GitBranch className="w-4 h-4 text-primary" />
             </div>
-            <span className="font-display text-sm font-semibold text-foreground">SourceProof</span>
+            <span className="font-display text-sm font-semibold text-foreground">SourceKit</span>
           </Link>
           <nav className="flex items-center gap-1 ml-4">
             <Link to="/" className="text-xs font-display px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors">Search</Link>

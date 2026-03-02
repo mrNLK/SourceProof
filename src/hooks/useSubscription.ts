@@ -43,8 +43,8 @@ export function useSubscription() {
   // Auto-refresh when a search completes (B2 fix: counter never incrementing)
   useEffect(() => {
     const handler = () => refresh();
-    window.addEventListener("sourceproof-search-complete", handler);
-    return () => window.removeEventListener("sourceproof-search-complete", handler);
+    window.addEventListener("sourcekit-search-complete", handler);
+    return () => window.removeEventListener("sourcekit-search-complete", handler);
   }, [refresh]);
 
   return { subscription, loading, refresh };

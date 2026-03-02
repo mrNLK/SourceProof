@@ -6,7 +6,7 @@ const GITHUB_API = "https://api.github.com";
 async function githubFetch(url: string) {
   const headers: Record<string, string> = {
     'Accept': 'application/vnd.github.v3+json',
-    'User-Agent': 'SourceProof-App',
+    'User-Agent': 'SourceKit-App',
   };
   const token = Deno.env.get('GITHUB_TOKEN');
   if (token) {

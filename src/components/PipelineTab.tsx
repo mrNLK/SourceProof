@@ -237,7 +237,7 @@ const PipelineTab = ({ onNavigateToSearch }: PipelineTabProps) => {
           },
           {
             type: "context",
-            elements: [{ type: "mrkdwn", text: "Shared from SourceProof" }],
+            elements: [{ type: "mrkdwn", text: "Shared from SourceKit" }],
           },
         ],
       };
@@ -339,7 +339,7 @@ const PipelineTab = ({ onNavigateToSearch }: PipelineTabProps) => {
             <ArrowUpDown className="w-3 h-3" />
             {sortByScore ? "Score ↓" : "Sort by Score"}
           </button>
-          <ExportButton data={filteredCandidates} filename={`sourceproof-pipeline-${new Date().toISOString().slice(0,10)}`} />
+          <ExportButton data={filteredCandidates} filename={`sourcekit-pipeline-${new Date().toISOString().slice(0,10)}`} />
         </div>
       </div>
 

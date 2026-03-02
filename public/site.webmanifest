@@ -1,7 +1,7 @@
 {
-  "name": "SourceProof",
-  "short_name": "SourceProof",
-  "description": "AI-powered candidate sourcing from verified GitHub signal data",
+  "name": "SourceKit",
+  "short_name": "SourceKit",
+  "description": "AI-powered candidate sourcing from GitHub signal data",
   "start_url": "/",
   "icons": [
     {

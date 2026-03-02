@@ -19,7 +19,7 @@ const NotFound = () => {
           to="/"
           className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
         >
-          Back to SourceProof
+          Back to SourceKit
         </Link>
       </div>
     </div>

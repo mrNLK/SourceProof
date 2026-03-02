@@ -53,7 +53,7 @@ const DeveloperProfile = () => {
               <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
                 <GitBranch className="w-4 h-4 text-primary" />
               </div>
-              <span className="font-display text-sm font-semibold text-foreground hidden sm:inline">SourceProof</span>
+              <span className="font-display text-sm font-semibold text-foreground hidden sm:inline">SourceKit</span>
             </Link>
           </div>
         </header>
@@ -161,7 +161,7 @@ const DeveloperProfile = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
               <GitBranch className="w-4 h-4 text-primary" />
             </div>
-            <span className="font-display text-sm font-semibold text-foreground hidden sm:inline">SourceProof</span>
+            <span className="font-display text-sm font-semibold text-foreground hidden sm:inline">SourceKit</span>
           </Link>
           <button onClick={() => window.history.back()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto">
             <ArrowLeft className="w-4 h-4" />

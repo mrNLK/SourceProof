@@ -7,21 +7,21 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
   className?: string;
   markClassName?: string;
   sourceClassName?: string;
-  proofClassName?: string;
+  kitClassName?: string;
 };
 
 /**
- * SourceProofLogo
+ * SourceKitLogo
  * Mark + wordmark lockup (transparent background).
  * Typography assumes DM Sans is loaded in the app.
  */
 export function SourceKitLogo({
   size = 24,
-  title = "SourceProof",
+  title = "SourceKit",
   className,
   markClassName,
   sourceClassName,
-  proofClassName,
+  kitClassName,
   ...rest
 }: Props) {
   return (
@@ -35,6 +35,8 @@ export function SourceKitLogo({
         width={size}
         height={size}
         className={markClassName}
+        // canonical mark is teal; enforce via CSS token in your app:
+        // .text-accent { color: var(--accent-primary); }
       />
       <span style={{ display: "inline-flex", alignItems: "baseline", gap: 0 }}>
         <span
@@ -44,10 +46,10 @@ export function SourceKitLogo({
           Source
         </span>
         <span
-          className={proofClassName}
+          className={kitClassName}
           style={{ fontFamily: "DM Sans, system-ui, -apple-system, Segoe UI, Roboto, sans-serif", fontWeight: 500, color: "#9E9E9E" }}
         >
-          Proof
+          Kit
         </span>
       </span>
     </div>

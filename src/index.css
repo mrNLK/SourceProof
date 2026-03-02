@@ -15,7 +15,7 @@
     --popover: 240 12% 8%;
     --popover-foreground: 0 0% 88%;
 
-    --primary: 239 84% 67%;
+    --primary: 162 100% 45%;
     --primary-foreground: 240 20% 5%;
 
     --secondary: 240 10% 12%;
@@ -24,7 +24,7 @@
     --muted: 240 9% 14%;
     --muted-foreground: 222 5% 57%;
 
-    --accent: 239 84% 67%;
+    --accent: 162 100% 45%;
     --accent-foreground: 240 20% 5%;
 
     --destructive: 0 72% 55%;
@@ -32,21 +32,21 @@
 
     --border: 240 10% 12%;
     --input: 240 10% 12%;
-    --ring: 239 84% 67%;
+    --ring: 162 100% 45%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 240 18% 7%;
     --sidebar-foreground: 0 0% 88%;
-    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary: 162 100% 45%;
     --sidebar-primary-foreground: 240 20% 5%;
     --sidebar-accent: 240 10% 12%;
     --sidebar-accent-foreground: 0 0% 88%;
     --sidebar-border: 240 10% 12%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-ring: 162 100% 45%;
 
     /* Custom tokens */
-    --glow: 239 84% 67%;
+    --glow: 162 100% 45%;
     --surface: 240 14% 9%;
     --surface-hover: 240 12% 12%;
     --text-dim: 240 4% 46%;
@@ -59,9 +59,9 @@
     --font-body: 'DM Sans', system-ui, sans-serif;
 
     /* Brand system v2.0 semantic tokens */
-    --accent-primary: #6366F1;
-    --accent-strong: #4F46E5;
-    --accent-subtle: rgba(99,102,241,0.12);
+    --accent-primary: #00E5A0;
+    --accent-strong: #00C896;
+    --accent-subtle: rgba(0,229,160,0.12);
     --bg-base: #0A0A0F;
     --bg-elevated: #111116;
     --bg-surface: #15151B;
@@ -69,7 +69,7 @@
     --fg-secondary: #A1A1AA;
     --fg-muted: #6B7280;
     --border-subtle: #1F1F26;
-    --border-focus: #6366F1;
+    --border-focus: #00E5A0;
   }
 
   /* FEAT-007: Light mode override */
@@ -83,7 +83,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 20% 12%;
 
-    --primary: 239 84% 55%;
+    --primary: 162 100% 35%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 10% 93%;
@@ -92,7 +92,7 @@
     --muted: 240 10% 95%;
     --muted-foreground: 222 5% 50%;
 
-    --accent: 239 84% 55%;
+    --accent: 162 100% 35%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 50%;
@@ -100,18 +100,18 @@
 
     --border: 240 10% 88%;
     --input: 240 10% 88%;
-    --ring: 239 84% 55%;
+    --ring: 162 100% 35%;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 20% 12%;
-    --sidebar-primary: 239 84% 55%;
+    --sidebar-primary: 162 100% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 10% 95%;
     --sidebar-accent-foreground: 240 20% 12%;
     --sidebar-border: 240 10% 88%;
-    --sidebar-ring: 239 84% 55%;
+    --sidebar-ring: 162 100% 35%;
 
-    --glow: 239 84% 55%;
+    --glow: 162 100% 35%;
     --surface: 240 10% 96%;
     --surface-hover: 240 10% 92%;
     --text-dim: 240 4% 55%;
@@ -121,9 +121,9 @@
     --info: 210 80% 50%;
 
     /* Brand system v2.0 light mode overrides */
-    --accent-primary: #4F46E5;
-    --accent-strong: #4338CA;
-    --accent-subtle: rgba(79,70,229,0.10);
+    --accent-primary: #00A97A;
+    --accent-strong: #009068;
+    --accent-subtle: rgba(0,169,122,0.10);
     --bg-base: #FFFFFF;
     --bg-elevated: #F6F7F9;
     --bg-surface: #EEEEF0;
@@ -131,7 +131,7 @@
     --fg-secondary: #52525B;
     --fg-muted: #6B7280;
     --border-subtle: #E4E4E7;
-    --border-focus: #4F46E5;
+    --border-focus: #00A97A;
   }
 }
 
@@ -153,7 +153,7 @@
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(239 70% 78%));
+    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(162 80% 70%));
   }
 
   .glow-sm {

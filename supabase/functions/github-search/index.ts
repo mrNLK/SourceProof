@@ -20,7 +20,7 @@ const MAX_RETRIES = 3;
 async function githubFetch(url: string, attempt = 0): Promise<any> {
   const headers: Record<string, string> = {
     'Accept': 'application/vnd.github.v3+json',
-    'User-Agent': 'SourceProof-App',
+    'User-Agent': 'SourceKit-App',
   };
   const token = Deno.env.get('GITHUB_TOKEN');
   if (token) headers['Authorization'] = `Bearer ${token}`;

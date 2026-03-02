@@ -55,7 +55,7 @@ const UpgradeModal = ({ open, onClose }: UpgradeModalProps) => {
             Trial limit reached
           </DialogTitle>
           <DialogDescription className="text-center text-sm text-muted-foreground">
-            You've used all 10 free searches. Upgrade to SourceProof Pro for unlimited searches.
+            You've used all 10 free searches. Upgrade to SourceKit Pro for unlimited searches.
           </DialogDescription>
         </DialogHeader>
 

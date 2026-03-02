@@ -1,5 +1,5 @@
 const ALLOWED_ORIGINS = [
-  'https://getsourceproof.vercel.app',
+  'https://getsourcekit.vercel.app',
   'http://localhost:5173',
 ]
 

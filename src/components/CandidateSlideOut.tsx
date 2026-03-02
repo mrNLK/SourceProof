@@ -135,7 +135,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     setPipelineLoading(true);
     try {
       // Migrate pre-pipeline notes if any
-      const prePipelineNotes = notes.trim() || localStorage.getItem(`sourceproof-notes:${dev.username}`) || "";
+      const prePipelineNotes = notes.trim() || localStorage.getItem(`sourcekit-notes:${dev.username}`) || "";
       await supabase.from("pipeline").upsert({
         github_username: dev.username,
         name: dev.name,
@@ -144,7 +144,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
         ...(prePipelineNotes ? { notes: prePipelineNotes } : {}),
       }, { onConflict: "github_username" });
       // Clean up localStorage notes after migration
-      localStorage.removeItem(`sourceproof-notes:${dev.username}`);
+      localStorage.removeItem(`sourcekit-notes:${dev.username}`);
       setAddedToPipeline(true);
       queryClient.invalidateQueries({ queryKey: ["pipeline"] });
       queryClient.invalidateQueries({ queryKey: ["pipeline-usernames"] });
@@ -232,7 +232,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
   // Load pre-pipeline notes from localStorage if not in pipeline
   useEffect(() => {
     if (!pipelineRow && dev.username) {
-      const saved = localStorage.getItem(`sourceproof-notes:${dev.username}`);
+      const saved = localStorage.getItem(`sourcekit-notes:${dev.username}`);
       if (saved) setNotes(saved);
     }
   }, [pipelineRow, dev.username]);
@@ -245,9 +245,9 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     } else {
       // Pre-pipeline: save to localStorage
       if (notes.trim()) {
-        localStorage.setItem(`sourceproof-notes:${dev.username}`, notes);
+        localStorage.setItem(`sourcekit-notes:${dev.username}`, notes);
       } else {
-        localStorage.removeItem(`sourceproof-notes:${dev.username}`);
+        localStorage.removeItem(`sourcekit-notes:${dev.username}`);
       }
     }
     setNotesSaving(false);

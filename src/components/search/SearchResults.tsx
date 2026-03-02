@@ -41,7 +41,7 @@ const SearchResults = ({
             <><Check className="w-3 h-3" /> Select All ({filtered.length})</>
           )}
         </button>
-        <ExportButton data={filtered} filename="sourceproof-search" label="Export" />
+        <ExportButton data={filtered} filename="sourcekit-search" label="Export" />
         {batchSelected.size > 0 && (
           <>
             <span className="text-xs font-display text-muted-foreground">{batchSelected.size} selected</span>

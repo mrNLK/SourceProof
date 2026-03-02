@@ -123,7 +123,7 @@ const GuideTab = () => (
         variant="outline"
         size="sm"
         className="gap-1.5"
-        onClick={() => window.open("https://sourceproof-docs.netlify.app", "_blank")}
+        onClick={() => window.open("https://sourcekit-docs.netlify.app", "_blank")}
       >
         <span className="font-display text-xs">Full Docs</span>
         <ExternalLink className="w-3.5 h-3.5" />
@@ -201,7 +201,7 @@ const GuideTab = () => (
 
     {/* Docs link */}
     <button
-      onClick={() => window.open("https://sourceproof-docs.netlify.app", "_blank")}
+      onClick={() => window.open("https://sourcekit-docs.netlify.app", "_blank")}
       className="text-[10px] font-display font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
     >
       EEA framework, Websets deep dive, architecture

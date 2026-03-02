@@ -33,7 +33,7 @@ const Index = () => {
   // BUG-005: Persist active tab across page refreshes
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
     try {
-      const saved = localStorage.getItem("sourceproof-active-tab");
+      const saved = localStorage.getItem("sourcekit-active-tab");
       if (saved && ["search", "research", "history", "pipeline", "watchlist", "bulk", "websets", "settings", "guide"].includes(saved)) {
         return saved as ActiveTab;
       }
@@ -48,14 +48,14 @@ const Index = () => {
 
   // BUG-005: Persist active tab to localStorage
   useEffect(() => {
-    localStorage.setItem("sourceproof-active-tab", activeTab);
+    localStorage.setItem("sourcekit-active-tab", activeTab);
   }, [activeTab]);
 
   // Handle payment success/cancelled URL params
   useEffect(() => {
     const payment = searchParams.get("payment");
     if (payment === "success") {
-      toast({ title: "Welcome to SourceProof Pro!", description: "You now have unlimited searches." });
+      toast({ title: "Welcome to SourceKit Pro!", description: "You now have unlimited searches." });
       window.history.replaceState({}, "", window.location.pathname);
     } else if (payment === "cancelled") {
       toast({ title: "Payment cancelled", description: "You can upgrade anytime." });

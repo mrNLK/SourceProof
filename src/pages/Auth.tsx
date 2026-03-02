@@ -29,7 +29,7 @@ const Auth = () => {
           <SourceKitMark className="w-12 h-12 text-primary" />
           <div className="text-lg tracking-tight">
             <span className="text-foreground font-semibold">Source</span>
-            <span className="text-muted-foreground font-medium">Proof</span>
+            <span className="text-muted-foreground font-medium">Kit</span>
           </div>
           <p className="text-sm text-muted-foreground">Sign in to start sourcing</p>
         </div>
