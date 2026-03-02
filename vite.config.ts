@@ -9,10 +9,13 @@ function serveStaticHtml(): Plugin {
     name: "serve-static-html",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url && req.url.endsWith(".html") && req.url !== "/" && req.url !== "/index.html") {
-          const filePath = path.join(__dirname, "public", req.url);
+        const url = req.url?.split("?")[0] ?? "";
+        // Serve /poster or /poster.html directly from public/
+        if (url === "/poster" || url === "/poster.html") {
+          const filePath = path.join(__dirname, "public", "poster.html");
           if (fs.existsSync(filePath)) {
             res.setHeader("Content-Type", "text/html");
+            res.setHeader("Cache-Control", "no-store");
             fs.createReadStream(filePath).pipe(res);
             return;
           }
