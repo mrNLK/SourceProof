@@ -19,11 +19,11 @@ export type SeniorityFilter = "any" | "junior" | "mid" | "senior";
 
 // P25: Pre-configured chips with direct repo mappings (bypass AI parsing)
 export const DEFAULT_SUGGESTIONS: SuggestionChip[] = [
-  { label: "Rust systems engineers", expandedQuery: "Rust systems engineers — repos like rust-lang/rust, tokio-rs/tokio, denoland/deno", targetRepos: ["rust-lang/rust", "tokio-rs/tokio", "denoland/deno", "rust-lang/cargo", "bytecodealliance/wasmtime"] },
-  { label: "React accessibility experts", expandedQuery: "React accessibility experts — repos like facebook/react, jsx-eslint/eslint-plugin-jsx-a11y, reach/reach-ui", targetRepos: ["facebook/react", "jsx-eslint/eslint-plugin-jsx-a11y", "radix-ui/primitives", "adobe/react-spectrum"] },
-  { label: "ML infrastructure", expandedQuery: "ML infrastructure engineers — repos like pytorch/pytorch, huggingface/transformers, ray-project/ray", targetRepos: ["pytorch/pytorch", "huggingface/transformers", "ray-project/ray", "mlflow/mlflow", "tensorflow/tensorflow"] },
-  { label: "Kubernetes contributors", expandedQuery: "Kubernetes contributors — repos like kubernetes/kubernetes, helm/helm, istio/istio", targetRepos: ["kubernetes/kubernetes", "helm/helm", "istio/istio", "argoproj/argo-cd", "prometheus/prometheus"] },
-  { label: "Security researchers", expandedQuery: "Security researchers — repos like OWASP/CheatSheetSeries, sqlmapproject/sqlmap, rapid7/metasploit-framework", targetRepos: ["OWASP/CheatSheetSeries", "sqlmapproject/sqlmap", "rapid7/metasploit-framework", "zaproxy/zaproxy"] },
+  { label: "Rust systems engineers", expandedQuery: "Rust systems engineers - repos like rust-lang/rust, tokio-rs/tokio, denoland/deno", targetRepos: ["rust-lang/rust", "tokio-rs/tokio", "denoland/deno", "rust-lang/cargo", "bytecodealliance/wasmtime"] },
+  { label: "React accessibility experts", expandedQuery: "React accessibility experts - repos like facebook/react, jsx-eslint/eslint-plugin-jsx-a11y, reach/reach-ui", targetRepos: ["facebook/react", "jsx-eslint/eslint-plugin-jsx-a11y", "radix-ui/primitives", "adobe/react-spectrum"] },
+  { label: "ML infrastructure", expandedQuery: "ML infrastructure engineers - repos like pytorch/pytorch, huggingface/transformers, ray-project/ray", targetRepos: ["pytorch/pytorch", "huggingface/transformers", "ray-project/ray", "mlflow/mlflow", "tensorflow/tensorflow"] },
+  { label: "Kubernetes contributors", expandedQuery: "Kubernetes contributors - repos like kubernetes/kubernetes, helm/helm, istio/istio", targetRepos: ["kubernetes/kubernetes", "helm/helm", "istio/istio", "argoproj/argo-cd", "prometheus/prometheus"] },
+  { label: "Security researchers", expandedQuery: "Security researchers - repos like OWASP/CheatSheetSeries, sqlmapproject/sqlmap, rapid7/metasploit-framework", targetRepos: ["OWASP/CheatSheetSeries", "sqlmapproject/sqlmap", "rapid7/metasploit-framework", "zaproxy/zaproxy"] },
 ];
 
 const BOT_USERNAME_PATTERN = /\b(bot|dependabot|renovate|greenkeeper|snyk|codecov|github-actions|automator|copilot)\b/i;

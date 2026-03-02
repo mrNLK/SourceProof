@@ -414,8 +414,8 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
             </div>
             <div className="flex flex-wrap gap-2">
               {parsedCriteria.skills.map((s: string) => (<span key={s} title={s} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 font-display max-w-[200px] truncate">{s}</span>))}
-              {parsedCriteria.location && (<span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">📍 {parsedCriteria.location}</span>)}
-              {parsedCriteria.seniority !== 'any' && (<span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">🎯 {parsedCriteria.seniority}</span>)}
+              {parsedCriteria.location && (<span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">{parsedCriteria.location}</span>)}
+              {parsedCriteria.seniority !== 'any' && (<span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">{parsedCriteria.seniority}</span>)}
             </div>
             {reposSearched.length > 0 && (
               <div className="mt-3 pt-3 border-t border-border">
@@ -448,7 +448,7 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
         {error && (
           <div className="glass rounded-xl p-6 text-center">
             <p className="text-destructive font-display text-sm mb-2">
-              {isRateLimited ? '⚡ GitHub API rate limit reached' : (error as Error).message === 'TRIAL_LIMIT_REACHED' ? '🔒 Trial limit reached' : 'Failed to search GitHub'}
+              {isRateLimited ? 'GitHub API rate limit reached' : (error as Error).message === 'TRIAL_LIMIT_REACHED' ? 'Trial limit reached' : 'Failed to search GitHub'}
             </p>
             <p className="text-muted-foreground text-xs">
               {isRateLimited

@@ -37,7 +37,7 @@ export const BUILT_IN_TEMPLATES: Template[] = [
     name: "Intro",
     body: `Hi {{name}},
 
-I came across your GitHub profile (@{{username}}) and was impressed by your work — especially in {{top_language}}. {{highlights}}
+I came across your GitHub profile (@{{username}}) and was impressed by your work - especially in {{top_language}}. {{highlights}}
 
 I'd love to chat about an opportunity that aligns with your experience. Would you be open to a quick conversation?
 

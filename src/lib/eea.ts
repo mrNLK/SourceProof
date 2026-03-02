@@ -135,16 +135,16 @@ function scoreOriginalContributions(d: CandidateData): EEADimension {
   // Star thresholds (5000+ = strong case per Arvian guidance)
   if (stars >= 5000) {
     strength = 4;
-    evidence.push(`${stars.toLocaleString()} total stars — exceptional open-source adoption`);
+    evidence.push(`${stars.toLocaleString()} total stars - exceptional open-source adoption`);
   } else if (stars >= 1000) {
     strength = 3;
-    evidence.push(`${stars.toLocaleString()} total stars — significant community validation`);
+    evidence.push(`${stars.toLocaleString()} total stars - significant community validation`);
   } else if (stars >= 200) {
     strength = 2;
-    evidence.push(`${stars.toLocaleString()} total stars — growing adoption`);
+    evidence.push(`${stars.toLocaleString()} total stars - growing adoption`);
   } else if (stars >= 50) {
     strength = 1;
-    evidence.push(`${stars.toLocaleString()} stars — early traction`);
+    evidence.push(`${stars.toLocaleString()} stars - early traction`);
   }
 
   // Check highlights for high-star individual repos
@@ -177,7 +177,7 @@ function scoreOriginalContributions(d: CandidateData): EEADimension {
     id: 'original_contributions',
     label: 'Original Contributions of Major Significance',
     shortLabel: 'Original Work',
-    icon: '💡',
+    icon: '',
     criterion: 'uscis',
     uscisMapping: 'Original contributions of major significance to the field',
     description: 'Novel work, open-source projects with high adoption, patents, or benchmark-setting results',
@@ -246,7 +246,7 @@ function scoreCriticalRole(d: CandidateData): EEADimension {
     id: 'critical_role',
     label: 'Critical / Leading Role',
     shortLabel: 'Leadership',
-    icon: '👔',
+    icon: '',
     criterion: 'uscis',
     uscisMapping: 'Critical or leading role in distinguished organizations',
     description: 'Founder, CTO, Lead Engineer, or core contributor at a VC-backed startup or major org',
@@ -281,9 +281,9 @@ function scorePublishedMaterial(d: CandidateData): EEADimension {
 
   // Community recognition (followers as proxy for expert status)
   if (followers >= 1000) {
-    signals.push(`${followers.toLocaleString()} followers — widely recognized expert`);
+    signals.push(`${followers.toLocaleString()} followers - widely recognized expert`);
   } else if (followers >= 200) {
-    signals.push(`${followers.toLocaleString()} followers — notable presence`);
+    signals.push(`${followers.toLocaleString()} followers - notable presence`);
   }
 
   for (const s of signals) evidence.push(s);
@@ -294,7 +294,7 @@ function scorePublishedMaterial(d: CandidateData): EEADimension {
   else if (signals.length >= 1) strength = 1;
 
   if (d.is_hidden_gem) {
-    evidence.push('Hidden gem — high output, low public visibility (potential for media coverage)');
+    evidence.push('Hidden gem - high output, low public visibility (potential for media coverage)');
   }
 
   needsDocumentation.push('Links to published articles, papers, or media coverage');
@@ -305,7 +305,7 @@ function scorePublishedMaterial(d: CandidateData): EEADimension {
     id: 'published_material',
     label: 'Published Material & Expert Recognition',
     shortLabel: 'Published',
-    icon: '📰',
+    icon: '',
     criterion: 'uscis',
     uscisMapping: 'Published material about the person in major media or professional publications',
     description: 'Research papers, media coverage, conference talks, expert recommendations, and community recognition',
@@ -337,12 +337,12 @@ function scoreJudging(d: CandidateData): EEADimension {
 
   // Proxy: maintaining popular repos means you review others' PRs
   if (stars >= 500 && d.public_repos && d.public_repos >= 10) {
-    signals.push(`Maintains repos with ${stars.toLocaleString()} total stars — likely reviews community PRs`);
+    signals.push(`Maintains repos with ${stars.toLocaleString()} total stars - likely reviews community PRs`);
   }
 
   // Proxy: contributing to many repos suggests code review activity
   if (repoCount >= 4) {
-    signals.push(`Active across ${repoCount} projects — cross-project code reviewer`);
+    signals.push(`Active across ${repoCount} projects - cross-project code reviewer`);
   }
 
   for (const s of signals) evidence.push(s);
@@ -363,7 +363,7 @@ function scoreJudging(d: CandidateData): EEADimension {
     id: 'judging',
     label: 'Judging & Peer Review',
     shortLabel: 'Judging',
-    icon: '⚖️',
+    icon: '',
     criterion: 'uscis',
     uscisMapping: 'Participation as a judge of the work of others in the field',
     description: 'Conference reviewer, competition judge, open-source maintainer reviewing community contributions',
@@ -386,10 +386,10 @@ function scoreRemuneration(d: CandidateData): EEADimension {
 
   const proxies: string[] = [];
 
-  if (bioContains(bio, ['founder', 'co-founder', 'cofounder'])) proxies.push('Founder — likely significant equity stake');
-  if (bioContains(bio, ['cto', 'ceo', 'chief', 'vp ', 'vice president'])) proxies.push('C-level / VP title — typically above-market compensation');
-  if (bioContains(bio, ['staff engineer', 'principal engineer', 'distinguished engineer', 'fellow'])) proxies.push('Senior IC title — premium compensation band');
-  if (bioContains(bio, ['google', 'meta', 'facebook', 'apple', 'amazon', 'microsoft', 'netflix', 'stripe', 'openai', 'anthropic'])) proxies.push('FAANG / top-tier company — high compensation');
+  if (bioContains(bio, ['founder', 'co-founder', 'cofounder'])) proxies.push('Founder - likely significant equity stake');
+  if (bioContains(bio, ['cto', 'ceo', 'chief', 'vp ', 'vice president'])) proxies.push('C-level / VP title - typically above-market compensation');
+  if (bioContains(bio, ['staff engineer', 'principal engineer', 'distinguished engineer', 'fellow'])) proxies.push('Senior IC title - premium compensation band');
+  if (bioContains(bio, ['google', 'meta', 'facebook', 'apple', 'amazon', 'microsoft', 'netflix', 'stripe', 'openai', 'anthropic'])) proxies.push('FAANG / top-tier company - high compensation');
 
   for (const p of proxies) evidence.push(p);
 
@@ -399,7 +399,7 @@ function scoreRemuneration(d: CandidateData): EEADimension {
 
   // Strength capped at 3 from proxies alone — needs actual docs for 4
   if (evidence.length === 0) {
-    evidence.push('No salary signals detected from public profile — requires documentation');
+    evidence.push('No salary signals detected from public profile - requires documentation');
   }
 
   needsDocumentation.push('Pay stubs, offer letters, or W-2 showing above-market compensation');
@@ -410,7 +410,7 @@ function scoreRemuneration(d: CandidateData): EEADimension {
     id: 'remuneration',
     label: 'High Salary or Remuneration',
     shortLabel: 'Remuneration',
-    icon: '💰',
+    icon: '',
     criterion: 'uscis',
     uscisMapping: 'High salary or remuneration relative to others in the field',
     description: 'Above-market compensation, significant equity, or investor-validated valuation',
@@ -460,7 +460,7 @@ function scoreMembership(d: CandidateData): EEADimension {
     // Check if we have any org-level contribution
     if (Object.keys(repos).length >= 3) {
       strength = 1;
-      evidence.push(`Contributor to ${Object.keys(repos).length} organizations — potential membership evidence`);
+      evidence.push(`Contributor to ${Object.keys(repos).length} organizations - potential membership evidence`);
     }
   }
 
@@ -472,7 +472,7 @@ function scoreMembership(d: CandidateData): EEADimension {
     id: 'membership',
     label: 'Membership in Exclusive Associations',
     shortLabel: 'Membership',
-    icon: '🏛️',
+    icon: '',
     criterion: 'uscis',
     uscisMapping: 'Membership in associations requiring outstanding achievements for admission',
     description: 'Membership in AAAI, ACM, YC alumni, research consortiums, or invitation-only groups',
@@ -492,7 +492,7 @@ function scoreSustainedExcellence(d: CandidateData): EEADimension {
   let strength: EEAStrength = 0;
 
   if (yearsActive >= 12 && repos >= 30) {
-    strength = 4; evidence.push(`${yearsActive} years on GitHub with ${repos} public repos — exceptional longevity`);
+    strength = 4; evidence.push(`${yearsActive} years on GitHub with ${repos} public repos - exceptional longevity`);
   } else if (yearsActive >= 8 && repos >= 20) {
     strength = 3; evidence.push(`${yearsActive} years of sustained activity, ${repos} repos`);
   } else if (yearsActive >= 5 && repos >= 10) {
@@ -507,7 +507,7 @@ function scoreSustainedExcellence(d: CandidateData): EEADimension {
     id: 'sustained_excellence',
     label: 'Sustained Technical Excellence',
     shortLabel: 'Sustained',
-    icon: '📈',
+    icon: '',
     criterion: 'supplementary',
     uscisMapping: 'Supplementary: demonstrates consistent track record over time',
     description: 'Long track record of consistent open-source contribution and growth',
@@ -557,7 +557,7 @@ function scoreTechnicalProfile(d: CandidateData): EEADimension {
     id: 'technical_profile',
     label: 'Technical Profile',
     shortLabel: 'Tech Profile',
-    icon: '🔧',
+    icon: '',
     criterion: 'supplementary',
     uscisMapping: 'Supplementary: demonstrates technical depth and breadth',
     description: 'Technical versatility, language expertise, and project diversity',
@@ -582,11 +582,11 @@ function scoreVelocity(d: CandidateData): EEADimension {
       id: 'velocity',
       label: 'Velocity & Trajectory',
       shortLabel: 'Velocity',
-      icon: '🚀',
+      icon: '',
       criterion: 'supplementary',
       uscisMapping: 'Supplementary: rate of output and growth trajectory',
-      description: 'How fast they ship relative to time on platform — high slope signals ambition and momentum',
-      strength: 0, evidence: ['Account age unknown — cannot assess velocity'], needsDocumentation: [],
+      description: 'How fast they ship relative to time on platform - high slope signals ambition and momentum',
+      strength: 0, evidence: ['Account age unknown - cannot assess velocity'], needsDocumentation: [],
     };
   }
 
@@ -595,28 +595,28 @@ function scoreVelocity(d: CandidateData): EEADimension {
 
   // Repos/year thresholds
   if (reposPerYear >= 15) {
-    evidence.push(`${reposPerYear.toFixed(1)} repos/year — extremely prolific`);
+    evidence.push(`${reposPerYear.toFixed(1)} repos/year - extremely prolific`);
   } else if (reposPerYear >= 8) {
-    evidence.push(`${reposPerYear.toFixed(1)} repos/year — high output`);
+    evidence.push(`${reposPerYear.toFixed(1)} repos/year - high output`);
   } else if (reposPerYear >= 4) {
-    evidence.push(`${reposPerYear.toFixed(1)} repos/year — solid cadence`);
+    evidence.push(`${reposPerYear.toFixed(1)} repos/year - solid cadence`);
   }
 
   // Stars/year — traction velocity
   if (starsPerYear >= 500) {
-    evidence.push(`${starsPerYear.toFixed(0)} stars/year — viral growth`);
+    evidence.push(`${starsPerYear.toFixed(0)} stars/year - viral growth`);
   } else if (starsPerYear >= 100) {
-    evidence.push(`${starsPerYear.toFixed(0)} stars/year — strong traction`);
+    evidence.push(`${starsPerYear.toFixed(0)} stars/year - strong traction`);
   } else if (starsPerYear >= 25) {
-    evidence.push(`${starsPerYear.toFixed(0)} stars/year — growing`);
+    evidence.push(`${starsPerYear.toFixed(0)} stars/year - growing`);
   }
 
   // Young account with outsized output = high slope
   if (yearsActive <= 4 && repos >= 30) {
-    evidence.push(`${repos} repos in only ${yearsActive} year(s) — high slope builder`);
+    evidence.push(`${repos} repos in only ${yearsActive} year(s) - high slope builder`);
   }
   if (yearsActive <= 3 && stars >= 200) {
-    evidence.push(`${stars} stars in only ${yearsActive} year(s) — rapid community traction`);
+    evidence.push(`${stars} stars in only ${yearsActive} year(s) - rapid community traction`);
   }
 
   // Scoring
@@ -636,10 +636,10 @@ function scoreVelocity(d: CandidateData): EEADimension {
     id: 'velocity',
     label: 'Velocity & Trajectory',
     shortLabel: 'Velocity',
-    icon: '🚀',
+    icon: '',
     criterion: 'supplementary',
     uscisMapping: 'Supplementary: rate of output and growth trajectory',
-    description: 'How fast they ship relative to time on platform — high slope signals ambition and momentum',
+    description: 'How fast they ship relative to time on platform - high slope signals ambition and momentum',
     strength, evidence, needsDocumentation: [],
   };
 }
@@ -674,14 +674,14 @@ function scoreBuilderDNA(d: CandidateData): EEADimension {
 
   // Prolific repo output — builders create lots of things
   if (repos >= 50) {
-    signals.push(`${repos} public repos — prolific builder`);
+    signals.push(`${repos} public repos - prolific builder`);
   } else if (repos >= 25) {
-    signals.push(`${repos} public repos — active builder`);
+    signals.push(`${repos} public repos - active builder`);
   }
 
   // Diverse highlights = ships across domains
   if (highlights.length >= 5) {
-    signals.push(`${highlights.length} notable projects — builds across domains`);
+    signals.push(`${highlights.length} notable projects - builds across domains`);
   } else if (highlights.length >= 3) {
     signals.push(`${highlights.length} notable projects`);
   }
@@ -689,7 +689,7 @@ function scoreBuilderDNA(d: CandidateData): EEADimension {
   // Contributing to many different repos = collaborative builder
   const contribCount = Object.keys(d.contributed_repos || {}).length;
   if (contribCount >= 6) {
-    signals.push(`Contributes to ${contribCount} projects — collaborative builder`);
+    signals.push(`Contributes to ${contribCount} projects - collaborative builder`);
   }
 
   // Open-source as a way of life
@@ -706,7 +706,7 @@ function scoreBuilderDNA(d: CandidateData): EEADimension {
 
   // Bonus: is_hidden_gem is strong builder DNA signal
   if (d.is_hidden_gem) {
-    evidence.push('Hidden gem — high output without self-promotion, pure builder');
+    evidence.push('Hidden gem - high output without self-promotion, pure builder');
     if (strength < 2) strength = 2 as EEAStrength;
   }
 
@@ -714,10 +714,10 @@ function scoreBuilderDNA(d: CandidateData): EEADimension {
     id: 'builder_dna',
     label: 'Builder DNA',
     shortLabel: 'Builder',
-    icon: '🛠️',
+    icon: '',
     criterion: 'supplementary',
     uscisMapping: 'Supplementary: prolific shipping, hackathon participation, maker mentality',
-    description: 'Hackathon energy, side projects, prolific repo output — scrappy builders who ship fast and often',
+    description: 'Hackathon energy, side projects, prolific repo output - scrappy builders who ship fast and often',
     strength, evidence, needsDocumentation: [],
   };
 }
@@ -764,7 +764,7 @@ function scoreEarlyMover(d: CandidateData): EEADimension {
     signals.push('Bio signals frontier/experimental work');
   }
   if (bioContains(bio, ['wasm', 'webassembly', 'web assembly'])) {
-    signals.push('WebAssembly — emerging compile target');
+    signals.push('WebAssembly - emerging compile target');
   }
 
   for (const s of signals) evidence.push(s);
@@ -779,10 +779,10 @@ function scoreEarlyMover(d: CandidateData): EEADimension {
     id: 'early_mover',
     label: 'Early Mover',
     shortLabel: 'Early Mover',
-    icon: '⚡',
+    icon: '',
     criterion: 'supplementary',
     uscisMapping: 'Supplementary: early adoption of emerging technologies',
-    description: 'Adopts new languages, frameworks, and paradigms before they go mainstream — signal of technical intuition',
+    description: 'Adopts new languages, frameworks, and paradigms before they go mainstream - signal of technical intuition',
     strength, evidence, needsDocumentation: [],
   };
 }

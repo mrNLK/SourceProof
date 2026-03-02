@@ -215,10 +215,10 @@ const SearchResults = () => {
                     <span key={s} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 font-display">{s}</span>
                   ))}
                   {parsedCriteria.location && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">📍 {parsedCriteria.location}</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">{parsedCriteria.location}</span>
                   )}
                   {parsedCriteria.seniority !== 'any' && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">🎯 {parsedCriteria.seniority}</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground border border-border font-display">{parsedCriteria.seniority}</span>
                   )}
                 </div>
                 {reposSearched.length > 0 && (
@@ -336,7 +336,7 @@ const SearchResults = () => {
               <div className="glass rounded-xl p-6 text-center">
                 <p className="text-destructive font-display text-sm mb-2">
                   {(error as Error).message === 'RATE_LIMITED'
-                    ? '⚡ GitHub API rate limit reached'
+                    ? 'GitHub API rate limit reached'
                     : 'Failed to search GitHub'}
                 </p>
                 <p className="text-muted-foreground text-xs">

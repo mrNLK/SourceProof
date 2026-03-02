@@ -1,36 +1,294 @@
-import { ExternalLink, BookOpen } from "lucide-react";
+import { ExternalLink, Sparkles, Search, GitBranch, ChevronRight, Lightbulb, BookOpen, Target, Trophy } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
-const DOCS_URL = "https://sourcekit-docs.netlify.app";
+const WORKFLOW_STEPS = [
+  { label: "Research", desc: "Role + Company or JD" },
+  { label: "Repo Map", desc: "Target repos identified" },
+  { label: "Company Map", desc: "Poach list built" },
+  { label: "Edit Query", desc: "Tune repos + skills" },
+  { label: "Run Search", desc: "Scored pipeline out" },
+];
 
-const GuideTab = () => {
+const QUICK_START = [
+  { title: "Sign in", desc: "with Google at getsourcekit.vercel.app" },
+  { title: "Enter a role", desc: "type role + company, paste a JD, or drop a job URL" },
+  { title: "Edit the repo list", desc: "this is the biggest lever for result quality" },
+  { title: "Run the search", desc: "filter by language, commits, location" },
+  { title: "Review candidates", desc: 'try "Find LinkedIn" and "Enrich" on top matches' },
+  { title: "Create a Webset", desc: "set criteria and monitoring for persistent tracking" },
+  { title: "Pipeline", desc: "add candidates, drag between stages, bulk actions, export CSV" },
+];
+
+const PRO_TIPS = [
+  { title: "Be specific", desc: '"ML Infra Engineer, training pipelines" beats "ML Engineer"' },
+  { title: "Edit repos", desc: "The AI list is a starting point. Your edits are the biggest quality lever." },
+  { title: "Hidden gems", desc: "High commits + low followers = under-recruited and responsive." },
+  { title: "Webset criteria", desc: "Think like a database filter. Quantifiable and verifiable beats aspirational." },
+  { title: "Layer enrichments", desc: "Start with contact info. Add publications only for top candidates." },
+];
+
+const INPUT_METHODS = [
+  { icon: Sparkles, title: "Role + Company", desc: "Claude infers the stack, finds repos, builds your strategy" },
+  { icon: Search, title: "Paste a JD", desc: "AI parses requirements, technologies, and seniority level" },
+  { icon: GitBranch, title: "Paste a Job URL", desc: "Parallel.ai extracts JDs from Lever, Greenhouse, Ashby" },
+];
+
+const EEA_ARTIFACTS = [
+  { label: "Published Research", examples: "Papers at top venues, patents, h-index, citations" },
+  { label: "Open Source Impact", examples: "Maintainer of 1K+ star repos, framework contributions, adopted RFCs" },
+  { label: "Conference & Teaching", examples: "Keynotes, invited talks, courses, high-reach technical blogs" },
+  { label: "Industry Recognition", examples: "Awards, top-N lists, Kaggle Grandmaster, fellowships" },
+  { label: "Technical Leadership", examples: "Systems at scale, standards contributions, design docs" },
+  { label: "Scale & Impact", examples: "Products with 1M+ users, documented perf gains, post-mortems" },
+];
+
+const RECIPE_EXAMPLE = {
+  role: "Senior ML Engineer",
+  query: "ML engineers who publish research and contribute to open source ML projects",
+  criteria: [
+    "Published at NeurIPS, ICML, or ICLR in last 3 years",
+    "Maintainer / top-20 contributor to repo with 1K+ stars in ML/AI",
+    "Has industry experience, not purely academic",
+  ],
+  enrichments: [
+    "Peer-reviewed publications with venues (text)",
+    "GitHub repos maintained with star counts (text)",
+    "Most compelling outreach hook (text)",
+    "Contact email (email)",
+    "EEA strength: Strong / Moderate / Emerging (options)",
+  ],
+};
+
+interface GuideTabProps {
+  onNavigate?: (tab: string) => void;
+}
+
+const GuideTab = ({ onNavigate }: GuideTabProps) => {
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)]">
-      {/* Header bar */}
-      <div className="flex items-center justify-between gap-4 pb-4 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <BookOpen className="w-4.5 h-4.5 text-primary" />
-          <h1 className="text-sm font-display font-bold text-foreground">Documentation</h1>
+    <div className="max-w-3xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <BookOpen className="w-5 h-5 text-primary" />
+            <h1 className="text-lg font-display font-bold text-foreground">Quick Reference</h1>
+            <Badge variant="outline" className="text-[10px] font-display">v2.0</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Key workflows, input methods, and tips. For the full guide, visit the docs site.
+          </p>
         </div>
         <Button
           variant="outline"
           size="sm"
           className="shrink-0 gap-2"
-          onClick={() => window.open(DOCS_URL, "_blank")}
+          onClick={() => window.open("https://sourcekit-docs.netlify.app", "_blank")}
         >
-          <span className="font-display text-xs">Open in new tab</span>
+          <span className="font-display text-xs">Full Docs</span>
           <ExternalLink className="w-3.5 h-3.5" />
         </Button>
       </div>
 
-      {/* Iframe */}
-      <iframe
-        src={DOCS_URL}
-        title="SourceKit Documentation"
-        className="flex-1 w-full rounded-lg border border-border bg-background"
-        style={{ minHeight: 0 }}
-        allow="clipboard-read; clipboard-write"
-      />
+      {/* Workflow */}
+      <Card>
+        <CardContent className="pt-5 pb-4">
+          <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-4">Workflow</h2>
+          <div className="flex items-stretch gap-0 rounded-lg border border-border overflow-hidden">
+            {WORKFLOW_STEPS.map((step, i) => (
+              <div
+                key={step.label}
+                className={`flex-1 text-center py-3 px-2 ${
+                  i < WORKFLOW_STEPS.length - 1 ? "border-r border-border" : ""
+                }`}
+              >
+                <div className="text-xs font-display font-bold text-foreground mb-0.5">{step.label}</div>
+                <div className="text-[10px] text-muted-foreground leading-tight">{step.desc}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Input Methods */}
+      <Card>
+        <CardContent className="pt-5 pb-4">
+          <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-4">Three Ways to Start</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {INPUT_METHODS.map((method) => (
+              <div key={method.title} className="rounded-lg border border-border p-3 space-y-2">
+                <method.icon className="w-4 h-4 text-primary" />
+                <div className="text-xs font-display font-bold text-foreground">{method.title}</div>
+                <div className="text-[11px] text-muted-foreground leading-snug">{method.desc}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Start */}
+      <Card>
+        <CardContent className="pt-5 pb-4">
+          <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-4">Quick Start</h2>
+          <ol className="space-y-0">
+            {QUICK_START.map((step, i) => (
+              <li key={i} className={`flex items-start gap-3 py-2.5 ${
+                i < QUICK_START.length - 1 ? "border-b border-border" : ""
+              }`}>
+                <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-display font-semibold flex items-center justify-center mt-0.5">
+                  {i + 1}
+                </span>
+                <div className="text-sm">
+                  <span className="font-semibold text-foreground">{step.title}</span>
+                  {" "}
+                  <span className="text-muted-foreground">{step.desc}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </CardContent>
+      </Card>
+
+      {/* Pro Tips */}
+      <Card>
+        <CardContent className="pt-5 pb-4">
+          <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-4">Pro Tips</h2>
+          <div className="space-y-0">
+            {PRO_TIPS.map((tip, i) => (
+              <div key={i} className={`flex items-start gap-3 py-2.5 ${
+                i < PRO_TIPS.length - 1 ? "border-b border-border" : ""
+              }`}>
+                <Lightbulb className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <span className="font-semibold text-foreground">{tip.title}.</span>
+                  {" "}
+                  <span className="text-muted-foreground">{tip.desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* EEA Artifact Types */}
+      <Card>
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="w-3.5 h-3.5 text-primary" />
+            <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider">EEA Artifact Types</h2>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Evidence of Exceptional Ability - verifiable signals that put someone in the top 5-10%. Pick 3-5 per role as Webset criteria.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {EEA_ARTIFACTS.map((a) => (
+              <div key={a.label} className="rounded-lg border border-border p-2.5">
+                <div className="text-xs font-semibold text-foreground mb-1">
+                  {a.label}
+                </div>
+                <div className="text-[10.5px] text-muted-foreground leading-snug">{a.examples}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Webset Recipe Example */}
+      <Card>
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Trophy className="w-3.5 h-3.5 text-primary" />
+            <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider">Webset Recipe: {RECIPE_EXAMPLE.role}</h2>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <div className="text-[10px] font-display font-semibold text-primary uppercase tracking-wider mb-1">Query</div>
+              <div className="text-xs text-muted-foreground bg-muted/30 border border-border rounded-md px-3 py-2">
+                {RECIPE_EXAMPLE.query}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] font-display font-semibold text-primary uppercase tracking-wider mb-1">Criteria</div>
+              <ul className="space-y-0">
+                {RECIPE_EXAMPLE.criteria.map((c, i) => (
+                  <li key={i} className={`text-xs text-muted-foreground py-1.5 flex items-start gap-2 ${
+                    i < RECIPE_EXAMPLE.criteria.length - 1 ? "border-b border-border" : ""
+                  }`}>
+                    <span className="text-primary font-bold shrink-0">✓</span>
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="text-[10px] font-display font-semibold text-primary uppercase tracking-wider mb-1">Enrichments</div>
+              <ul className="space-y-0">
+                {RECIPE_EXAMPLE.enrichments.map((e, i) => (
+                  <li key={i} className="text-[11px] text-muted-foreground py-1 flex items-start gap-2">
+                    <span className="text-primary font-bold shrink-0">+</span>
+                    {e}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <p className="text-[10.5px] text-muted-foreground mt-3 italic">
+            5 more role recipes in the{" "}
+            <button
+              className="text-primary underline underline-offset-2 hover:no-underline"
+              onClick={() => window.open("https://sourcekit-docs.netlify.app/#eea", "_blank")}
+            >
+              full docs
+            </button>.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Pipeline stages */}
+      <Card>
+        <CardContent className="pt-5 pb-4">
+          <h2 className="text-xs font-display font-semibold text-primary uppercase tracking-wider mb-4">Pipeline Stages</h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            {["Sourced", "Contacted", "Responded", "Screen", "Offer"].map((stage, i, arr) => (
+              <span key={stage} className="flex items-center gap-2">
+                <span className="text-xs font-display font-semibold text-primary border border-primary/20 rounded-full px-3 py-1">
+                  {stage}
+                </span>
+                {i < arr.length - 1 && <ChevronRight className="w-3 h-3 text-muted-foreground" />}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Drag-and-drop between stages. Bulk actions for compare, summarize, and outreach. Export to CSV anytime.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Tech stack */}
+      <div className="flex flex-wrap gap-2">
+        {["Claude AI", "Exa Search", "Exa Websets", "Parallel.ai", "GitHub API", "React + TS", "Supabase", "Vercel"].map((tech) => (
+          <span key={tech} className="text-[10px] font-display font-medium text-muted-foreground border border-border rounded-full px-3 py-1">
+            {tech}
+          </span>
+        ))}
+      </div>
+
+      {/* Full docs CTA */}
+      <div className="text-center py-4">
+        <Button
+          variant="default"
+          size="lg"
+          className="gap-2"
+          onClick={() => window.open("https://sourcekit-docs.netlify.app", "_blank")}
+        >
+          <span className="font-display text-sm font-semibold">Read the Full Guide</span>
+          <ExternalLink className="w-4 h-4" />
+        </Button>
+        <p className="text-xs text-muted-foreground mt-3">
+          Websets deep dive, EEA framework, architecture, and more.
+        </p>
+      </div>
     </div>
   );
 };

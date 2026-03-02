@@ -64,7 +64,7 @@ function DimensionBar({ dim, expanded, onToggle }: { dim: EEADimension; expanded
   return (
     <div className="space-y-1">
       <button onClick={onToggle} className="w-full flex items-center gap-2 group">
-        <span className="text-base leading-none">{dim.icon}</span>
+        {dim.icon && <span className="text-base leading-none">{dim.icon}</span>}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-display font-medium text-foreground truncate">{dim.shortLabel}</span>
@@ -130,7 +130,7 @@ function CompactDimensionRow({ dim }: { dim: EEADimension }) {
   const widthPercent = (dim.strength / 4) * 100;
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs leading-none w-4 text-center">{dim.icon}</span>
+      {dim.icon && <span className="text-xs leading-none w-4 text-center">{dim.icon}</span>}
       <span className="text-[10px] font-display text-foreground w-24 truncate">{dim.shortLabel}</span>
       <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
         <div className={`h-full rounded-full ${colors.bar}`} style={{ width: `${widthPercent}%` }} />

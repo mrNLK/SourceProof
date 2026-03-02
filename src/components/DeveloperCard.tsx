@@ -154,7 +154,7 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
                 )}
               </div>
               {developer.hiddenGem && (
-                <span className="flex items-center gap-1 text-warning text-xs font-display" title="Strong contributor with low visibility — often easier to recruit">
+                <span className="flex items-center gap-1 text-warning text-xs font-display" title="Strong contributor with low visibility - often easier to recruit">
                   <Gem className="w-3 h-3" />
                   Hidden Gem
                 </span>

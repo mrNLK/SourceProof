@@ -169,7 +169,7 @@ const BulkActionsTab = () => {
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Request failed" }));
-        setMessages(prev => [...prev, { role: "assistant", content: `❌ ${err.error || "Something went wrong."}` }]);
+        setMessages(prev => [...prev, { role: "assistant", content: `${err.error || "Something went wrong."}` }]);
         setIsStreaming(false);
         return;
       }
@@ -211,7 +211,7 @@ const BulkActionsTab = () => {
         }
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: "assistant", content: `❌ ${e instanceof Error ? e.message : "Unknown error"}` }]);
+      setMessages(prev => [...prev, { role: "assistant", content: `${e instanceof Error ? e.message : "Unknown error"}` }]);
     } finally {
       setIsStreaming(false);
     }
@@ -237,7 +237,7 @@ const BulkActionsTab = () => {
     }
 
     const label = action.label;
-    setMessages(prev => [...prev, { role: "user", content: `🔧 ${label} (${actionId === "insights" ? pipelineCandidates.length : count} candidates)` }]);
+    setMessages(prev => [...prev, { role: "user", content: `${label} (${actionId === "insights" ? pipelineCandidates.length : count} candidates)` }]);
     streamAction(actionId);
   };
 
