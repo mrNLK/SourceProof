@@ -539,13 +539,16 @@ serve(async (req) => {
     // Subscription gate check
     const gate = await checkSearchGate(req.headers.get('Authorization'));
     if (!gate.allowed) {
+      const status = gate.error === 'auth_required' ? 401
+        : gate.error === 'invalid_token' ? 401
+        : 402; // trial_limit_reached
       return new Response(JSON.stringify({
         error: gate.error,
-        upgrade: true,
+        upgrade: gate.error === 'trial_limit_reached',
         searches_used: gate.searchesUsed,
         search_limit: gate.searchLimit,
       }), {
-        status: 402,
+        status,
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       });
     }

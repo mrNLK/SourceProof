@@ -20,14 +20,12 @@ export interface GateResult {
  * Check if the user is allowed to perform a search.
  * Pass the Authorization header value (Bearer <token>).
  * Returns { allowed, userId, plan } or { allowed: false, error }.
- * 
- * If no auth header is present, allows the request (anonymous/backward compat).
- * Gate only blocks when we can identify a trial user who is over limit.
+ *
+ * Unauthenticated and invalid-token requests are rejected.
  */
 export async function checkSearchGate(authHeader: string | null): Promise<GateResult> {
   if (!authHeader || authHeader === `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`) {
-    // No user-specific token, allow but can't track
-    return { allowed: true, userId: null, plan: null };
+    return { allowed: false, userId: null, plan: null, error: 'auth_required' };
   }
 
   const supabase = getSupabase();
@@ -35,8 +33,7 @@ export async function checkSearchGate(authHeader: string | null): Promise<GateRe
 
   const { data: { user }, error: authError } = await supabase.auth.getUser(token);
   if (authError || !user) {
-    // Invalid token but don't block, just can't track
-    return { allowed: true, userId: null, plan: null };
+    return { allowed: false, userId: null, plan: null, error: 'invalid_token' };
   }
 
   const { data: sub } = await supabase
@@ -75,6 +72,23 @@ export async function checkSearchGate(authHeader: string | null): Promise<GateRe
     searchesUsed: sub.searches_used,
     searchLimit: sub.search_limit,
   };
+}
+
+/**
+ * Quick auth check for edge functions that require authentication.
+ * Returns a 401 Response if unauthenticated, or null if auth is present.
+ * Use: const authErr = requireAuth(req, corsHeaders); if (authErr) return authErr;
+ */
+export function requireAuth(req: Request, corsHeaders: Record<string, string>): Response | null {
+  const authHeader = req.headers.get('Authorization');
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+  if (!authHeader || authHeader === `Bearer ${anonKey}`) {
+    return new Response(
+      JSON.stringify({ error: 'Authentication required' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+  return null;
 }
 
 /**
