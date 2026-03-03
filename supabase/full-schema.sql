@@ -58,12 +58,14 @@ CREATE TRIGGER update_candidates_updated_at
 -- 2. Pipeline (kanban board)
 CREATE TABLE public.pipeline (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) DEFAULT auth.uid(),
   github_username TEXT NOT NULL UNIQUE,
   name TEXT,
   avatar_url TEXT,
   stage TEXT NOT NULL DEFAULT 'sourced' CHECK (stage IN ('sourced', 'contacted', 'responded', 'screen', 'offer')),
   notes TEXT,
   tags TEXT[] DEFAULT '{}',
+  eea_data JSONB,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
@@ -72,12 +74,14 @@ CREATE INDEX idx_pipeline_github_username ON public.pipeline(github_username);
 CREATE INDEX idx_pipeline_stage ON public.pipeline(stage);
 CREATE INDEX idx_pipeline_tags ON public.pipeline USING GIN (tags);
 CREATE INDEX idx_pipeline_created_at ON public.pipeline(created_at DESC);
+CREATE INDEX idx_pipeline_user_id ON public.pipeline(user_id);
 
 ALTER TABLE public.pipeline ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read pipeline" ON public.pipeline FOR SELECT USING (true);
-CREATE POLICY "Allow public insert pipeline" ON public.pipeline FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update pipeline" ON public.pipeline FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete pipeline" ON public.pipeline FOR DELETE USING (true);
+CREATE POLICY "Users read own pipeline" ON public.pipeline FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own pipeline" ON public.pipeline FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users update own pipeline" ON public.pipeline FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users delete own pipeline" ON public.pipeline FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Service role full pipeline" ON public.pipeline FOR ALL USING (auth.role() = 'service_role');
 
 CREATE TRIGGER update_pipeline_updated_at
   BEFORE UPDATE ON public.pipeline
@@ -87,21 +91,28 @@ CREATE TRIGGER update_pipeline_updated_at
 -- 3. Outreach history
 CREATE TABLE public.outreach_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) DEFAULT auth.uid(),
   candidate_id UUID REFERENCES public.candidates(id) ON DELETE CASCADE,
   pipeline_id UUID REFERENCES public.pipeline(id) ON DELETE CASCADE,
   message TEXT NOT NULL,
+  channel TEXT,
+  status TEXT,
+  sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 ALTER TABLE public.outreach_history ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read outreach_history" ON public.outreach_history FOR SELECT USING (true);
-CREATE POLICY "Allow public insert outreach_history" ON public.outreach_history FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public delete outreach_history" ON public.outreach_history FOR DELETE USING (true);
+CREATE POLICY "Users read own outreach" ON public.outreach_history FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own outreach" ON public.outreach_history FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own outreach" ON public.outreach_history FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users update own outreach" ON public.outreach_history FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Service role full outreach" ON public.outreach_history FOR ALL USING (auth.role() = 'service_role');
 
 
 -- 4. Search history
 CREATE TABLE public.search_history (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) DEFAULT auth.uid(),
   query TEXT NOT NULL,
   action_type TEXT NOT NULL DEFAULT 'search',
   result_count INTEGER DEFAULT 0,
@@ -110,16 +121,19 @@ CREATE TABLE public.search_history (
 );
 
 CREATE INDEX idx_search_history_created_at ON public.search_history(created_at DESC);
+CREATE INDEX idx_search_history_user_id ON public.search_history(user_id);
 
 ALTER TABLE public.search_history ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read search_history" ON public.search_history FOR SELECT USING (true);
-CREATE POLICY "Allow public insert search_history" ON public.search_history FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public delete search_history" ON public.search_history FOR DELETE USING (true);
+CREATE POLICY "Users read own search_history" ON public.search_history FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own search_history" ON public.search_history FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own search_history" ON public.search_history FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Service role full search_history" ON public.search_history FOR ALL USING (auth.role() = 'service_role');
 
 
 -- 5. Watchlist items
 CREATE TABLE public.watchlist_items (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) DEFAULT auth.uid(),
   candidate_username TEXT NOT NULL,
   candidate_name TEXT,
   candidate_avatar_url TEXT,
@@ -130,28 +144,33 @@ CREATE TABLE public.watchlist_items (
 );
 
 CREATE INDEX idx_watchlist_items_candidate_username ON public.watchlist_items(candidate_username);
+CREATE INDEX idx_watchlist_items_user_id ON public.watchlist_items(user_id);
 
 ALTER TABLE public.watchlist_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read watchlist_items" ON public.watchlist_items FOR SELECT USING (true);
-CREATE POLICY "Allow public insert watchlist_items" ON public.watchlist_items FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public delete watchlist_items" ON public.watchlist_items FOR DELETE USING (true);
-CREATE POLICY "Allow public update watchlist_items" ON public.watchlist_items FOR UPDATE USING (true);
+CREATE POLICY "Users read own watchlist" ON public.watchlist_items FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own watchlist" ON public.watchlist_items FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own watchlist" ON public.watchlist_items FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users update own watchlist" ON public.watchlist_items FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Service role full watchlist" ON public.watchlist_items FOR ALL USING (auth.role() = 'service_role');
 
 
--- 6. Settings (key-value store)
+-- 6. Settings (key-value store, user-scoped)
 CREATE TABLE public.settings (
-  key TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) DEFAULT auth.uid(),
+  key TEXT NOT NULL,
   value TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, key)
 );
 
 CREATE INDEX idx_settings_key ON public.settings(key);
 
 ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read settings" ON public.settings FOR SELECT USING (true);
-CREATE POLICY "Allow public insert settings" ON public.settings FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update settings" ON public.settings FOR UPDATE USING (true);
+CREATE POLICY "Users read own settings" ON public.settings FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own settings" ON public.settings FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users update own settings" ON public.settings FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users delete own settings" ON public.settings FOR DELETE USING (auth.uid() = user_id);
 
 CREATE TRIGGER update_settings_updated_at
   BEFORE UPDATE ON public.settings
@@ -201,3 +220,14 @@ BEGIN
   WHERE user_id = p_user_id;
 END;
 $$;
+
+
+-- 9. Safe view for candidates (hides PII from client-side queries)
+CREATE OR REPLACE VIEW public.candidates_safe AS
+SELECT
+  id, github_username, name, avatar_url, bio, location,
+  followers, public_repos, stars, top_languages, highlights,
+  score, summary, about, is_hidden_gem, joined_year,
+  contributed_repos, twitter_username, github_url,
+  fetched_at, created_at, updated_at
+FROM public.candidates;
