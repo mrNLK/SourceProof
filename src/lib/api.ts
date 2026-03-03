@@ -62,7 +62,7 @@ export async function searchDevelopers(query: string, options?: SearchOptions): 
   const hasOptions = options && (
     options.targetRepos?.length ||
     options.skills?.length ||
-    options.hideUngettable === false
+    options.hideUngettable !== undefined
   );
   if (hasOptions) {
     return invokeFunction('github-search', undefined, {
@@ -96,7 +96,7 @@ export async function searchDevelopersStreaming(
   const body: Record<string, any> = { query, stream: true };
   if (options?.targetRepos?.length) body.targetRepos = options.targetRepos;
   if (options?.skills?.length) body.skills = options.skills;
-  if (options?.hideUngettable === false) body.hideUngettable = false;
+  if (options?.hideUngettable !== undefined) body.hideUngettable = options.hideUngettable;
 
   const res = await fetch(`${SUPABASE_URL}/functions/v1/github-search`, {
     method: 'POST',
