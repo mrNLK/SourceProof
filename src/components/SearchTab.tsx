@@ -27,6 +27,9 @@ import SearchFunnel from "@/components/search/SearchFunnel";
 import SearchResults from "@/components/search/SearchResults";
 import SearchProgress from "@/components/search/SearchProgress";
 import SkillPriorities from "@/components/search/SkillPriorities";
+import ScoreExplanation from "@/components/ScoreExplanation";
+import SimilarCandidates from "@/components/SimilarCandidates";
+import { useScoreExplanation } from "@/hooks/useScoreExplanation";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -84,6 +87,9 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
   const [batchAdding, setBatchAdding] = useState(false);
   const [enrichProgress, setEnrichProgress] = useState<{ current: number; total: number; skipped: number } | null>(null);
   const [enrichedUsernames, setEnrichedUsernames] = useState<Set<string>>(new Set());
+
+  // FEAT: Score explanation panel
+  const { explanation: scoreExplanation, isOpen: scoreOpen, openExplanation: openScore, close: closeScore } = useScoreExplanation();
 
   // FEAT-006: Saved searches (bookmarks)
   const { savedSearches, isSaved: checkIsSaved, saveSearch, deleteSearch } = useSavedSearches();
@@ -492,6 +498,7 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
             onBatchAddToPipeline={handleBatchAddToPipeline}
             onToggleShortlist={toggleShortlist}
             onCardClick={(d) => setSlideOutDev(d)}
+            onScoreClick={openScore}
             onExpandSearch={handleExpandSearch}
           />
         )}
@@ -514,6 +521,19 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
 
       {slideOutDev && <CandidateSlideOut developer={slideOutDev} onClose={() => setSlideOutDev(null)} />}
       <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+      {scoreOpen && scoreExplanation && (
+        <>
+          <div className="fixed inset-0 bg-background/50 z-40" onClick={closeScore} />
+          <ScoreExplanation explanation={scoreExplanation} onClose={closeScore} />
+          <div className="fixed bottom-0 right-0 w-[400px] max-w-full z-50 p-4 border-t border-border glass">
+            <SimilarCandidates
+              developer={scoreExplanation.developer}
+              allCandidates={results}
+              onSelect={(dev) => { closeScore(); setSlideOutDev(dev); }}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };
