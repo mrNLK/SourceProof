@@ -66,6 +66,8 @@ serve(async (req) => {
     switch (action) {
       case 'create': {
         const { query, count, entity_type, criteria, enrichments } = params
+
+        // Step 1: Create webset with search params only (no inline enrichments)
         response = await fetch(`${WEBSETS_BASE}/websets`, {
           method: 'POST',
           headers,
@@ -76,23 +78,51 @@ serve(async (req) => {
               entity: { type: entity_type || 'person' },
               ...(criteria ? { criteria } : {}),
             },
-            ...(enrichments && enrichments.length > 0 ? { enrichments } : {}),
           }),
         })
 
-        // Track webset ownership if user is authenticated
-        if (response.ok && userId) {
-          const data = await response.clone().json()
-          if (data.id) {
-            await supabase.from('webset_mappings').insert({
-              webset_id: data.id,
-              user_id: userId,
-              query: query || '',
-              status: data.status || 'running',
-            })
-          }
+        if (!response.ok) break
+
+        const createData = await response.json()
+
+        // Step 2: Add enrichments one-by-one after the webset is created
+        if (createData.id && enrichments && enrichments.length > 0) {
+          const enrichmentResults = await Promise.allSettled(
+            enrichments.map((e: { description: string; format?: string; options?: { label: string }[] }) =>
+              fetch(`${WEBSETS_BASE}/websets/${createData.id}/enrichments`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                  description: e.description,
+                  ...(e.format ? { format: e.format } : {}),
+                  ...(e.format === 'options' && e.options ? { options: e.options } : {}),
+                }),
+              })
+            )
+          )
+          // Log any enrichment failures (non-blocking)
+          enrichmentResults.forEach((r, i) => {
+            if (r.status === 'rejected') {
+              console.error(`Enrichment ${i} failed:`, r.reason)
+            }
+          })
         }
-        break
+
+        // Track webset ownership if user is authenticated
+        if (userId && createData.id) {
+          await supabase.from('webset_mappings').insert({
+            webset_id: createData.id,
+            user_id: userId,
+            query: query || '',
+            status: createData.status || 'running',
+          })
+        }
+
+        // Return the created webset data directly (already parsed)
+        return new Response(
+          JSON.stringify(createData),
+          { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
       }
 
       case 'list': {
@@ -349,6 +379,13 @@ serve(async (req) => {
     }
 
     const data = await response.json()
+
+    // Normalize error responses: Exa may return errors in various shapes
+    // (e.g. { error: "Validation Error" }, { detail: [...] }, { message: "..." })
+    if (!response.ok && !data.error) {
+      const detail = data.detail || data.message || JSON.stringify(data)
+      data.error = typeof detail === 'string' ? detail : JSON.stringify(detail)
+    }
 
     return new Response(
       JSON.stringify(data),

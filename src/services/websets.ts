@@ -43,7 +43,14 @@ async function callWebsetsApi(action: string, params: Record<string, unknown>) {
   })
 
   const data = await res.json()
-  if (data.error) throw new Error(data.error)
+  if (data.error) {
+    // Capture the most descriptive error field available
+    const detail = data.message || data.detail
+    const msg = detail
+      ? `${data.error}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`
+      : data.error
+    throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg))
+  }
   return data
 }
 

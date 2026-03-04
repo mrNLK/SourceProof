@@ -58,26 +58,36 @@ export interface WebsetCreatePayload {
 export function buildWebsetPayload(config: EEAWebsetConfig): WebsetCreatePayload {
   const enabledSignals = config.signals.filter(s => s.enabled);
 
-  const criteria = enabledSignals.map(s => ({
-    description: s.webset_criterion,
-  }));
+  // Filter out criteria with empty descriptions
+  const criteria = enabledSignals
+    .map(s => ({ description: (s.webset_criterion || '').trim() }))
+    .filter(c => c.description.length > 0);
 
-  const signalEnrichments = enabledSignals.map(s => {
-    const enrichment: { description: string; format: string; options?: { label: string }[] } = {
-      description: s.enrichment_description,
-      format: s.enrichment_format,
-    };
-    if (s.enrichment_format === 'options' && s.enrichment_options) {
-      enrichment.options = s.enrichment_options.map(o => ({ label: o }));
-    }
-    return enrichment;
-  });
+  const signalEnrichments = enabledSignals
+    .filter(s => (s.enrichment_description || '').trim().length > 0)
+    .map(s => {
+      const enrichment: { description: string; format: string; options?: { label: string }[] } = {
+        description: s.enrichment_description.trim(),
+        format: s.enrichment_format,
+      };
+      if (s.enrichment_format === 'options' && s.enrichment_options && s.enrichment_options.length > 0) {
+        enrichment.options = s.enrichment_options.map(o => ({ label: o }));
+      }
+      return enrichment;
+    });
+
+  // Build EEA strength description, capped to avoid API length limits
+  const signalList = enabledSignals.map(s => s.signal).join('; ');
+  const strengthPrefix = 'EEA strength: rate how many criteria this person meets.';
+  const strengthDesc = signalList.length > 200
+    ? `${strengthPrefix} Criteria count: ${enabledSignals.length}. Rate as Strong (3+), Moderate (2), or Weak (0-1)`
+    : `${strengthPrefix} Criteria: ${signalList}. Rate as Strong (3+), Moderate (2), or Weak (0-1)`;
 
   // Default enrichments: email + EEA strength rating
-  const defaultEnrichments = [
+  const defaultEnrichments: { description: string; format: string; options?: { label: string }[] }[] = [
     { description: 'Contact email', format: 'email' },
     {
-      description: `EEA strength: how many of the following criteria does this person clearly meet? ${enabledSignals.map(s => s.signal).join('; ')}. Rate as Strong (3+), Moderate (2), or Weak (0-1)`,
+      description: strengthDesc,
       format: 'options',
       options: [
         { label: 'Strong' },
