@@ -18,42 +18,46 @@ export function SourceKitLogo({
       xmlns="http://www.w3.org/2000/svg"
       style={glow ? { filter: `drop-shadow(0 0 8px ${color})` } : undefined}
     >
-      <rect
-        x="4"
-        y="4"
-        width="40"
-        height="40"
-        rx="8"
-        stroke={color}
-        strokeWidth="2"
-        fill="none"
-      />
+      {/* Left angle bracket < */}
       <path
-        d="M14 18L24 14L34 18V30L24 34L14 30V18Z"
+        d="M16 10L4 24L16 38"
         stroke={color}
-        strokeWidth="2"
-        fill="none"
+        strokeWidth="5"
+        strokeLinecap="round"
         strokeLinejoin="round"
+        fill="none"
       />
+      {/* Right angle bracket > */}
       <path
-        d="M24 14V34"
+        d="M32 10L44 24L32 38"
         stroke={color}
-        strokeWidth="1.5"
-        opacity="0.5"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
       />
-      <path
-        d="M14 18L34 30"
+      {/* Top bar of colon */}
+      <line
+        x1="24"
+        y1="10"
+        x2="24"
+        y2="17"
         stroke={color}
-        strokeWidth="1.5"
-        opacity="0.3"
+        strokeWidth="4"
+        strokeLinecap="round"
       />
-      <path
-        d="M34 18L14 30"
+      {/* Center dot */}
+      <circle cx="24" cy="24" r="3" fill={color} />
+      {/* Bottom bar of colon */}
+      <line
+        x1="24"
+        y1="31"
+        x2="24"
+        y2="38"
         stroke={color}
-        strokeWidth="1.5"
-        opacity="0.3"
+        strokeWidth="4"
+        strokeLinecap="round"
       />
-      <circle cx="24" cy="24" r="3" fill={color} opacity="0.8" />
     </svg>
   );
 }
