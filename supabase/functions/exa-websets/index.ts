@@ -350,6 +350,15 @@ serve(async (req) => {
 
     const data = await response.json()
 
+    // Surface detailed Exa API error messages to the client
+    if (!response.ok && !data.error) {
+      const detail = data.message || data.detail || JSON.stringify(data)
+      return new Response(
+        JSON.stringify({ error: detail }),
+        { status: response.status, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      )
+    }
+
     return new Response(
       JSON.stringify(data),
       {
