@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { AnimateOnScroll } from "./AnimateOnScroll";
 import { Lightbox } from "./Lightbox";
+import strategyImg from "../assets/screens/strategy.png";
+import resultsImg from "../assets/screens/results.png";
+import websetsImg from "../assets/screens/websets.png";
 
 interface ScreenItem {
   id: string;
@@ -14,19 +17,19 @@ const SCREENS: ScreenItem[] = [
     id: "strategy",
     title: "Strategy",
     description: "Role, company, generated search query, target repos",
-    src: "/screens/strategy.png",
+    src: strategyImg,
   },
   {
     id: "results",
     title: "Results",
     description: "Parsed criteria, matched engineers, scores",
-    src: "/screens/results.png",
+    src: resultsImg,
   },
   {
     id: "websets",
     title: "Websets",
     description: "Persistent search with criteria and enrichments",
-    src: "/screens/websets.png",
+    src: websetsImg,
   },
 ];
 
