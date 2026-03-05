@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SourceKit v2.0</title>
+<meta property="og:title" content="SourceKit v2.0">
+<meta property="og:description" content="Technical sourcing on GitHub signal.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="preload" href="/fonts/dm-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/dm-sans-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/jbmono-600.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/dm-sans-400.woff2) format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/dm-sans-500.woff2) format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/dm-sans-700.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/jbmono-600.woff2) format("woff2")}
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;
+  --surface:#111116;
+  --card:#131318;
+  --border:#1c1c22;
+  --border-subtle:#141418;
+  --accent:#00e5a0;
+  --accent-dim:rgba(0,229,160,.08);
+  --accent-border:rgba(0,229,160,.18);
+  --w:#f0f0f0;
+  --body:#b8b8c0;
+  --muted:#71717a;
+  --dim:#52525b;
+  --exa:#00e5a0;
+  --parallel:#8b5cf6;
+  --github:#e0e0e0;
+}
+body{
+  background:var(--bg);
+  color:var(--body);
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* LAYOUT */
+.page{max-width:960px;margin:0 auto;padding:48px 32px 64px}
+
+/* HERO */
+.hero{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-bottom:32px;
+  border-bottom:1px solid var(--border);
+}
+.hero-left{display:flex;align-items:center;gap:12px}
+.logo{
+  font-family:'JetBrains Mono',monospace;
+  font-size:26px;
+  font-weight:700;
+  color:var(--w);
+  letter-spacing:-.03em;
+  line-height:1;
+}
+.logo .br{color:var(--accent)}
+.logo .lt{font-weight:400;color:#888}
+.pill{
+  font-family:'JetBrains Mono',monospace;
+  font-weight:600;
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent);
+  border:1px solid var(--accent-border);
+  border-radius:100px;
+  padding:4px 10px;
+  white-space:nowrap;
+}
+.hero-right{display:flex;align-items:center;gap:16px}
+.tagline{font-size:13px;color:var(--muted);letter-spacing:.01em}
+.tagline strong{color:var(--accent);font-weight:600}
+.cta-row{display:flex;gap:8px}
+.cta-row a{
+  font-size:13px;
+  font-weight:600;
+  text-decoration:none;
+  padding:8px 18px;
+  border-radius:8px;
+  transition:all .15s ease;
+  white-space:nowrap;
+}
+a.cta-p{background:var(--accent);color:#0a0a0f}
+a.cta-p:hover{background:#00ffb3;box-shadow:0 0 24px rgba(0,229,160,.2)}
+a.cta-s{color:var(--accent);border:1px solid var(--accent-border)}
+a.cta-s:hover{border-color:var(--accent);background:var(--accent-dim)}
+
+/* SECTION */
+.label{
+  font-family:'JetBrains Mono',monospace;
+  font-weight:600;
+  font-size:10px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--dim);
+  margin-bottom:16px;
+}
+.section{padding:36px 0}
+.section + .section{border-top:1px solid var(--border-subtle)}
+
+/* API GROUP HEADER */
+.api-group{margin-bottom:20px}
+.api-group-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+.api-group-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.api-group-dot.exa{background:var(--exa)}
+.api-group-dot.parallel{background:var(--parallel)}
+.api-group-dot.github{background:var(--github)}
+.api-group-name{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  font-weight:600;
+  color:var(--w);
+  letter-spacing:.02em;
+}
+.api-group-desc{
+  font-size:12px;
+  color:var(--muted);
+  margin-left:4px;
+}
+
+/* API CARDS */
+.api-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.api-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 18px;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.api-card:hover{border-color:var(--accent-border);box-shadow:0 0 0 1px var(--accent-border)}
+.api-card.exa-border{border-left:2px solid var(--exa)}
+.api-card.parallel-border{border-left:2px solid var(--parallel)}
+.api-card.github-border{border-left:2px solid var(--github)}
+.api-card-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.api-card-tag.exa{color:var(--exa)}
+.api-card-tag.parallel{color:var(--parallel)}
+.api-card-tag.github{color:var(--github)}
+.api-card h3{
+  font-size:14px;
+  font-weight:700;
+  color:var(--w);
+  margin-bottom:4px;
+  line-height:1.25;
+}
+.api-card p{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* 3-COL CARDS */
+.cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:20px;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.card:hover{border-color:var(--accent-border);box-shadow:0 0 0 1px var(--accent-border)}
+.card-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:8px;
+}
+.card h3{
+  font-size:15px;
+  font-weight:700;
+  color:var(--w);
+  margin-bottom:6px;
+  line-height:1.25;
+}
+.card p{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* WEBSETS */
+.websets-intro{
+  background:var(--accent-dim);
+  border:1px solid var(--accent-border);
+  border-radius:10px;
+  padding:24px;
+  margin-bottom:20px;
+}
+.websets-intro p{font-size:14px;color:var(--body);line-height:1.65}
+.websets-intro strong{color:var(--accent);font-weight:700}
+.websets-intro u{
+  color:var(--accent);
+  text-decoration-color:rgba(0,229,160,.4);
+  text-underline-offset:3px;
+}
+.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+.step{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+}
+.step:last-child{border-bottom:none}
+.steps-grid .step:nth-child(n+3){border-bottom:none}
+.step-dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--accent);
+  flex-shrink:0;
+  margin-top:6px;
+}
+.step-content strong{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  color:var(--w);
+  margin-bottom:2px;
+}
+.step-content span{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* WORKFLOW */
+.pipeline{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+}
+.pipe-step{
+  padding:18px 14px;
+  text-align:center;
+  border-right:1px solid var(--border);
+  position:relative;
+}
+.pipe-step:last-child{border-right:none}
+.pipe-name{font-size:13px;font-weight:700;color:var(--w);margin-bottom:2px}
+.pipe-desc{font-size:11px;color:var(--dim)}
+
+/* USAGE 2x2 */
+.usage-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.usage-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:18px 20px;
+  transition:border-color .2s ease;
+}
+.usage-card:hover{border-color:var(--accent-border)}
+.usage-card strong{display:block;font-size:13px;font-weight:700;color:var(--w);margin-bottom:4px}
+.usage-card span{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* LIMITS */
+.limits{display:flex;flex-direction:column;gap:8px}
+.limit{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim)}
+.limit-dot{width:4px;height:4px;border-radius:50%;background:var(--dim);flex-shrink:0}
+
+/* FOOTER */
+.footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-top:28px;
+  border-top:1px solid var(--border);
+  margin-top:8px;
+}
+.footer-links{display:flex;align-items:center;gap:20px}
+.footer-links a{
+  font-size:13px;
+  font-weight:600;
+  text-decoration:none;
+  color:var(--accent);
+  transition:opacity .15s;
+}
+.footer-links a:hover{opacity:.75}
+.footer-meta{font-size:12px;color:var(--dim);text-align:right;line-height:1.6}
+.footer-meta a{color:var(--accent);text-decoration:none}
+
+/* FADE IN */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.hero{animation:fadeUp .4s ease both}
+.section:nth-of-type(1){animation:fadeUp .4s ease .05s both}
+.section:nth-of-type(2){animation:fadeUp .4s ease .1s both}
+.section:nth-of-type(3){animation:fadeUp .4s ease .15s both}
+.section:nth-of-type(4){animation:fadeUp .4s ease .2s both}
+.section:nth-of-type(5){animation:fadeUp .4s ease .25s both}
+.section:nth-of-type(6){animation:fadeUp .4s ease .3s both}
+.section:nth-of-type(7){animation:fadeUp .4s ease .35s both}
+
+/* MOBILE */
+@media(max-width:768px){
+  .page{padding:24px 18px 40px}
+  .hero{flex-direction:column;align-items:flex-start;gap:14px}
+  .hero-right{flex-direction:column;align-items:flex-start;gap:10px}
+  .logo{font-size:20px}
+  .cards-3{grid-template-columns:1fr}
+  .api-cards{grid-template-columns:1fr}
+  .steps-grid{grid-template-columns:1fr}
+  .steps-grid .step:nth-child(n+3){border-bottom:1px solid var(--border)}
+  .steps-grid .step:last-child{border-bottom:none}
+  .pipeline{grid-template-columns:1fr}
+  .pipe-step{border-right:none;border-bottom:1px solid var(--border);text-align:left;padding:12px 16px}
+  .pipe-step:last-child{border-bottom:none}
+  .usage-grid{grid-template-columns:1fr}
+  .section{padding:24px 0}
+  .footer{flex-direction:column;gap:16px;align-items:flex-start}
+  .footer-meta{text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hero">
+  <div class="hero-left">
+    <div class="logo"><span class="br">&lt;/&gt;</span> Source<span class="lt">Kit</span></div>
+    <div class="pill">Beta v2.0</div>
+  </div>
+  <div class="hero-right">
+    <div class="tagline">Technical sourcing on <strong>GitHub signal</strong></div>
+    <div class="cta-row">
+      <a href="https://getsourcekit.vercel.app" target="_blank" class="cta-p">Open SourceKit</a>
+      <a href="/guide" class="cta-s">Full Guide</a>
+    </div>
+  </div>
+</div>
+
+<!-- EXA API -->
+<div class="section">
+  <div class="label">Exa API</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Search, enrichment, synthesis, expansion, and persistence. Five endpoints working together across the sourcing lifecycle.</p>
+  <div class="api-cards">
+    <div class="api-card exa-border">
+      <div class="api-card-tag exa">Research API</div>
+      <h3>Strategy Generation</h3>
+      <p>Generates the sourcing strategy from the role spec. Runs web searches across GitHub, LinkedIn, company blogs, and job boards to identify target repos, poach companies, and EEA signals. Returns structured output with citations. No hallucinated repos or made-up star counts.</p>
+    </div>
+    <div class="api-card exa-border">
+      <div class="api-card-tag exa">Search API</div>
+      <h3>Vector Search</h3>
+      <p>Matches and enriches candidates using embeddings, not keywords. Criteria can be natural language like "won or placed at a relevant hackathon" or "shipped a product in the robotics space." Matches against actual content of web pages, READMEs, and blog posts.</p>
+    </div>
+    <div class="api-card exa-border">
+      <div class="api-card-tag exa">Answer API</div>
+      <h3>Candidate Synthesis</h3>
+      <p>Synthesizes a grounded summary for each top candidate. Answers "what is this person actually known for?" with web citations. Surfaces on candidate cards and feeds into outreach generation.</p>
+    </div>
+    <div class="api-card exa-border">
+      <div class="api-card-tag exa">findSimilar API</div>
+      <h3>Lateral Discovery</h3>
+      <p>Click "Find Similar" on any strong candidate and get 10 more engineers with comparable work via GitHub profile similarity. Fastest path from one strong match to a full pipeline.</p>
+    </div>
+    <div class="api-card exa-border">
+      <div class="api-card-tag exa">Websets</div>
+      <h3>Persistent Pipeline</h3>
+      <p>Define criteria once, Exa discovers and verifies matches, enriches them, and monitors on a schedule. Import existing lists (CSV from ATS, LinkedIn saves). Webhooks push real-time notifications when monitors find new matches.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PARALLEL API -->
+<div class="section">
+  <div class="label">Parallel API</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Company intelligence, employee mapping, and JD parsing. Three endpoints for deep research and target company analysis.</p>
+  <div class="api-cards" style="grid-template-columns:repeat(3,1fr);">
+    <div class="api-card parallel-border">
+      <div class="api-card-tag parallel">Task API</div>
+      <h3>Company Intelligence</h3>
+      <p>Researches each poach company in parallel: estimated eng headcount, tech stack, recent hiring signals, attrition patterns, and a sourcing rationale. Live intelligence on every target company card.</p>
+    </div>
+    <div class="api-card parallel-border">
+      <div class="api-card-tag parallel">FindAll API</div>
+      <h3>Employee Mapping</h3>
+      <p>Maps actual engineers at target companies by searching LinkedIn, GitHub, conference talks, and engineering blogs. Turns a static company name into a recruitable list of profiles.</p>
+    </div>
+    <div class="api-card parallel-border">
+      <div class="api-card-tag parallel">Search API</div>
+      <h3>JD Extraction + Research</h3>
+      <p>Extracts JDs from any URL including JS-rendered pages (Lever, Greenhouse, Ashby). Does deep multi-hop research on targets for enrichment context.</p>
+    </div>
+  </div>
+</div>
+
+<!-- GITHUB API -->
+<div class="section">
+  <div class="label">GitHub API</div>
+  <div class="api-cards" style="grid-template-columns:1fr 1fr;">
+    <div class="api-card github-border">
+      <div class="api-card-tag github">REST + GraphQL</div>
+      <h3>Contributor Mining</h3>
+      <p>Mines contributors and pulls commit/contribution data from target repos. Commit volume, recency, language distribution, and repo impact scores feed directly into the 0-100 candidate scoring model.</p>
+    </div>
+    <div class="api-card github-border">
+      <div class="api-card-tag github">EEA Criteria</div>
+      <h3>Evidence-Based Scoring</h3>
+      <p>Verifiable artifacts: papers at top venues, maintainer status on high-star repos, conference talks, shipped systems at scale, competition wins. Binary checks against public evidence, not subjective assessments.</p>
+    </div>
+  </div>
+</div>
+
+<!-- EXA WEBSETS DETAIL -->
+<div class="section">
+  <div class="label">Exa Websets</div>
+  <div class="websets-intro">
+    <p>Websets are <strong>persistent, auto-updating collections</strong> of people, companies, or repos that match your criteria. Define what you're looking for once. Exa discovers, verifies, and enriches new matches on a schedule. It's a <strong><u>talent pipeline that runs itself</u></strong>.</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step"><div class="step-dot"></div><div class="step-content"><strong>Create a Webset</strong><span>Define your search: "ML engineers who contributed to transformer training frameworks" with criteria like "50+ commits to a top-100 ML repo" and "based in US or EU."</span></div></div>
+    <div class="step"><div class="step-dot"></div><div class="step-content"><strong>Discover + Verify</strong><span>Neural search finds matching entities across the web. Each result gets verified against your criteria. Only verified matches make it in.</span></div></div>
+    <div class="step"><div class="step-dot"></div><div class="step-content"><strong>Enrich + Import</strong><span>Add fields: contact email, publications, conference talks. Import existing candidate lists (CSV from ATS, LinkedIn saves) and run the same EEA enrichment pipeline.</span></div></div>
+    <div class="step"><div class="step-dot"></div><div class="step-content"><strong>Monitor + Notify</strong><span>Set a schedule (daily, weekly). New matches get appended automatically. Webhooks push real-time notifications. Export CSV or feed into Clay and Parallel.</span></div></div>
+  </div>
+</div>
+
+<!-- WORKFLOW -->
+<div class="section">
+  <div class="label">Workflow</div>
+  <div class="pipeline">
+    <div class="pipe-step"><div class="pipe-name">Research</div><div class="pipe-desc">Role + Company or JD</div></div>
+    <div class="pipe-step"><div class="pipe-name">Repo Map</div><div class="pipe-desc">Target repos identified</div></div>
+    <div class="pipe-step"><div class="pipe-name">Company Map</div><div class="pipe-desc">Poach list + intel</div></div>
+    <div class="pipe-step"><div class="pipe-name">Edit Query</div><div class="pipe-desc">Tune repos + skills</div></div>
+    <div class="pipe-step"><div class="pipe-name">Run Search</div><div class="pipe-desc">Candidate pipeline out</div></div>
+  </div>
+</div>
+
+<!-- USAGE NOTES -->
+<div class="section">
+  <div class="label">Usage Notes</div>
+  <div class="usage-grid">
+    <div class="usage-card"><strong>Websets for passive, SourceKit for active.</strong><span>Websets build pipeline over time. SourceKit search is for when you need names now.</span></div>
+    <div class="usage-card"><strong>Specific criteria matter.</strong><span>"Senior engineer" gets noise. "50+ commits to a distributed systems repo, based in SF" gets signal.</span></div>
+    <div class="usage-card"><strong>Use findSimilar to expand from signal.</strong><span>One strong candidate becomes ten. Lateral discovery catches people keyword search never surfaces.</span></div>
+    <div class="usage-card"><strong>Company intel feeds outreach quality.</strong><span>Parallel Task data on poach targets gives you talking points. Attrition signals tell you who's reachable.</span></div>
+  </div>
+</div>
+
+<!-- KNOWN LIMITATIONS -->
+<div class="section">
+  <div class="label">Known Limitations</div>
+  <div class="limits">
+    <div class="limit"><div class="limit-dot"></div>GitHub-only sourcing for now (no LinkedIn, papers, or patents yet)</div>
+    <div class="limit"><div class="limit-dot"></div>LinkedIn URLs are inferred and may need manual verification</div>
+    <div class="limit"><div class="limit-dot"></div>JS-rendered pages may not parse correctly for JD extraction</div>
+    <div class="limit"><div class="limit-dot"></div>Websets sync may take minutes; check back or set monitoring cadence</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-links">
+    <a href="/guide">Full Guide</a>
+    <a href="/tldr">TL;DR</a>
+    <a href="https://getsourcekit.vercel.app" target="_blank">Open SourceKit</a>
+    <a href="https://github.com/mrNLK/SourceProof" target="_blank">GitHub</a>
+  </div>
+  <div class="footer-meta">
+    Mike Rubino / <a href="mailto:michael.f.rubino@gmail.com">michael.f.rubino@gmail.com</a>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

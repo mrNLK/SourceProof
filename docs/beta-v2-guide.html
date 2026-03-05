@@ -406,7 +406,7 @@
   <div class="section-tight">
     <div class="section-label">OVERVIEW</div>
     <div class="section-heading-sm">What is SourceKit?</div>
-    <p class="body-text-sm mb-10">SourceKit is a technical sourcing tool that finds software engineers based on their actual code contributions on GitHub, not self-reported LinkedIn keywords. You enter a role and company. SourceKit builds a sourcing strategy, searches real repositories, and returns a scored pipeline of candidates in minutes. v2.0 adds Parallel.ai for intelligent JD extraction and Exa Websets for persistent, auto-updating candidate collections.</p>
+    <p class="body-text-sm mb-10">SourceKit is a technical sourcing tool that finds software engineers based on their actual code contributions on GitHub, not self-reported LinkedIn keywords. You enter a role and company. SourceKit builds a sourcing strategy, searches real repositories, and returns a scored pipeline of candidates in minutes. v2.0 expands the API surface across three providers: Exa (search, enrichment, synthesis, expansion, persistent collections), Parallel (company intelligence, employee mapping, JD parsing), and the GitHub API (contributor mining, commit-level EEA scoring).</p>
     <div class="card-row">
       <div class="card">
         <div class="card-title">Signal Over Noise</div>
@@ -414,7 +414,7 @@
       </div>
       <div class="card">
         <div class="card-title">AI-Built Strategy</div>
-        <div class="card-body">Claude analyzes the role, generates target repos, identifies poach companies, and builds a skills matrix. Parallel.ai extracts JDs from any URL automatically.</div>
+        <div class="card-body">Claude orchestrates Exa Research for strategy generation and Parallel Task for company intelligence. Parallel Search extracts JDs from any URL automatically.</div>
       </div>
       <div class="card">
         <div class="card-title">Minutes, Not Days</div>
@@ -434,7 +434,7 @@
       </div>
       <div class="card">
         <div class="card-title">SourceKit Sourcing</div>
-        <div class="card-body">AI identifies key repos for a role, searches GitHub for top contributors, scores candidates on commit history, languages, and impact. Parallel.ai adds web context. Exa Websets build living candidate lists. Evidence-based, not keyword-based.</div>
+        <div class="card-body">AI identifies key repos, Exa Search + findSimilar surface candidates, Exa Answer synthesizes per-candidate evidence, Parallel FindAll maps target company employees, and Websets build living candidate lists. Evidence-based, not keyword-based.</div>
       </div>
       <div class="card">
         <div class="card-title">Best Use Cases</div>
@@ -452,7 +452,7 @@
   <div class="section">
     <div class="section-label">UNDER THE HOOD</div>
     <div class="section-heading">Architecture and Technology</div>
-    <p class="body-text-sm mb-8">SourceKit combines five core technologies: Claude AI for intelligence, Exa for neural search and Websets, Parallel.ai for web search and content extraction, the GitHub API for contributor data, and Supabase for data persistence.</p>
+    <p class="body-text-sm mb-8">SourceKit orchestrates three API providers through Claude AI, backed by Supabase for data persistence. Exa powers search, enrichment, synthesis, candidate expansion, and persistent collections. Parallel handles company intelligence, employee mapping, and JD extraction. GitHub provides contributor mining and commit-level scoring.</p>
 
     <!-- Architecture Diagram -->
     <div class="arch-layer">
@@ -468,19 +468,19 @@
       <div class="arch-boxes">
         <div class="arch-box">
           <div class="arch-box-name">Claude AI (Anthropic)</div>
-          <div class="arch-box-desc">Strategy / Scoring / Outreach</div>
+          <div class="arch-box-desc">Strategy / Scoring / Outreach / Orchestration</div>
         </div>
         <div class="arch-box">
-          <div class="arch-box-name">Exa Search + Websets</div>
-          <div class="arch-box-desc">Neural search / Websets / Candidate collections</div>
+          <div class="arch-box-name">Exa API (5 endpoints)</div>
+          <div class="arch-box-desc">Research / Search / Answer / findSimilar / Websets</div>
         </div>
         <div class="arch-box">
-          <div class="arch-box-name">Parallel.ai</div>
-          <div class="arch-box-desc">Web search / JD extraction / Enrichment</div>
+          <div class="arch-box-name">Parallel API (3 endpoints)</div>
+          <div class="arch-box-desc">Task (company intel) / FindAll (employee map) / Search (JD parse)</div>
         </div>
         <div class="arch-box">
           <div class="arch-box-name">GitHub REST + GraphQL</div>
-          <div class="arch-box-desc">Contributors / Commits / Graphs</div>
+          <div class="arch-box-desc">Contributor mining / Commit data / EEA scoring</div>
         </div>
       </div>
     </div>
@@ -628,19 +628,19 @@
   <div class="section-tight">
     <div class="section-label">EXA WEBSETS <span class="badge-new">NEW IN V2.0</span></div>
     <div class="section-heading">Exa Websets: Persistent Candidate Collections</div>
-    <p class="body-text-sm mb-8">Websets are persistent, auto-updating candidate collections powered by Exa's neural search. Define your criteria once and get new matches continuously as new contributors emerge.</p>
+    <p class="body-text-sm mb-8">Websets are persistent, auto-updating candidate collections powered by Exa's neural search. Define your criteria once and get new matches continuously as new contributors emerge. v2.0 adds Import (bulk ingest from external lists) and webhook Notify (real-time pipeline sync).</p>
     <div class="card-row">
       <div class="card">
-        <div class="card-title">Create and Search</div>
-        <div class="card-body">Build a Webset from any search or from scratch. Define entity type, search query, and filtering criteria. Exa finds matching candidates across the web.</div>
+        <div class="card-title">Create + Search + Enrich</div>
+        <div class="card-body">Build a Webset from any search or scratch. Define entity type, query, and criteria. Auto-enrich with company, role, LinkedIn, GitHub, and languages.</div>
       </div>
       <div class="card">
-        <div class="card-title">Auto-Enrich</div>
-        <div class="card-body">Every item is automatically enriched with current company, role, LinkedIn URL, GitHub profile, and primary programming languages. No manual lookup.</div>
+        <div class="card-title">Monitor + Import</div>
+        <div class="card-body">Schedule auto-updates for new matches. Import bulk candidates from external CSV/lists. Both paths feed the same verified collection.</div>
       </div>
       <div class="card">
-        <div class="card-title">Monitor</div>
-        <div class="card-body">Set a schedule and Websets auto-update with new matches. New candidates matching your criteria appear without re-running searches. Push matches to your pipeline.</div>
+        <div class="card-title">Notify (Webhooks)</div>
+        <div class="card-body">Real-time webhook events fire when new candidates enter a Webset. Push matches directly to your pipeline or external ATS without polling.</div>
       </div>
     </div>
   </div>
@@ -738,6 +738,7 @@
       <div class="card-title" style="margin-bottom:4px;">Feedback Welcome</div>
       <div class="card-body">Bugs, bad searches, confusing UX, missing features, AI quality issues. All fair game. Screenshots help.</div>
       <div class="card-body mt-6" style="color:var(--text-secondary);">Mike Rubino / michael.f.rubino@gmail.com</div>
+      <div class="card-body mt-6" style="font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--accent);">github.com/mrNLK/SourceProof</div>
     </div>
   </div>
 

@@ -319,7 +319,7 @@
   <!-- THE PITCH -->
   <div class="section">
     <div class="section-label">THE PITCH</div>
-    <div class="pitch-box">SourceKit finds software engineers by analyzing their actual GitHub code contributions, not LinkedIn keywords. Enter a role, get a scored pipeline in minutes. Now with Exa Websets for persistent candidate collections and Parallel.ai for intelligent JD extraction.</div>
+    <div class="pitch-box">SourceKit finds software engineers by analyzing their actual GitHub code contributions, not LinkedIn keywords. Enter a role, get a scored pipeline in minutes. v2.0 expands the API surface across three providers: Exa (search, enrichment, synthesis, expansion, persistent collections), Parallel (company intelligence, employee mapping, JD parsing), and the GitHub API (contributor mining, commit-level EEA scoring).</div>
   </div>
 
   <!-- HOW IT WORKS -->
@@ -362,12 +362,12 @@
         <div class="card-body">Scored on commits and PRs, not keywords</div>
       </div>
       <div class="card">
-        <div class="card-title">AI Strategy</div>
-        <div class="card-body">Claude builds repos, skills, poach list</div>
+        <div class="card-title">Multi-API Intelligence</div>
+        <div class="card-body">Exa (5 endpoints) + Parallel (3 endpoints) + GitHub, orchestrated by Claude</div>
       </div>
       <div class="card">
         <div class="card-title">Persistent Pipeline</div>
-        <div class="card-body">Exa Websets auto-update with new matches</div>
+        <div class="card-body">Exa Websets auto-update with new matches via monitoring + webhooks</div>
       </div>
     </div>
   </div>
@@ -377,12 +377,12 @@
     <div class="section-label">NEW IN V2.0 <span class="badge-new">NEW</span></div>
     <div class="card-row">
       <div class="card">
-        <div class="card-title">Exa Websets</div>
-        <div class="card-body">Persistent candidate collections with criteria-based filtering and auto-monitoring</div>
+        <div class="card-title">Exa API (5 endpoints)</div>
+        <div class="card-body">Research (strategy), Search (vector), Answer (synthesis), findSimilar (expansion), Websets (persistent collections + monitoring + import + webhooks)</div>
       </div>
       <div class="card">
-        <div class="card-title">Parallel.ai</div>
-        <div class="card-body">Intelligent JD extraction from any URL. Web search enrichment for deeper candidate context.</div>
+        <div class="card-title">Parallel API (3 endpoints)</div>
+        <div class="card-body">Task (company intel: headcount, tech stack, hiring signals), FindAll (employee mapping at targets), Search (JD extraction from JS-rendered pages)</div>
       </div>
     </div>
   </div>
@@ -392,11 +392,16 @@
     <div class="section-label">TECH STACK</div>
     <div class="pill-row">
       <span class="pill">Claude AI</span>
+      <span class="pill">Exa Research</span>
       <span class="pill">Exa Search</span>
+      <span class="pill">Exa Answer</span>
+      <span class="pill">Exa findSimilar</span>
       <span class="pill">Exa Websets</span>
-      <span class="pill">Parallel.ai</span>
-      <span class="pill">GitHub API</span>
-      <span class="pill">React + TypeScript</span>
+      <span class="pill">Parallel Task</span>
+      <span class="pill">Parallel FindAll</span>
+      <span class="pill">Parallel Search</span>
+      <span class="pill">GitHub REST + GraphQL</span>
+      <span class="pill">React + TS</span>
       <span class="pill">Supabase</span>
       <span class="pill">Vercel</span>
     </div>
@@ -459,6 +464,7 @@
   <div class="footer">
     <div class="footer-title">Feedback?</div>
     <div>Bugs, bad searches, UX issues, feature ideas. All welcome. Screenshots help. Mike Rubino / michael.f.rubino@gmail.com</div>
+    <div style="margin-top:3px; font-family:'JetBrains Mono',monospace; font-size:7.5px; color:var(--accent);">github.com/mrNLK/SourceProof</div>
   </div>
 
 </div>
