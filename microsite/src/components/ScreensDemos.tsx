@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { AnimateOnScroll } from "./AnimateOnScroll";
 import { Lightbox } from "./Lightbox";
-import strategyImg from "../assets/screens/strategy.png";
-import resultsImg from "../assets/screens/results.png";
-import websetsImg from "../assets/screens/websets.png";
 
 interface ScreenItem {
   id: string;
@@ -15,21 +12,63 @@ interface ScreenItem {
 const SCREENS: ScreenItem[] = [
   {
     id: "strategy",
-    title: "Strategy",
-    description: "Role, company, generated search query, target repos",
-    src: strategyImg,
+    title: "AI Strategy",
+    description: "Role analysis, company context, and generated search strategy",
+    src: "/screens/screenshot_strategy.png",
   },
   {
-    id: "results",
-    title: "Results",
-    description: "Parsed criteria, matched engineers, scores",
-    src: resultsImg,
+    id: "skills",
+    title: "Skills & Criteria",
+    description: "Parsed skills, experience requirements, and weighted criteria",
+    src: "/screens/screenshot_skills.png",
+  },
+  {
+    id: "search-analyzing",
+    title: "Search — Analyzing",
+    description: "Real-time AI analysis of candidate repositories",
+    src: "/screens/screenshot_search_analyzing.png",
+  },
+  {
+    id: "search-progress",
+    title: "Search — Progress",
+    description: "Live pipeline tracking as candidates are scored",
+    src: "/screens/screenshot_search_progress.png",
+  },
+  {
+    id: "search-results",
+    title: "Search Results",
+    description: "Ranked engineers with match scores and skill breakdowns",
+    src: "/screens/screenshot_search_results.png",
+  },
+  {
+    id: "repositories",
+    title: "Repos & Companies",
+    description: "Repository analysis with company and contribution context",
+    src: "/screens/screenshot_repositories_companies.png",
   },
   {
     id: "websets",
     title: "Websets",
-    description: "Persistent search with criteria and enrichments",
-    src: websetsImg,
+    description: "Persistent Exa-powered searches with enrichment criteria",
+    src: "/screens/screenshot_websets.png",
+  },
+  {
+    id: "eea-webset",
+    title: "EEA Webset",
+    description: "Webset creation with custom search and enrichment rules",
+    src: "/screens/screenshot_eea_webset.png",
+  },
+  {
+    id: "eea-signals-top",
+    title: "EEA Signals",
+    description: "Enrichment signals and candidate intelligence overview",
+    src: "/screens/screenshot_eea_signals_top.png",
+  },
+  {
+    id: "eea-signals-bottom",
+    title: "EEA Details",
+    description: "Detailed enrichment results and extracted data points",
+    src: "/screens/screenshot_eea_signals_bottom.png",
   },
 ];
 
