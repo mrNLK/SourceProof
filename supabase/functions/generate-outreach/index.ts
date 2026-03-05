@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { anthropicCall } from "../_shared/anthropic.ts";
 import { getCorsHeaders } from '../_shared/cors.ts';
 
@@ -8,6 +9,27 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate user via session token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || authHeader === `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401,
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired session' }), {
+        status: 401,
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+      });
+    }
+
     const { candidate_name, github_username, role_context } = await req.json();
 
     if (!github_username) {

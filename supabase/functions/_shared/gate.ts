@@ -21,13 +21,13 @@ export interface GateResult {
  * Pass the Authorization header value (Bearer <token>).
  * Returns { allowed, userId, plan } or { allowed: false, error }.
  * 
- * If no auth header is present, allows the request (anonymous/backward compat).
- * Gate only blocks when we can identify a trial user who is over limit.
+ * Requires a valid user session token.
+ * Rejects unauthenticated requests and trial users over their limit.
  */
 export async function checkSearchGate(authHeader: string | null): Promise<GateResult> {
   if (!authHeader || authHeader === `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`) {
-    // No user-specific token, allow but can't track
-    return { allowed: true, userId: null, plan: null };
+    // Reject unauthenticated requests — anon key is not a valid user identity
+    return { allowed: false, userId: null, plan: null, error: 'authentication_required' };
   }
 
   const supabase = getSupabase();
@@ -35,8 +35,8 @@ export async function checkSearchGate(authHeader: string | null): Promise<GateRe
 
   const { data: { user }, error: authError } = await supabase.auth.getUser(token);
   if (authError || !user) {
-    // Invalid token but don't block, just can't track
-    return { allowed: true, userId: null, plan: null };
+    // Invalid token — reject
+    return { allowed: false, userId: null, plan: null, error: 'invalid_token' };
   }
 
   const { data: sub } = await supabase
