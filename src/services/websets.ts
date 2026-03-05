@@ -43,7 +43,16 @@ async function callWebsetsApi(action: string, params: Record<string, unknown>) {
   })
 
   const data = await res.json()
-  if (data.error) throw new Error(data.error)
+  if (!res.ok || data.error) {
+    // Exa API may return { error: { message, type } } or { error: "string" }
+    const err = data.error
+    const message =
+      typeof err === 'string' ? err
+      : err?.message ? err.message
+      : data.message ? data.message
+      : JSON.stringify(err || data)
+    throw new Error(message)
+  }
   return data
 }
 
