@@ -9,7 +9,7 @@ SourceKit turns GitHub's open-source graph into a recruiting pipeline:
 - **Research** — Paste a job description or describe a role, and AI builds a sourcing strategy: target repos to mine, companies to source from, skills to weight, and EEA (Evidence of Exceptional Ability) signals to detect.
 - **Search** — Finds real GitHub contributors matching your criteria, scores them 0–100, and surfaces hidden gems (high-quality, low-visibility engineers).
 - **Enrich** — Looks up LinkedIn profiles via Exa semantic search and finds contact information.
-- **Pipeline** — Kanban board to track candidates through Sourced → Contacted → Responded → Screen → Offer.
+- **Pipeline** — Kanban board to track candidates through Contacted → Not Interested → Recruiter Screen → Rejected → Moved to ATS.
 - **Outreach** — AI writes personalized messages referencing the candidate's actual open-source work.
 - **Bulk Actions** — Compare, rank, and draft outreach for multiple candidates with an AI chat interface.
 

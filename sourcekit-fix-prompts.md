@@ -64,14 +64,14 @@ Test: Build a strategy for any role > click "Search with this strategy" > verify
 ### BUG-003 + BUG-004: Pipeline Stage Dropdown Fixes
 
 Issues:
-1. Stage dropdown on candidate detail (from Pipeline) only shows "Sourced" and "Contacted". Missing: Responded, Screen, Offer.
+1. Stage dropdown on candidate detail (from Pipeline) only shows "Contacted" and "Not Interested". Missing: Recruiter Screen, Rejected, Moved to ATS.
 2. After selecting a new stage, the dropdown button text does not update (still shows old stage), even though the change persists in Supabase.
 
 Fix:
-1. Find the stage dropdown component. Ensure it reads ALL stage options from the same constant/enum used by the kanban columns: ["sourced", "contacted", "responded", "screen", "offer"].
+1. Find the stage dropdown component. Ensure it reads ALL stage options from the same constant/enum used by the kanban columns: ["contacted", "not_interested", "recruiter_screen", "rejected", "moved_to_ats"].
 2. After the Supabase upsert succeeds, update the local React state for the selected stage. Use setState or invalidate the query cache (if using React Query / TanStack Query).
 
-Test: Open candidate from Pipeline > dropdown shows all 5 stages > select "Screen" > button text updates to "Screen" > go back to kanban > candidate appears in Screen column.
+Test: Open candidate from Pipeline > dropdown shows all 5 stages > select "Recruiter Screen" > button text updates to "Recruiter Screen" > go back to kanban > candidate appears in Recruiter Screen column.
 
 ---
 

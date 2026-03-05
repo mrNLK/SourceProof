@@ -371,15 +371,15 @@ tr:hover { background: var(--surface-2); }
             <td style="font-family:var(--mono);">BUG-003</td>
             <td><span class="pill pill-p2">P2</span></td>
             <td>Pipeline</td>
-            <td><strong>Stage dropdown only shows 2 of 5 stages</strong>. On candidate detail (from Pipeline), the stage selector dropdown shows only "Sourced" and "Contacted", missing Responded, Screen, Offer.</td>
-            <td>Pipeline > click candidate card > click stage dropdown (e.g., "Sourced")</td>
+            <td><strong>Stage dropdown only shows 2 of 5 stages</strong>. On candidate detail (from Pipeline), the stage selector dropdown shows only "Contacted" and "Not Interested", missing Recruiter Screen, Rejected, Moved to ATS.</td>
+            <td>Pipeline > click candidate card > click stage dropdown (e.g., "Contacted")</td>
             <td>Dropdown options are likely hardcoded to a subset or the stage list is being filtered incorrectly.</td>
           </tr>
           <tr>
             <td style="font-family:var(--mono);">BUG-004</td>
             <td><span class="pill pill-p2">P2</span></td>
             <td>Pipeline</td>
-            <td><strong>Stage dropdown UI does not update after stage change</strong>. Clicking "Contacted" from the dropdown changes the stage in Supabase (verified on kanban), but the button still displays "Sourced".</td>
+            <td><strong>Stage dropdown UI does not update after stage change</strong>. Clicking "Not Interested" from the dropdown changes the stage in Supabase (verified on kanban), but the button still displays "Contacted".</td>
             <td>Pipeline > click candidate > change stage via dropdown > observe button text</td>
             <td>The local React state for the stage button is not re-rendered after the Supabase write succeeds. Likely a missing state update or stale closure.</td>
           </tr>
@@ -646,10 +646,10 @@ tr:hover { background: var(--surface-2); }
   <div class="section">
     <div class="section-title">Phase 2E: Pipeline / Kanban</div>
     <div class="card">
-      <p>5 columns: Sourced, Contacted, Responded, Screen, Offer. Stage filter tabs with counts. Candidate cards show avatar, name, score, time indicator.</p>
-      <div class="callout callout-orange"><strong>BUG-003:</strong> Stage dropdown on detail page only shows Sourced and Contacted (missing 3 stages).</div>
+      <p>5 columns: Contacted, Not Interested, Recruiter Screen, Rejected, Moved to ATS. Stage filter tabs with counts. Candidate cards show avatar, name, score, time indicator.</p>
+      <div class="callout callout-orange"><strong>BUG-003:</strong> Stage dropdown on detail page only shows Contacted and Not Interested (missing 3 stages).</div>
       <div class="callout callout-orange"><strong>BUG-004:</strong> Stage dropdown button text doesn't update after successful stage change.</div>
-      <p>Stage change does persist to Supabase: confirmed Thomas Wolf moved from Sourced to Contacted column on returning to kanban view.</p>
+      <p>Stage change does persist to Supabase: confirmed Thomas Wolf moved from Contacted to Not Interested column on returning to kanban view.</p>
     </div>
   </div>
 
@@ -818,7 +818,7 @@ on stage change.</span>
 
 <span class="string">Issues:</span>
 1. Stage dropdown on candidate detail (from Pipeline) only shows
-   "Sourced" and "Contacted". Missing: Responded, Screen, Offer.
+   "Contacted" and "Not Interested". Missing: Recruiter Screen, Rejected, Moved to ATS.
 2. After selecting a new stage, the dropdown button text does not
    update (still shows old stage), even though the change persists
    in Supabase.
@@ -826,14 +826,14 @@ on stage change.</span>
 <span class="string">Fix:</span>
 1. Find the stage dropdown component. Ensure it reads ALL stage
    options from the same constant/enum used by the kanban columns:
-   ["sourced", "contacted", "responded", "screen", "offer"].
+   ["contacted", "not_interested", "recruiter_screen", "rejected", "moved_to_ats"].
 2. After the Supabase upsert succeeds, update the local React state
    for the selected stage. Use setState or invalidate the query cache
    (if using React Query / TanStack Query).
 
 <span class="string">Test:</span> Open candidate from Pipeline > dropdown shows all 5 stages >
-select "Screen" > button text updates to "Screen" > go back to
-kanban > candidate appears in Screen column.</div>
+select "Recruiter Screen" > button text updates to "Recruiter Screen" > go back to
+kanban > candidate appears in Recruiter Screen column.</div>
       </div>
     </div>
 
