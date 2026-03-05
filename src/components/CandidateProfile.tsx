@@ -16,11 +16,11 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const STAGES = [
-  { id: 'sourced', label: 'Sourced', color: 'bg-primary/15 text-primary border-primary/30' },
   { id: 'contacted', label: 'Contacted', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
-  { id: 'responded', label: 'Responded', color: 'bg-info/15 text-info border-info/30' },
-  { id: 'screen', label: 'Screen', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
-  { id: 'in_process', label: 'In Process', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+  { id: 'not_interested', label: 'Not Interested', color: 'bg-red-500/15 text-red-400 border-red-500/30' },
+  { id: 'recruiter_screen', label: 'Recruiter Screen', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+  { id: 'rejected', label: 'Rejected', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+  { id: 'moved_to_ats', label: 'Moved to ATS', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
 ] as const;
 
 function getScoreColor(score: number) {
@@ -42,7 +42,7 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [linkedinCopied, setLinkedinCopied] = useState(false);
   const [stageOpen, setStageOpen] = useState(false);
-  const [localStage, setLocalStage] = useState<string>(pipelineCandidate.stage || "sourced");
+  const [localStage, setLocalStage] = useState<string>(pipelineCandidate.stage || "contacted");
   const [localNotes, setLocalNotes] = useState(pipelineCandidate.notes || "");
   const [savingNotes, setSavingNotes] = useState(false);
 
@@ -104,8 +104,6 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
     },
   });
 
-  // F7: Stage advancement prompt after outreach generation
-  const [showStagePrompt, setShowStagePrompt] = useState(false);
 
   // Stage update
   const handleStageChange = async (newStage: string) => {
@@ -143,11 +141,6 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
       toast({ title: "Outreach message generated" });
       await supabase.from("outreach_history").insert({ pipeline_id: pc.id, message: data.message });
       queryClient.invalidateQueries({ queryKey: ["outreach-history", pc.id] });
-      // F7: Prompt to advance stage if candidate is still in "sourced"
-      if (localStage === "sourced") {
-        setShowStagePrompt(true);
-        setTimeout(() => setShowStagePrompt(false), 15000);
-      }
     } catch (e) {
       console.error("Outreach generation failed:", e);
       toast({ title: "Outreach generation failed", description: (e as Error)?.message || "Please try again.", variant: "destructive" });
@@ -359,27 +352,6 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
             </div>
           )}
 
-          {/* F7: Stage advancement prompt */}
-          {showStagePrompt && localStage === "sourced" && (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
-              <ArrowRight className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="text-xs font-display text-foreground flex-1">
-                Message ready — move to <span className="font-semibold text-amber-400">Contacted</span>?
-              </span>
-              <button
-                onClick={() => handleStageChange("contacted")}
-                className="text-xs font-display font-semibold px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition-colors"
-              >
-                Move to Contacted
-              </button>
-              <button
-                onClick={() => setShowStagePrompt(false)}
-                className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <XCircle className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
 
           {/* ===== AI SUMMARY ===== */}
           <div className="glass rounded-xl p-5">

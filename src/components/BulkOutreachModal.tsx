@@ -180,30 +180,10 @@ const BulkOutreachModal = ({ open, onOpenChange, candidates }: BulkOutreachModal
     }
   }, [messages, candidates, queryClient]);
 
-  // F7: Advance "sourced" candidates to "contacted" after saving outreach
-  const [showStagePrompt, setShowStagePrompt] = useState(false);
-  const sourcedCount = candidates.filter(c => c.stage === "sourced").length;
-
-  const handleAdvanceSourced = useCallback(async () => {
-    const sourced = candidates.filter(c => c.stage === "sourced");
-    for (const c of sourced) {
-      await supabase.from("pipeline").update({ stage: "contacted" }).eq("id", c.id);
-    }
-    queryClient.invalidateQueries({ queryKey: ["pipeline"] });
-    queryClient.invalidateQueries({ queryKey: ["bulk-pipeline"] });
-    toast({ title: `Moved ${sourced.length} candidate${sourced.length !== 1 ? "s" : ""} to Contacted` });
-    setShowStagePrompt(false);
-  }, [candidates, queryClient]);
-
   const handleSaveAndClose = useCallback(async () => {
     await persistMessages();
-    // If there are sourced candidates, show the stage prompt instead of closing
-    if (sourcedCount > 0) {
-      setShowStagePrompt(true);
-    } else {
-      onOpenChange(false);
-    }
-  }, [persistMessages, onOpenChange, sourcedCount]);
+    onOpenChange(false);
+  }, [persistMessages, onOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -449,26 +429,6 @@ const BulkOutreachModal = ({ open, onOpenChange, candidates }: BulkOutreachModal
             </>
           )}
 
-          {/* F7: Stage advancement prompt after saving */}
-          {showStagePrompt && sourcedCount > 0 && (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
-              <span className="text-xs font-display text-foreground flex-1">
-                Messages saved — move {sourcedCount} sourced candidate{sourcedCount !== 1 ? "s" : ""} to <span className="font-semibold text-amber-400">Contacted</span>?
-              </span>
-              <button
-                onClick={handleAdvanceSourced}
-                className="text-xs font-display font-semibold px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition-colors whitespace-nowrap"
-              >
-                Move to Contacted
-              </button>
-              <button
-                onClick={() => { setShowStagePrompt(false); onOpenChange(false); }}
-                className="text-xs font-display text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Skip
-              </button>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -320,7 +320,7 @@ serve(async (req) => {
           name: item.title,
           url: item.url,
           eea_data: item.eea_data || null,
-          status: 'sourced',
+          status: 'contacted',
         }))
 
         const { data: inserted, error: dbError } = await supabase

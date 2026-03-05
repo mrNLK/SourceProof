@@ -22,13 +22,13 @@ interface ChatMessage {
 type SortKey = "name" | "score" | "stage";
 type SortDir = "asc" | "desc";
 
-const STAGES = ["sourced", "contacted", "responded", "screen", "in_process"];
+const STAGES = ["contacted", "not_interested", "recruiter_screen", "rejected", "moved_to_ats"];
 const STAGE_COLORS: Record<string, string> = {
-  sourced: "bg-primary/15 text-primary border-primary/30",
   contacted: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  responded: "bg-info/15 text-info border-info/30",
-  screen: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-  in_process: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  not_interested: "bg-red-500/15 text-red-400 border-red-500/30",
+  recruiter_screen: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+  rejected: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+  moved_to_ats: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
 };
 
 const QUICK_ACTIONS: { id: string; label: string; tip: string; icon: any; needsSelection: boolean; minSelection?: number; maxSelection?: number }[] = [
