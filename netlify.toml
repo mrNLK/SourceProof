@@ -1,0 +1,29 @@
+[build]
+  publish = "docs"
+  command = "echo 'Static site - no build needed'"
+
+[[redirects]]
+  from = "/"
+  to = "/beta-v2-guide.html"
+  status = 200
+
+[[redirects]]
+  from = "/guide"
+  to = "/beta-v2-guide.html"
+  status = 200
+
+[[redirects]]
+  from = "/tldr"
+  to = "/beta-v2-tldr.html"
+  status = 200
+
+[[redirects]]
+  from = "/poster"
+  to = "/beta-v2-tldr.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    Access-Control-Allow-Origin = "https://getsourcekit.vercel.app"

@@ -36,8 +36,6 @@ async function invokeFunction(name: string, params?: Record<string, string>, bod
   return res.json();
 }
 
-import type { Developer } from '@/types/developer';
-
 export interface SearchResponse {
   results: Developer[];
   searchId?: string;
@@ -284,4 +282,10 @@ export interface ExaCandidateResult {
 
 export async function searchCandidates(query: string, role?: string, company?: string): Promise<{ candidates: ExaCandidateResult[]; sources: Record<string, number> }> {
   return invokeFunction('search-candidates', undefined, { query, role, company });
+}
+
+import type { CodeQualityReport } from '@/types/code-quality';
+
+export async function getCodeQuality(username: string): Promise<CodeQualityReport> {
+  return invokeFunction('github-code-quality', { username });
 }

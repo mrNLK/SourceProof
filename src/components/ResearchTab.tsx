@@ -62,7 +62,8 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy, onNavigateToW
   const fetchJdFromUrl = async (url: string): Promise<string> => {
     setLoadingStep("Fetching job description...");
     const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || SUPABASE_KEY;
+    if (!session?.access_token) throw new Error('Please sign in to fetch job descriptions');
+    const token = session.access_token;
     const res = await fetch(`${SUPABASE_URL}/functions/v1/parse-jd`, {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -111,9 +112,10 @@ const ResearchTab = ({ state, onStateChange, onSearchWithStrategy, onNavigateToW
       }
 
       const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (!authSession?.access_token) throw new Error('Please sign in to research roles');
       const res = await fetch(`${SUPABASE_URL}/functions/v1/research-role`, {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${authSession?.access_token || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${authSession.access_token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
       const data = await res.json();
