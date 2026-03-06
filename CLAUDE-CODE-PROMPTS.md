@@ -254,7 +254,7 @@ Acceptance criteria:
 The Pipeline page (src/pages/Pipeline.tsx) generates outreach messages one candidate at a time using Anthropic Claude API. Add bulk outreach generation:
 
 1. Add a "Generate All Outreach" button at the top of the Pipeline page
-2. On click, identify all candidates in the "sourced" stage that do not yet have an entry in the outreach_history table
+2. On click, identify all candidates in the "contacted" stage that do not yet have an entry in the outreach_history table
 3. For each candidate (batch of 5 at a time, not all at once), call the existing outreach generation logic
 4. Show a progress indicator: "Generating outreach: 3/12 complete"
 5. As each message is generated, save it to outreach_history and update the candidate's card to show the message is ready
@@ -337,8 +337,8 @@ The Settings tab has webhook_url and slack_webhook_url fields but they're not co
    {
      event: "pipeline.stage_changed",
      candidate: { name, github_username, github_url, score },
-     from_stage: "sourced",
-     to_stage: "contacted",
+     from_stage: "contacted",
+     to_stage: "not_interested",
      timestamp: ISO string
    }
 

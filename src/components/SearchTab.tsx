@@ -254,7 +254,7 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
     for (const dev of toAdd) {
       try {
         const { error } = await supabase.from('pipeline').upsert(
-          { github_username: dev.username, name: dev.name, avatar_url: dev.avatarUrl, stage: 'sourced' },
+          { github_username: dev.username, name: dev.name, avatar_url: dev.avatarUrl, stage: 'contacted' },
           { onConflict: 'github_username' },
         );
         if (!error) { added++; } else { failed++; failedNames.push(dev.username); }
@@ -265,7 +265,7 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
     }
     queryClient.invalidateQueries({ queryKey: ["pipeline-usernames"] });
     if (failed === 0) {
-      toast({ title: `Added ${added} candidate${added !== 1 ? 's' : ''} to pipeline`, description: `${added} candidate${added !== 1 ? 's' : ''} added to Sourced stage.` });
+      toast({ title: `Added ${added} candidate${added !== 1 ? 's' : ''} to pipeline`, description: `${added} candidate${added !== 1 ? 's' : ''} added to Contacted stage.` });
     } else if (added > 0) {
       toast({ title: `Added ${added} of ${toAdd.length} candidates`, description: `${failed} failed — please retry.`, variant: "destructive" });
     } else {

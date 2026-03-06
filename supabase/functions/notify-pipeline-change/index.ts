@@ -53,11 +53,11 @@ serve(async (req) => {
     const results: { target: string; ok: boolean; error?: string }[] = [];
 
     const stageLabels: Record<string, string> = {
-      sourced: 'Sourced',
       contacted: 'Contacted',
-      responded: 'Responded',
-      screen: 'Screen',
-      offer: 'Offer',
+      not_interested: 'Not Interested',
+      recruiter_screen: 'Recruiter Screen',
+      rejected: 'Rejected',
+      moved_to_ats: 'Moved to ATS',
     };
 
     const fromLabel = from_stage ? (stageLabels[from_stage] || from_stage) : 'New';

@@ -36,13 +36,13 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
         github_username: developer.username,
         name: developer.name,
         avatar_url: developer.avatarUrl,
-        stage: 'sourced',
+        stage: 'contacted',
       }, { onConflict: 'github_username' });
       if (error) throw error;
       setAddedToPipeline(true);
       toast({
         title: `${developer.name || developer.username} added to pipeline`,
-        description: "Added to Sourced stage.",
+        description: "Added to Contacted stage.",
       });
     } catch (err) {
       console.error('Failed to add to pipeline:', err);

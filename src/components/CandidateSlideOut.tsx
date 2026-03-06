@@ -24,11 +24,11 @@ const OUTREACH_TONES = [
 ] as const;
 
 const STAGES = [
-  { id: 'sourced', label: 'Sourced', color: 'bg-primary/15 text-primary border-primary/30' },
   { id: 'contacted', label: 'Contacted', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
-  { id: 'responded', label: 'Responded', color: 'bg-info/15 text-info border-info/30' },
-  { id: 'screen', label: 'Screen', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
-  { id: 'offer', label: 'Offer', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+  { id: 'not_interested', label: 'Not Interested', color: 'bg-red-500/15 text-red-400 border-red-500/30' },
+  { id: 'recruiter_screen', label: 'Recruiter Screen', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+  { id: 'rejected', label: 'Rejected', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+  { id: 'moved_to_ats', label: 'Moved to ATS', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
 ] as const;
 
 interface CandidateSlideOutProps {
@@ -57,7 +57,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
   const [toneOpen, setToneOpen] = useState(false);
   const [outreachMode, setOutreachMode] = useState<"ai" | "template">("ai");
   const [stageOpen, setStageOpen] = useState(false);
-  const [localStage, setLocalStage] = useState<string>("sourced");
+  const [localStage, setLocalStage] = useState<string>("contacted");
   const [copiedHistoryId, setCopiedHistoryId] = useState<string | null>(null);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   // FEAT-004: Notes and tags
@@ -89,7 +89,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
       setAddedToPipeline(true);
       setNotes(pipelineRow.notes || "");
       setTags(pipelineRow.tags || []);
-      setLocalStage(pipelineRow.stage || "sourced");
+      setLocalStage(pipelineRow.stage || "contacted");
     }
   }, [pipelineRow]);
 
@@ -141,7 +141,7 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
         github_username: dev.username,
         name: dev.name,
         avatar_url: dev.avatarUrl,
-        stage: "sourced",
+        stage: "contacted",
         ...(prePipelineNotes ? { notes: prePipelineNotes } : {}),
       }, { onConflict: "github_username" });
       // Clean up localStorage notes after migration
