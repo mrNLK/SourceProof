@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+celery
+redis
+httpx
+pdfplumber
+exa-py
+parallel-web
+anthropic
+supabase
+python-dotenv
+pydantic

@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #0a0a0f;
+  color: #e8e8f0;
+}
+
+code, .mono {
+  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+}
