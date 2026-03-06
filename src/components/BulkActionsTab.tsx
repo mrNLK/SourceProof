@@ -23,6 +23,13 @@ type SortKey = "name" | "score" | "stage";
 type SortDir = "asc" | "desc";
 
 const STAGES = ["contacted", "not_interested", "recruiter_screen", "rejected", "moved_to_ats"];
+const STAGE_LABELS: Record<string, string> = {
+  contacted: "Contacted",
+  not_interested: "Not Interested",
+  recruiter_screen: "Recruiter Screen",
+  rejected: "Rejected",
+  moved_to_ats: "Moved to ATS",
+};
 const STAGE_COLORS: Record<string, string> = {
   contacted: "bg-amber-500/15 text-amber-400 border-amber-500/30",
   not_interested: "bg-red-500/15 text-red-400 border-red-500/30",
@@ -158,11 +165,13 @@ const BulkActionsTab = () => {
     if (action === "chat" && extraMessages) body.messages = extraMessages;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || SUPABASE_KEY;
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/bulk-actions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${SUPABASE_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
@@ -302,7 +311,7 @@ const BulkActionsTab = () => {
               className="bg-secondary/50 border border-border rounded-lg py-1.5 px-2.5 text-xs text-foreground outline-none font-display cursor-pointer"
             >
               <option value="">All Stages</option>
-              {STAGES.map(s => <option key={s} value={s}>{s.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>)}
+              {STAGES.map(s => <option key={s} value={s}>{STAGE_LABELS[s] || s}</option>)}
             </select>
             <div className="flex items-center gap-1.5 text-[10px] font-display text-muted-foreground">
               <span>Score</span>
@@ -412,7 +421,7 @@ const BulkActionsTab = () => {
                       </td>
                       <td className="p-2">
                         <span className={`text-[10px] font-display font-semibold px-2 py-0.5 rounded-md border ${STAGE_COLORS[c.stage] || ""}`}>
-                          {c.stage}
+                          {STAGE_LABELS[c.stage] || c.stage}
                         </span>
                       </td>
                       <td className="p-2 hidden md:table-cell">

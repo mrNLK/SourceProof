@@ -36,8 +36,6 @@ async function invokeFunction(name: string, params?: Record<string, string>, bod
   return res.json();
 }
 
-import type { Developer } from '@/types/developer';
-
 export interface SearchResponse {
   results: Developer[];
   searchId?: string;

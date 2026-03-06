@@ -114,7 +114,6 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
     queryClient.invalidateQueries({ queryKey: ["bulk-pipeline"] });
     queryClient.invalidateQueries({ queryKey: ["pipeline-events", pc.id] });
     setStageOpen(false);
-    setShowStagePrompt(false);
     notifyStageChange({
       pipeline_id: pc.id,
       github_username: username,
@@ -130,9 +129,11 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
     setGenerating(true);
     setGeneratedMsg(null);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || SUPABASE_KEY;
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-outreach`, {
         method: "POST",
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ candidate_name: displayName || username, github_username: username }),
       });
       const data = await res.json();

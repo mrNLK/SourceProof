@@ -190,9 +190,11 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
         `Tone: ${tone.prompt}`,
       ].filter(Boolean).join('. ');
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || SUPABASE_KEY;
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-outreach`, {
         method: "POST",
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           candidate_name: dev.name,
           github_username: dev.username,
