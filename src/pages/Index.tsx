@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import DashboardLayout, { type ActiveTab } from "@/components/DashboardLayout";
 import SearchTab from "@/components/SearchTab";
 import WatchlistTab from "@/components/WatchlistTab";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import type { ResearchState } from "@/components/ResearchTab";
 import { toast } from "@/hooks/use-toast";
 
@@ -106,27 +107,31 @@ const Index = () => {
           onNavigate={(tab) => setActiveTab(tab as ActiveTab)}
         />
       </div>
-      <Suspense fallback={<TabFallback />}>
-        {activeTab === "research" && (
-          <ResearchTab
-            state={researchState}
-            onStateChange={setResearchState}
-            onSearchWithStrategy={handleSearchWithStrategy}
-            onNavigateToWebsets={() => setActiveTab("websets")}
-          />
-        )}
-        {activeTab === "history" && <HistoryTab onRerun={handleRerun} />}
-        {activeTab === "pipeline" && <PipelineTab onNavigateToSearch={() => setActiveTab("search")} />}
-      </Suspense>
+      <ErrorBoundary fallbackLabel="tab">
+        <Suspense fallback={<TabFallback />}>
+          {activeTab === "research" && (
+            <ResearchTab
+              state={researchState}
+              onStateChange={setResearchState}
+              onSearchWithStrategy={handleSearchWithStrategy}
+              onNavigateToWebsets={() => setActiveTab("websets")}
+            />
+          )}
+          {activeTab === "history" && <HistoryTab onRerun={handleRerun} />}
+          {activeTab === "pipeline" && <PipelineTab onNavigateToSearch={() => setActiveTab("search")} />}
+        </Suspense>
+      </ErrorBoundary>
       <div style={{ display: activeTab === "watchlist" ? undefined : "none" }}>
         <WatchlistTab onNavigateToSearch={() => setActiveTab("search")} />
       </div>
-      <Suspense fallback={<TabFallback />}>
-        {activeTab === "bulk" && <BulkActionsTab />}
-        {activeTab === "websets" && <WebsetsTab />}
-        {activeTab === "settings" && <SettingsTab />}
-        {activeTab === "guide" && <GuideTab />}
-      </Suspense>
+      <ErrorBoundary fallbackLabel="tab">
+        <Suspense fallback={<TabFallback />}>
+          {activeTab === "bulk" && <BulkActionsTab />}
+          {activeTab === "websets" && <WebsetsTab />}
+          {activeTab === "settings" && <SettingsTab />}
+          {activeTab === "guide" && <GuideTab />}
+        </Suspense>
+      </ErrorBoundary>
     </DashboardLayout>
   );
 };

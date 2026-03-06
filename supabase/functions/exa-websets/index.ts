@@ -147,6 +147,21 @@ serve(async (req) => {
             { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           )
         }
+        // Verify ownership
+        if (userId) {
+          const { data: ownerCheck } = await supabase.from('webset_mappings').select('id').eq('webset_id', webset_id).eq('user_id', userId).maybeSingle()
+          if (!ownerCheck) {
+            return new Response(
+              JSON.stringify({ error: 'Webset not found or not owned by you' }),
+              { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+            )
+          }
+        } else {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          )
+        }
         response = await fetch(`${WEBSETS_BASE}/websets/${webset_id}`, { headers })
         break
       }
@@ -157,6 +172,21 @@ serve(async (req) => {
           return new Response(
             JSON.stringify({ error: 'webset_id is required' }),
             { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          )
+        }
+        // Verify ownership
+        if (userId) {
+          const { data: ownerCheck } = await supabase.from('webset_mappings').select('id').eq('webset_id', webset_id).eq('user_id', userId).maybeSingle()
+          if (!ownerCheck) {
+            return new Response(
+              JSON.stringify({ error: 'Webset not found or not owned by you' }),
+              { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+            )
+          }
+        } else {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           )
         }
         const qs = new URLSearchParams()
@@ -172,6 +202,21 @@ serve(async (req) => {
           return new Response(
             JSON.stringify({ error: 'webset_id is required' }),
             { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          )
+        }
+        // Verify ownership
+        if (userId) {
+          const { data: ownerCheck } = await supabase.from('webset_mappings').select('id').eq('webset_id', webset_id).eq('user_id', userId).maybeSingle()
+          if (!ownerCheck) {
+            return new Response(
+              JSON.stringify({ error: 'Webset not found or not owned by you' }),
+              { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+            )
+          }
+        } else {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           )
         }
         response = await fetch(`${WEBSETS_BASE}/websets/${webset_id}/enrichments`, {

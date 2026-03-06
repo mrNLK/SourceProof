@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 
 export function useWatchlist() {
   const queryClient = useQueryClient();
@@ -37,11 +38,13 @@ export function useWatchlist() {
         const { error } = await supabase.from("watchlist_items").delete().eq("id", existing.id);
         if (error) throw error;
       } else {
+        const uid = await getCurrentUserId();
         const { error } = await supabase.from("watchlist_items").insert({
           candidate_username: username,
           candidate_name: name || null,
           candidate_avatar_url: avatarUrl || null,
           list_name: listName,
+          ...(uid ? { user_id: uid } : {}),
         });
         if (error) throw error;
       }

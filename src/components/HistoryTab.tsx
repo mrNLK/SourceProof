@@ -57,6 +57,7 @@ const HistoryTab = ({ onRerun }: HistoryTabProps) => {
   };
 
   const handleClearAll = async () => {
+    if (!window.confirm("Clear all search history? This cannot be undone.")) return;
     const { error } = await supabase.from("search_history").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     if (error) {
       toast({ title: "Clear failed", description: error.message, variant: "destructive" });

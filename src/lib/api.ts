@@ -234,7 +234,9 @@ export function notifyStageChange(params: {
   to_stage: string;
 }) {
   // Fire-and-forget: don't await or block on webhook delivery
-  invokeFunction('notify-pipeline-change', undefined, params).catch(() => {});
+  invokeFunction('notify-pipeline-change', undefined, params).catch((e) => {
+    console.warn('Webhook notification failed:', e?.message || e);
+  });
 }
 
 // SPA-only settings cache, scoped to current session.

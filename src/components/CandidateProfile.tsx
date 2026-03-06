@@ -140,7 +140,7 @@ const CandidateProfile = ({ pipelineCandidate, onBack }: CandidateProfileProps) 
       if (!res.ok) throw new Error(data?.error || "Failed to generate outreach");
       setGeneratedMsg(data.message);
       toast({ title: "Outreach message generated" });
-      await supabase.from("outreach_history").insert({ pipeline_id: pc.id, message: data.message });
+      await supabase.from("outreach_history").insert({ pipeline_id: pc.id, message: data.message, ...(token !== SUPABASE_KEY ? { user_id: (await supabase.auth.getSession()).data.session?.user?.id } : {}) });
       queryClient.invalidateQueries({ queryKey: ["outreach-history", pc.id] });
     } catch (e) {
       console.error("Outreach generation failed:", e);

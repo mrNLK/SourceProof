@@ -52,7 +52,8 @@ const OutreachSection = ({ pipelineId, candidateName, githubUsername }: { pipeli
       setGeneratedMsg(msg);
 
       // Save to outreach_history
-      await supabase.from('outreach_history').insert({ pipeline_id: pipelineId, message: msg });
+      const outUid = session?.user?.id;
+      await supabase.from('outreach_history').insert({ pipeline_id: pipelineId, message: msg, ...(outUid ? { user_id: outUid } : {}) });
       queryClient.invalidateQueries({ queryKey: ['outreach-history', pipelineId] });
     } catch (e) {
       console.error('Outreach generation failed:', e);

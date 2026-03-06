@@ -137,12 +137,15 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     try {
       // Migrate pre-pipeline notes if any
       const prePipelineNotes = notes.trim() || localStorage.getItem(`sourcekit-notes:${dev.username}`) || "";
+      const { data: { session: sess } } = await supabase.auth.getSession();
+      const uid = sess?.user?.id;
       await supabase.from("pipeline").upsert({
         github_username: dev.username,
         name: dev.name,
         avatar_url: dev.avatarUrl,
         stage: "contacted",
         ...(prePipelineNotes ? { notes: prePipelineNotes } : {}),
+        ...(uid ? { user_id: uid } : {}),
       }, { onConflict: "github_username" });
       // Clean up localStorage notes after migration
       localStorage.removeItem(`sourcekit-notes:${dev.username}`);
@@ -218,7 +221,8 @@ const CandidateSlideOut = ({ developer, onClose }: CandidateSlideOutProps) => {
     if (!outreachDraft.trim()) return;
     // Save to outreach_history if the candidate has a pipeline entry
     if (pipelineRow?.id) {
-      await supabase.from("outreach_history").insert({ pipeline_id: pipelineRow.id, message: outreachDraft });
+      const { data: { session: outSess } } = await supabase.auth.getSession();
+      await supabase.from("outreach_history").insert({ pipeline_id: pipelineRow.id, message: outreachDraft, ...(outSess?.user?.id ? { user_id: outSess.user.id } : {}) });
       queryClient.invalidateQueries({ queryKey: ["outreach-history", pipelineRow.id] });
     }
     setOutreachMsg(outreachDraft);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Developer } from "@/types/developer";
 import { enrichLinkedIn } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { EEAMini, EEAPopover } from "@/components/EEASignals";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -32,11 +33,13 @@ const DeveloperCard = ({ developer, isShortlisted, onToggleShortlist, showPipeli
 
   const doAddToPipeline = async () => {
     try {
+      const user_id = await getCurrentUserId();
       const { error } = await supabase.from('pipeline').upsert({
         github_username: developer.username,
         name: developer.name,
         avatar_url: developer.avatarUrl,
         stage: 'contacted',
+        ...(user_id ? { user_id } : {}),
       }, { onConflict: 'github_username' });
       if (error) throw error;
       setAddedToPipeline(true);

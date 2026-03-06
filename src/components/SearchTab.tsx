@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 import { enrichLinkedIn } from "@/lib/api";
 import { useSearchQuery, type StreamStep, type StrategyHandoff } from "@/hooks/useSearchQuery";
 import CandidateSlideOut from "@/components/CandidateSlideOut";
@@ -248,13 +249,14 @@ const SearchTab = ({ initialQuery, initialExpandedQuery, initialStrategy, initia
     if (batchSelected.size === 0 || batchAdding) return;
     setBatchAdding(true);
     const toAdd = filtered.filter((d) => batchSelected.has(d.username) && !pipelineSet.has(d.username));
+    const uid = await getCurrentUserId();
     let added = 0;
     let failed = 0;
     const failedNames: string[] = [];
     for (const dev of toAdd) {
       try {
         const { error } = await supabase.from('pipeline').upsert(
-          { github_username: dev.username, name: dev.name, avatar_url: dev.avatarUrl, stage: 'contacted' },
+          { github_username: dev.username, name: dev.name, avatar_url: dev.avatarUrl, stage: 'contacted', ...(uid ? { user_id: uid } : {}) },
           { onConflict: 'github_username' },
         );
         if (!error) { added++; } else { failed++; failedNames.push(dev.username); }

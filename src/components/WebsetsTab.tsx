@@ -4,6 +4,7 @@ import { toast } from '@/hooks/use-toast'
 import { useWebsets } from '@/hooks/useWebsets'
 import { createWebset, deleteWebset } from '@/services/websets'
 import { supabase } from '@/integrations/supabase/client'
+import { getCurrentUserId } from '@/lib/auth-helpers'
 import WebsetEEAView from '@/components/websets/WebsetEEAView'
 import EEAErrorBoundary from '@/components/websets/EEAErrorBoundary'
 import { EEAViewSkeleton } from '@/components/websets/EEASkeleton'
@@ -35,12 +36,14 @@ const WebsetsTab = () => {
     if (addingItem || addedItems.has(item.id)) return
     setAddingItem(item.id)
     try {
+      const uid = await getCurrentUserId()
       const username = item.url ? new URL(item.url).pathname.replace(/^\//, '').replace(/\//g, '-') : item.id
       const { error } = await supabase.from('pipeline').upsert({
         github_username: username,
         name: item.title || username,
         avatar_url: '',
         stage: 'contacted',
+        ...(uid ? { user_id: uid } : {}),
       }, { onConflict: 'github_username' })
       if (error) throw error
       setAddedItems(prev => new Set(prev).add(item.id))
@@ -62,11 +65,13 @@ const WebsetsTab = () => {
         if (addedItems.has(item.id)) continue
         try {
           const username = item.url ? new URL(item.url).pathname.replace(/^\//, '').replace(/\//g, '-') : item.id
+          const batchUid = await getCurrentUserId()
           const { error } = await supabase.from('pipeline').upsert({
             github_username: username,
             name: item.title || username,
             avatar_url: '',
             stage: 'contacted',
+            ...(batchUid ? { user_id: batchUid } : {}),
           }, { onConflict: 'github_username' })
           if (error) throw error
           setAddedItems(prev => new Set(prev).add(item.id))

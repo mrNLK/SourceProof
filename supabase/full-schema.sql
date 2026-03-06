@@ -201,3 +201,91 @@ BEGIN
   WHERE user_id = p_user_id;
 END;
 $$;
+
+
+-- 9. Search results junction table (history replay)
+CREATE TABLE public.search_results (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  search_id UUID NOT NULL,
+  candidate_id UUID NOT NULL REFERENCES public.candidates(id) ON DELETE CASCADE,
+  rank INTEGER NOT NULL DEFAULT 0,
+  score INTEGER,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(search_id, candidate_id)
+);
+
+CREATE INDEX idx_search_results_search_id ON public.search_results(search_id);
+CREATE INDEX idx_search_results_candidate_id ON public.search_results(candidate_id);
+
+ALTER TABLE public.search_results ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read search_results" ON public.search_results FOR SELECT USING (true);
+CREATE POLICY "Allow public insert search_results" ON public.search_results FOR INSERT WITH CHECK (true);
+
+
+-- 10. Pipeline events (stage change audit trail)
+CREATE TABLE public.pipeline_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  pipeline_id UUID REFERENCES public.pipeline(id) ON DELETE CASCADE,
+  github_username TEXT NOT NULL,
+  candidate_name TEXT,
+  from_stage TEXT,
+  to_stage TEXT NOT NULL,
+  event_type TEXT NOT NULL DEFAULT 'stage_change',
+  webhook_status TEXT,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_pipeline_events_pipeline_id ON public.pipeline_events(pipeline_id);
+CREATE INDEX idx_pipeline_events_created_at ON public.pipeline_events(created_at DESC);
+
+ALTER TABLE public.pipeline_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can read own pipeline_events" ON public.pipeline_events FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Service role full access pipeline_events" ON public.pipeline_events FOR ALL USING (auth.role() = 'service_role');
+
+
+-- 11. Webset mappings (Exa webset to user)
+CREATE TABLE public.webset_mappings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  webset_id TEXT NOT NULL,
+  user_id UUID NOT NULL REFERENCES auth.users(id),
+  query TEXT,
+  status TEXT DEFAULT 'running',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_webset_mappings_user_id ON public.webset_mappings(user_id);
+CREATE INDEX idx_webset_mappings_webset_id ON public.webset_mappings(webset_id);
+
+
+-- 12. Webset refs (persistent webset references)
+CREATE TABLE public.webset_refs (
+  id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  query TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 10,
+  status TEXT NOT NULL DEFAULT 'running',
+  eea_signals JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.webset_refs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own webset refs" ON public.webset_refs FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE INDEX idx_webset_refs_user ON public.webset_refs(user_id, created_at DESC);
+
+
+-- 13. Saved searches (bookmarks)
+CREATE TABLE public.saved_searches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  query TEXT NOT NULL,
+  expanded_query TEXT,
+  filters JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.saved_searches ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own saved searches" ON public.saved_searches FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE INDEX idx_saved_searches_user ON public.saved_searches(user_id, created_at DESC);

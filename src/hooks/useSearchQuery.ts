@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 import {
   searchDevelopers,
   searchDevelopersStreaming,
@@ -228,6 +229,7 @@ export function useSearchQuery({
       }
       (async () => {
         try {
+          const uid = await getCurrentUserId();
           const insertRow: Record<string, unknown> = {
             query: query || activeQuery,
             action_type: "search",
@@ -239,6 +241,7 @@ export function useSearchQuery({
               seniority: parsedCriteria?.seniority || null,
               status: baseResults.length > 0 ? "success" : "no_results",
             },
+            ...(uid ? { user_id: uid } : {}),
           };
           if (data.searchId) insertRow.id = data.searchId;
           await supabase.from("search_history").insert(insertRow as never);
@@ -259,6 +262,7 @@ export function useSearchQuery({
       historySavedForQuery.current = activeQuery;
       (async () => {
         try {
+          const errUid = await getCurrentUserId();
           await supabase.from("search_history").insert({
             query: query || activeQuery,
             action_type: "search",
@@ -268,6 +272,7 @@ export function useSearchQuery({
               status: "error",
               error: error.message,
             },
+            ...(errUid ? { user_id: errUid } : {}),
           } as never);
           queryClient.invalidateQueries({ queryKey: ["search-history"] });
         } catch {

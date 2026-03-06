@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { Loader2, Copy, ClipboardCheck, RefreshCw, Sparkles, FileText, Check, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -164,9 +165,11 @@ const BulkOutreachModal = ({ open, onOpenChange, candidates }: BulkOutreachModal
     for (const msg of unsaved) {
       const candidate = candidates.find(c => c.github_username === msg.username);
       if (!candidate) continue;
+      const uid = await getCurrentUserId();
       const { error } = await supabase.from("outreach_history").insert({
         pipeline_id: candidate.id,
         message: msg.message,
+        ...(uid ? { user_id: uid } : {}),
       });
       if (!error) {
         savedCount++;

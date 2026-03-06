@@ -123,7 +123,7 @@ serve(async (req) => {
 
     // Determine overall status
     if (results.length > 0) {
-      webhookStatus = results.every(r => r.ok) ? 'sent' : results.some(r => r.ok) ? 'sent' : 'failed';
+      webhookStatus = results.some(r => r.ok) ? 'sent' : 'failed';
     }
 
     // Log event to pipeline_events
