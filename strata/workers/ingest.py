@@ -93,19 +93,20 @@ def process_document(source_url: str, monitor_id: str, monitor_metadata: dict):
         regulatory_item_id = result.data[0]["id"]
 
     # Write audit log
-    supabase.table("audit_log").insert(
-        {
-            "event_type": "document_ingested",
-            "entity_type": "regulatory_item",
-            "entity_id": regulatory_item_id,
-            "metadata": {
-                "source_url": source_url,
-                "filing_type": record.get("filing_type"),
-                "docket_number": docket_number,
-                "monitor_id": monitor_id,
-            },
-        }
-    ).execute()
+    audit_entry = {
+        "event_type": "document_ingested",
+        "entity_type": "regulatory_item",
+        "entity_id": regulatory_item_id,
+        "metadata": {
+            "source_url": source_url,
+            "filing_type": record.get("filing_type"),
+            "docket_number": docket_number,
+            "monitor_id": monitor_id,
+        },
+    }
+    if monitor_metadata.get("client_id"):
+        audit_entry["client_id"] = monitor_metadata["client_id"]
+    supabase.table("audit_log").insert(audit_entry).execute()
 
     logger.info(
         "Ingested document %s (type=%s, docket=%s)",

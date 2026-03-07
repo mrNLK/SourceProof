@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Literal, Optional
 from datetime import date, datetime
 
 
@@ -36,7 +36,7 @@ class UserResponse(BaseModel):
 class MembershipCreate(BaseModel):
     user_id: str
     client_id: str
-    role: str = "analyst"
+    role: Literal["admin", "analyst", "reviewer"] = "analyst"
 
 
 class MembershipResponse(BaseModel):

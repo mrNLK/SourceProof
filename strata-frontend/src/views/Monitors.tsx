@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { getMonitors, initMonitors } from "../lib/api";
 import { toast } from "../components/Toast";
+import { useClient } from "../lib/ClientContext";
 
 export default function Monitors() {
+  const { activeClient } = useClient();
   const [monitors, setMonitors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(false);
 
   const load = () => {
+    if (!activeClient) return;
     setLoading(true);
     getMonitors()
       .then(setMonitors)
@@ -15,7 +18,7 @@ export default function Monitors() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, []);
+  useEffect(load, [activeClient?.id]);
 
   const handleInit = async () => {
     setInitializing(true);

@@ -1,12 +1,11 @@
 """Client and membership management endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 
 from strata.auth import get_current_user, require_role
 from strata.database import supabase
 from strata.models.schemas import (
     ClientCreate,
-    ClientResponse,
     CurrentUser,
     MembershipCreate,
     UserCreate,
@@ -15,13 +14,58 @@ from strata.models.schemas import (
 router = APIRouter(prefix="/clients", tags=["clients"])
 
 
-@router.get("/")
-async def list_clients(user: CurrentUser = Depends(get_current_user)):
-    """List clients the current user has access to."""
+# ── Routes that must be declared before /{client_id} patterns ─────────
+
+
+@router.get("/users/me")
+async def get_me(user: CurrentUser = Depends(get_current_user)):
+    """Get the current user's info and role."""
+    return {
+        "user_id": user.user_id,
+        "email": user.email,
+        "display_name": user.display_name,
+        "client_id": user.client_id,
+        "client_slug": user.client_slug,
+        "role": user.role,
+    }
+
+
+@router.post("/users")
+async def create_user(
+    body: UserCreate,
+    user: CurrentUser = Depends(require_role("admin")),
+):
+    """Create a new user (admin only)."""
+    result = (
+        supabase.table("users")
+        .insert({"email": body.email, "display_name": body.display_name})
+        .execute()
+    )
+    return result.data[0]
+
+
+@router.get("/mine")
+async def list_my_clients(x_user_email: str = Header(...)):
+    """List clients the user has access to.
+
+    This endpoint only requires X-User-Email (not X-Client-Id) so it
+    can be called during frontend bootstrap before a client is selected.
+    """
+    user_result = (
+        supabase.table("users")
+        .select("id")
+        .eq("email", x_user_email)
+        .limit(1)
+        .execute()
+    )
+    if not user_result.data:
+        raise HTTPException(status_code=401, detail="Unknown user")
+
+    user_id = user_result.data[0]["id"]
     result = (
         supabase.table("client_memberships")
         .select("client_id, role, clients(id, name, slug, is_active, metadata, created_at)")
-        .eq("user_id", user.user_id)
+        .eq("user_id", user_id)
         .execute()
     )
     return [
@@ -59,12 +103,14 @@ async def create_client(
     )
     new_client = result.data[0]
 
-    # Automatically add the creating user as admin of the new client
     supabase.table("client_memberships").insert(
         {"user_id": user.user_id, "client_id": new_client["id"], "role": "admin"}
     ).execute()
 
     return new_client
+
+
+# ── Parameterized routes: /{client_id}/... ────────────────────────────
 
 
 @router.get("/{client_id}/members")
@@ -73,7 +119,6 @@ async def list_members(
     user: CurrentUser = Depends(get_current_user),
 ):
     """List members of a client. Must be a member to view."""
-    # Verify requesting user belongs to this client
     membership = (
         supabase.table("client_memberships")
         .select("role")
@@ -112,7 +157,6 @@ async def add_member(
     if body.role not in ("admin", "analyst", "reviewer"):
         raise HTTPException(status_code=400, detail="Invalid role")
 
-    # Verify the admin has access to this specific client
     admin_check = (
         supabase.table("client_memberships")
         .select("role")
@@ -134,30 +178,3 @@ async def add_member(
         .execute()
     )
     return result.data[0]
-
-
-@router.post("/users")
-async def create_user(
-    body: UserCreate,
-    user: CurrentUser = Depends(require_role("admin")),
-):
-    """Create a new user (admin only)."""
-    result = (
-        supabase.table("users")
-        .insert({"email": body.email, "display_name": body.display_name})
-        .execute()
-    )
-    return result.data[0]
-
-
-@router.get("/users/me")
-async def get_me(user: CurrentUser = Depends(get_current_user)):
-    """Get the current user's info and role."""
-    return {
-        "user_id": user.user_id,
-        "email": user.email,
-        "display_name": user.display_name,
-        "client_id": user.client_id,
-        "client_slug": user.client_slug,
-        "role": user.role,
-    }

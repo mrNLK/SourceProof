@@ -16,17 +16,17 @@ MAX_POLL_TIME = 300  # 5 minutes
 
 
 def _resolve_client_ids(item: dict) -> tuple[str, str | None]:
-    """Resolve text client_id and UUID client_uuid for a regulatory item.
+    """Resolve text client_id (slug) and UUID client_uuid for a regulatory item.
 
     Priority:
-    1. regulatory_item.client_id (UUID FK set during ingestion)
-    2. Fall back to looking up the client by slug matching jurisdiction
+    1. regulatory_item.client_id (UUID FK set during ingestion via manual trigger)
+    2. No fallback — if no client is assigned, return (jurisdiction, None).
+       Documents created without a client_uuid will not appear in any
+       client-scoped view until explicitly assigned.
     """
     client_uuid = item.get("client_id")  # UUID FK from regulatory_items
-    client_slug = None
 
     if client_uuid:
-        # Look up slug for the text field
         client = (
             supabase.table("clients")
             .select("slug")
@@ -34,24 +34,16 @@ def _resolve_client_ids(item: dict) -> tuple[str, str | None]:
             .limit(1)
             .execute()
         )
-        if client.data:
-            client_slug = client.data[0]["slug"]
-        return client_slug or client_uuid, client_uuid
+        slug = client.data[0]["slug"] if client.data else "unassigned"
+        return slug, client_uuid
 
-    # Fallback: look up all clients and create document versions for each
-    # that has assets in the matching jurisdiction. For now, default to
-    # the first active client to avoid breaking the pipeline.
-    clients = (
-        supabase.table("clients")
-        .select("id, slug")
-        .eq("is_active", True)
-        .limit(1)
-        .execute()
+    # No client assigned — use jurisdiction as display label, no UUID.
+    # This item will need manual client assignment before it appears
+    # in a tenant-scoped view.
+    logger.warning(
+        "Regulatory item %s has no client_id; documents will be unscoped",
+        item.get("id"),
     )
-    if clients.data:
-        return clients.data[0]["slug"], clients.data[0]["id"]
-
-    # Last resort fallback
     return item.get("jurisdiction", "FERC"), None
 
 
@@ -141,14 +133,16 @@ def run_extraction(regulatory_item_id: str, prior_version_id: str = None):
     # Resolve client identity
     client_slug, client_uuid = _resolve_client_ids(item)
 
-    # Determine next version number
-    existing_versions = (
+    # Determine next version number — scope by client to prevent cross-tenant collisions
+    version_query = (
         supabase.table("document_versions")
         .select("version_number")
         .eq("regulatory_item_id", regulatory_item_id)
-        .order("version_number", desc=True)
-        .limit(1)
-        .execute()
+    )
+    if client_uuid:
+        version_query = version_query.eq("client_uuid", client_uuid)
+    existing_versions = (
+        version_query.order("version_number", desc=True).limit(1).execute()
     )
     next_version = (existing_versions.data[0]["version_number"] + 1) if existing_versions.data else 1
 
@@ -165,8 +159,21 @@ def run_extraction(regulatory_item_id: str, prior_version_id: str = None):
     if client_uuid:
         doc_data["client_uuid"] = client_uuid
 
-    doc_version = supabase.table("document_versions").insert(doc_data).execute()
-    document_version_id = doc_version.data[0]["id"]
+    try:
+        doc_version = supabase.table("document_versions").insert(doc_data).execute()
+        document_version_id = doc_version.data[0]["id"]
+    except Exception as e:
+        logger.error("Failed to create document version for %s: %s", regulatory_item_id, e)
+        supabase.table("audit_log").insert(
+            {
+                "event_type": "document_version_creation_failed",
+                "entity_type": "regulatory_item",
+                "entity_id": regulatory_item_id,
+                "client_id": client_uuid,
+                "metadata": {"error": str(e), "parallel_job_id": parallel_job_id},
+            }
+        ).execute()
+        return
 
     # Audit log
     supabase.table("audit_log").insert(

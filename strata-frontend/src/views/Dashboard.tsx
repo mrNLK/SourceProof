@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import Card from "../components/Card";
 import { getMonitors, getReviewQueue, getCorpus } from "../lib/api";
+import { useClient } from "../lib/ClientContext";
 
 export default function Dashboard() {
+  const { activeClient } = useClient();
   const [monitors, setMonitors] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [corpus, setCorpus] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!activeClient) return;
     getMonitors().then(setMonitors).catch(() => {});
     getReviewQueue().then(setReviews).catch(() => {});
     getCorpus().then(setCorpus).catch(() => {});
-  }, []);
+  }, [activeClient?.id]);
 
   const activeMonitors = monitors.filter((m: any) => m.status !== "deleted").length;
 

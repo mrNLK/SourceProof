@@ -260,6 +260,76 @@ class TestClientScoping:
         assert uuid_filter, f"Expected client_uuid filter, got: {eq_calls}"
 
 
+# ── Bootstrap endpoint tests ──────────────────────────────────────────
+
+
+class TestBootstrap:
+    """Verify that /clients/mine works with only X-User-Email (no X-Client-Id)."""
+
+    @patch("strata.routers.clients.supabase")
+    def test_clients_mine_works_without_client_id(self, mock_sb):
+        chain = MagicMock()
+        for m in ("select", "eq", "limit"):
+            getattr(chain, m).return_value = chain
+
+        # First call: users lookup
+        user_result = MagicMock()
+        user_result.data = [USER_A]
+
+        # Second call: client_memberships with join
+        membership_result = MagicMock()
+        membership_result.data = [
+            {"client_id": "client-xxx", "role": "admin", "clients": CLIENT_X}
+        ]
+
+        call_count = {"n": 0}
+        def table_side_effect(name):
+            chain_local = MagicMock()
+            for m in ("select", "eq", "limit"):
+                getattr(chain_local, m).return_value = chain_local
+            call_count["n"] += 1
+            if name == "users":
+                chain_local.execute.return_value = user_result
+            else:
+                chain_local.execute.return_value = membership_result
+            return chain_local
+
+        mock_sb.table.side_effect = table_side_effect
+
+        # Only X-User-Email, no X-Client-Id
+        res = client.get("/clients/mine", headers={"X-User-Email": "alice@acme.com"})
+        assert res.status_code == 200
+
+    @patch("strata.routers.clients.supabase")
+    def test_clients_mine_rejects_unknown_user(self, mock_sb):
+        chain = MagicMock()
+        for m in ("select", "eq", "limit"):
+            getattr(chain, m).return_value = chain
+        result = MagicMock()
+        result.data = []
+        chain.execute.return_value = result
+        mock_sb.table.return_value = chain
+
+        res = client.get("/clients/mine", headers={"X-User-Email": "nobody@x.com"})
+        assert res.status_code == 401
+
+
+# ── Route ordering tests ─────────────────────────────────────────────
+
+
+class TestRouteOrdering:
+    """Verify /users/me is reachable and doesn't match /{client_id}/members."""
+
+    @patch("strata.auth.supabase")
+    def test_users_me_reachable(self, mock_sb):
+        mock_sb.table = _make_supabase_mock(membership_role="analyst").table
+        res = client.get("/clients/users/me", headers=_headers())
+        assert res.status_code == 200
+        body = res.json()
+        assert body["email"] == "alice@acme.com"
+        assert body["role"] == "analyst"
+
+
 # ── Public endpoints ──────────────────────────────────────────────────
 
 

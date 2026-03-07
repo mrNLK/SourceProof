@@ -44,6 +44,15 @@ def generate_redline(document_version_id: str):
     except Exception as e:
         logger.warning("Failed to map assets for %s: %s", document_version_id, e)
         impacted_assets = []
+        supabase.table("audit_log").insert(
+            {
+                "event_type": "asset_mapping_failed",
+                "entity_type": "document_version",
+                "entity_id": document_version_id,
+                "client_id": client_uuid,
+                "metadata": {"error": str(e)},
+            }
+        ).execute()
 
     # Generate redline
     try:

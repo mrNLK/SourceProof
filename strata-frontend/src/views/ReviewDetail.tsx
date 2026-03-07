@@ -8,20 +8,23 @@ import {
   getDocumentHtmlUrl,
 } from "../lib/api";
 import { toast } from "../components/Toast";
+import { useClient } from "../lib/ClientContext";
 
 export default function ReviewDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { activeClient } = useClient();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !activeClient) return;
+    setLoading(true);
     getReviewDetail(id)
       .then(setData)
-      .catch(() => {})
+      .catch(() => setData(null))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, activeClient?.id]);
 
   if (loading) return <div className="text-muted">Loading...</div>;
   if (!data) return <div className="text-muted">Review not found.</div>;
@@ -30,24 +33,36 @@ export default function ReviewDetail() {
   const dvId = document_version?.id;
 
   const handleApprove = async () => {
-    await approveReview(id!);
-    toast("Document published successfully");
-    navigate("/reviews");
+    try {
+      await approveReview(id!);
+      toast("Document published successfully");
+      navigate("/reviews");
+    } catch {
+      toast("Approval failed");
+    }
   };
 
   const handleReject = async () => {
     const notes = prompt("Rejection notes:");
     if (notes === null) return;
-    await rejectReview(id!, notes);
-    toast("Review rejected");
-    navigate("/reviews");
+    try {
+      await rejectReview(id!, notes);
+      toast("Review rejected");
+      navigate("/reviews");
+    } catch {
+      toast("Rejection failed");
+    }
   };
 
   const handleRevision = async () => {
     const notes = prompt("Revision notes:");
     if (notes === null) return;
-    await requestRevision(id!, notes);
-    toast("Revision requested");
+    try {
+      await requestRevision(id!, notes);
+      toast("Revision requested");
+    } catch {
+      toast("Revision request failed");
+    }
   };
 
   const impactBadge = (level: string) => {
@@ -77,7 +92,7 @@ export default function ReviewDetail() {
             <div>
               <span className="text-muted">Source:</span>{" "}
               {regulatory_item?.source_url ? (
-                <a href={regulatory_item.source_url} target="_blank" className="text-accent hover:underline">Link</a>
+                <a href={regulatory_item.source_url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Link</a>
               ) : "—"}
             </div>
             <div><span className="text-muted">Effective:</span> {extraction_data?.effective_date || "—"}</div>

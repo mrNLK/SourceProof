@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { getCorpus, syncCorpus, triggerPipeline } from "../lib/api";
 import { toast } from "../components/Toast";
+import { useClient } from "../lib/ClientContext";
 
 export default function Corpus() {
+  const { activeClient } = useClient();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -10,6 +12,7 @@ export default function Corpus() {
   const [triggering, setTriggering] = useState(false);
 
   const load = () => {
+    if (!activeClient) return;
     setLoading(true);
     getCorpus()
       .then(setItems)
@@ -17,7 +20,7 @@ export default function Corpus() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, []);
+  useEffect(load, [activeClient?.id]);
 
   const handleSync = async () => {
     setSyncing(true);
@@ -109,7 +112,7 @@ export default function Corpus() {
                   <td className="p-3 text-xs">{item.effective_date || "—"}</td>
                   <td className="p-3">
                     {item.source_url ? (
-                      <a href={item.source_url} target="_blank" className="text-accent hover:underline text-xs">
+                      <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs">
                         Link
                       </a>
                     ) : "—"}

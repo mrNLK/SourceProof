@@ -32,7 +32,8 @@ async function request(path: string, options?: RequestInit) {
 }
 
 // Clients
-export const getMyClients = () => request("/clients/");
+// /clients/mine only needs X-User-Email, not X-Client-Id (bootstrap-safe)
+export const getMyClients = () => request("/clients/mine");
 export const getCurrentClient = () => request("/clients/current");
 export const getMe = () => request("/clients/users/me");
 
