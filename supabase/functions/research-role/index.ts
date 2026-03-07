@@ -173,6 +173,82 @@ I need:
 
     const strategy = result.toolInput;
 
+    // -------------------------------------------------------------------
+    // Harmonic enrichment: enrich poach_companies with real company data
+    // -------------------------------------------------------------------
+    let harmonicEnrichedCompanies: Record<string, unknown>[] | null = null;
+    const harmonicApiKey = Deno.env.get('HARMONIC_API_KEY');
+    if (harmonicApiKey && strategy.poach_companies?.length > 0) {
+      try {
+        const enrichResults = await Promise.allSettled(
+          strategy.poach_companies.map(async (pc: { name: string; reason: string; category: string }) => {
+            // Best-effort domain guess from company name
+            const domain = pc.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+            const url = new URL('https://api.harmonic.ai/companies');
+            url.searchParams.set('website_domain', domain);
+            url.searchParams.set('apikey', harmonicApiKey);
+            const res = await fetch(url.toString(), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'apikey': harmonicApiKey },
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            // Compute poachability signals
+            const tm = data.traction_metrics;
+            const engGrowth = tm?.headcountEngineering?.ago90d?.percentChange;
+            const webChange = tm?.webTraffic?.ago30d?.percentChange;
+            const signals: string[] = [];
+            let poachScore = 50;
+            if (engGrowth !== undefined && engGrowth < -5) { poachScore += 20; signals.push(`Eng team shrinking (${engGrowth.toFixed(0)}% 90d)`); }
+            else if (engGrowth !== undefined && engGrowth > 20) { poachScore -= 15; signals.push(`Eng team growing (+${engGrowth.toFixed(0)}% 90d)`); }
+            if (webChange !== undefined && webChange < -10) { poachScore += 15; signals.push(`Traffic declining (${webChange.toFixed(0)}% 30d)`); }
+            if (data.funding?.lastFundingDate) {
+              const months = (Date.now() - new Date(data.funding.lastFundingDate).getTime()) / (30*24*60*60*1000);
+              if (months > 24) { poachScore += 15; signals.push(`No funding in ${Math.round(months)} months`); }
+              else if (months < 6) { poachScore -= 10; signals.push('Recently funded'); }
+            }
+            for (const h of (data.highlights || [])) {
+              if (h.text?.toLowerCase().includes('layoff')) { poachScore += 20; signals.push('Layoff signals'); break; }
+            }
+            return {
+              ...pc,
+              harmonic: {
+                name: data.name,
+                domain: data.website?.domain,
+                logo_url: data.logo_url,
+                stage: data.stage,
+                headcount: data.headcount,
+                funding_total: data.funding?.fundingTotal,
+                last_round_date: data.funding?.lastFundingDate,
+                engineering_growth_90d: engGrowth,
+                web_traffic_change_30d: webChange,
+                poach_score: Math.max(0, Math.min(100, poachScore)),
+                poach_signals: signals,
+                top_investors: data.funding_rounds
+                  ?.flatMap((r: any) => r.investors?.filter((i: any) => i.isLead).map((i: any) => i.investorName) || [])
+                  .slice(0, 3) || [],
+                tags: data.tags_v2?.map((t: any) => t.displayValue).slice(0, 5) || [],
+              },
+            };
+          })
+        );
+        harmonicEnrichedCompanies = enrichResults
+          .map(r => r.status === 'fulfilled' ? r.value : null)
+          .filter(Boolean) as Record<string, unknown>[];
+        // Sort by poachability (most poachable first)
+        harmonicEnrichedCompanies.sort((a: any, b: any) =>
+          (b.harmonic?.poach_score || 0) - (a.harmonic?.poach_score || 0)
+        );
+      } catch (e) {
+        console.error('Harmonic enrichment failed (non-blocking):', e);
+      }
+    }
+
+    // If Harmonic enrichment succeeded, merge into strategy
+    if (harmonicEnrichedCompanies && harmonicEnrichedCompanies.length > 0) {
+      strategy.poach_companies = harmonicEnrichedCompanies;
+    }
+
     // Increment search count for gated users
     if (gate.userId) {
       await incrementSearchCount(gate.userId).catch(e => console.error('Failed to increment search count:', e));
