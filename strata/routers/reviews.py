@@ -1,32 +1,33 @@
-"""Reviewer workflow API endpoints."""
+"""Reviewer workflow API endpoints — scoped by client membership."""
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
+from strata.auth import get_current_user, require_role
 from strata.database import supabase
-from strata.models.schemas import ReviewAction
+from strata.models.schemas import CurrentUser, ReviewAction
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 
 @router.get("/queue")
-async def get_review_queue():
-    """List all pending review items."""
+async def get_review_queue(user: CurrentUser = Depends(get_current_user)):
+    """List pending review items for the user's active client."""
     result = (
         supabase.table("review_queue")
         .select(
-            "id, document_version_id, status, created_at, "
-            "document_versions(id, extraction_data, impacted_assets, "
+            "id, document_version_id, status, created_at, client_id, "
+            "document_versions(id, client_uuid, extraction_data, impacted_assets, "
             "regulatory_item_id, document_versions_regulatory_item_id_fkey("
             "filing_type, docket_number))"
         )
         .eq("status", "pending")
+        .eq("client_id", user.client_id)
         .order("created_at")
         .execute()
     )
 
-    # Flatten the joined data for the response
     items = []
     for row in result.data:
         dv = row.get("document_versions", {}) or {}
@@ -47,10 +48,8 @@ async def get_review_queue():
     return items
 
 
-@router.get("/{review_queue_id}")
-async def get_review_detail(review_queue_id: str):
-    """Get full review detail including document, extraction, and audit trail."""
-    # Fetch review queue record
+def _fetch_review_for_client(review_queue_id: str, client_id: str) -> dict:
+    """Fetch a review record and verify it belongs to the client."""
     review = (
         supabase.table("review_queue")
         .select("*")
@@ -60,11 +59,21 @@ async def get_review_detail(review_queue_id: str):
     )
     if not review.data:
         raise HTTPException(status_code=404, detail="Review not found")
+    row = review.data[0]
+    if row.get("client_id") and row["client_id"] != client_id:
+        raise HTTPException(status_code=403, detail="Review belongs to another client")
+    return row
 
-    review_data = review.data[0]
+
+@router.get("/{review_queue_id}")
+async def get_review_detail(
+    review_queue_id: str,
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Get full review detail including document, extraction, and audit trail."""
+    review_data = _fetch_review_for_client(review_queue_id, user.client_id)
     dv_id = review_data["document_version_id"]
 
-    # Fetch document version
     doc_version = (
         supabase.table("document_versions")
         .select("*")
@@ -74,7 +83,6 @@ async def get_review_detail(review_queue_id: str):
     )
     dv_data = doc_version.data[0] if doc_version.data else {}
 
-    # Fetch regulatory item
     ri_id = dv_data.get("regulatory_item_id")
     ri_data = {}
     if ri_id:
@@ -87,7 +95,6 @@ async def get_review_detail(review_queue_id: str):
         )
         ri_data = ri.data[0] if ri.data else {}
 
-    # Fetch audit trail
     audit = (
         supabase.table("audit_log")
         .select("*")
@@ -107,38 +114,30 @@ async def get_review_detail(review_queue_id: str):
 
 
 @router.post("/{review_queue_id}/approve")
-async def approve_review(review_queue_id: str):
+async def approve_review(
+    review_queue_id: str,
+    user: CurrentUser = Depends(require_role("admin", "reviewer")),
+):
     """Approve a review and publish the document version."""
-    review = (
-        supabase.table("review_queue")
-        .select("*")
-        .eq("id", review_queue_id)
-        .limit(1)
-        .execute()
-    )
-    if not review.data:
-        raise HTTPException(status_code=404, detail="Review not found")
-
-    dv_id = review.data[0]["document_version_id"]
+    review_data = _fetch_review_for_client(review_queue_id, user.client_id)
+    dv_id = review_data["document_version_id"]
     now = datetime.now(timezone.utc).isoformat()
 
-    # Update review queue
     supabase.table("review_queue").update(
         {"status": "approved", "resolved_at": now}
     ).eq("id", review_queue_id).execute()
 
-    # Update document version
     supabase.table("document_versions").update(
         {"status": "published"}
     ).eq("id", dv_id).execute()
 
-    # Audit log
     supabase.table("audit_log").insert(
         {
             "event_type": "review_approved",
             "entity_type": "document_version",
             "entity_id": dv_id,
-            "metadata": {"reviewer_id": "default"},
+            "client_id": user.client_id,
+            "metadata": {"reviewer_id": user.user_id, "reviewer_email": user.email},
         }
     ).execute()
 
@@ -146,19 +145,14 @@ async def approve_review(review_queue_id: str):
 
 
 @router.post("/{review_queue_id}/reject")
-async def reject_review(review_queue_id: str, action: ReviewAction):
+async def reject_review(
+    review_queue_id: str,
+    action: ReviewAction,
+    user: CurrentUser = Depends(require_role("admin", "reviewer")),
+):
     """Reject a review."""
-    review = (
-        supabase.table("review_queue")
-        .select("*")
-        .eq("id", review_queue_id)
-        .limit(1)
-        .execute()
-    )
-    if not review.data:
-        raise HTTPException(status_code=404, detail="Review not found")
-
-    dv_id = review.data[0]["document_version_id"]
+    review_data = _fetch_review_for_client(review_queue_id, user.client_id)
+    dv_id = review_data["document_version_id"]
     now = datetime.now(timezone.utc).isoformat()
 
     supabase.table("review_queue").update(
@@ -174,7 +168,8 @@ async def reject_review(review_queue_id: str, action: ReviewAction):
             "event_type": "review_rejected",
             "entity_type": "document_version",
             "entity_id": dv_id,
-            "metadata": {"reviewer_id": "default", "notes": action.notes},
+            "client_id": user.client_id,
+            "metadata": {"reviewer_id": user.user_id, "notes": action.notes},
         }
     ).execute()
 
@@ -182,17 +177,13 @@ async def reject_review(review_queue_id: str, action: ReviewAction):
 
 
 @router.post("/{review_queue_id}/request-revision")
-async def request_revision(review_queue_id: str, action: ReviewAction):
+async def request_revision(
+    review_queue_id: str,
+    action: ReviewAction,
+    user: CurrentUser = Depends(require_role("admin", "reviewer")),
+):
     """Request revision on a review item."""
-    review = (
-        supabase.table("review_queue")
-        .select("*")
-        .eq("id", review_queue_id)
-        .limit(1)
-        .execute()
-    )
-    if not review.data:
-        raise HTTPException(status_code=404, detail="Review not found")
+    _fetch_review_for_client(review_queue_id, user.client_id)
 
     supabase.table("review_queue").update(
         {"status": "revision_requested", "reviewer_notes": action.notes}

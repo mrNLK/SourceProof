@@ -1,35 +1,25 @@
 import { useEffect, useState } from "react";
 import { getCurrentDocument, getDocumentHistory, getDocumentHtmlUrl } from "../lib/api";
-
-const CLIENTS = ["demo_iou", "demo_developer"];
+import { useClient } from "../lib/ClientContext";
 
 export default function Documents() {
-  const [clientId, setClientId] = useState(CLIENTS[0]);
+  const { activeClient } = useClient();
   const [current, setCurrent] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [modalUrl, setModalUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    getCurrentDocument(clientId).then(setCurrent).catch(() => setCurrent(null));
-    getDocumentHistory(clientId).then(setHistory).catch(() => setHistory([]));
-  }, [clientId]);
+    if (!activeClient) return;
+    getCurrentDocument().then(setCurrent).catch(() => setCurrent(null));
+    getDocumentHistory().then(setHistory).catch(() => setHistory([]));
+  }, [activeClient?.id]);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Documents</h1>
-
-      <div className="mb-6">
-        <label className="text-muted text-xs uppercase tracking-wider mr-3">Client</label>
-        <select
-          value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-          className="bg-panel border border-border text-text rounded px-3 py-1.5 text-sm"
-        >
-          {CLIENTS.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
+      <h1 className="text-2xl font-bold mb-2">Documents</h1>
+      {activeClient && (
+        <p className="text-muted text-sm mb-6">{activeClient.name}</p>
+      )}
 
       {current && (
         <div className="bg-panel border border-border rounded-lg p-5 mb-6">
@@ -97,7 +87,6 @@ export default function Documents() {
         )}
       </div>
 
-      {/* Modal for viewing document HTML */}
       {modalUrl && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-panel border border-border rounded-lg w-4/5 h-4/5 flex flex-col">

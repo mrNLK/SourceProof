@@ -3,6 +3,60 @@ from typing import Optional
 from datetime import date, datetime
 
 
+# --- Clients & Users ---
+
+class ClientCreate(BaseModel):
+    name: str
+    slug: str
+    metadata: Optional[dict] = None
+
+
+class ClientResponse(BaseModel):
+    id: str
+    name: str
+    slug: str
+    is_active: bool = True
+    metadata: Optional[dict] = None
+    created_at: Optional[datetime] = None
+
+
+class UserCreate(BaseModel):
+    email: str
+    display_name: str
+
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    display_name: str
+    is_active: bool = True
+    created_at: Optional[datetime] = None
+
+
+class MembershipCreate(BaseModel):
+    user_id: str
+    client_id: str
+    role: str = "analyst"
+
+
+class MembershipResponse(BaseModel):
+    id: str
+    user_id: str
+    client_id: str
+    role: str
+    created_at: Optional[datetime] = None
+
+
+class CurrentUser(BaseModel):
+    """Resolved user context from request headers."""
+    user_id: str
+    email: str
+    display_name: str
+    client_id: str
+    client_slug: str
+    role: str
+
+
 # --- Regulatory Items ---
 
 class RegulatoryItemBase(BaseModel):

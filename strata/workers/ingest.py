@@ -70,6 +70,10 @@ def process_document(source_url: str, monitor_id: str, monitor_metadata: dict):
         },
     }
 
+    # Propagate client_id from monitor metadata if present (set by manual trigger)
+    if monitor_metadata.get("client_id"):
+        item_data["client_id"] = monitor_metadata["client_id"]
+
     # Check if item already exists
     existing = (
         supabase.table("regulatory_items")

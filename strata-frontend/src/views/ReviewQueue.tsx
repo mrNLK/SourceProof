@@ -1,22 +1,29 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getReviewQueue } from "../lib/api";
+import { useClient } from "../lib/ClientContext";
 
 export default function ReviewQueue() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { activeClient } = useClient();
 
   useEffect(() => {
+    if (!activeClient) return;
+    setLoading(true);
     getReviewQueue()
       .then(setItems)
-      .catch(() => {})
+      .catch(() => setItems([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [activeClient?.id]);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Pending Reviews</h1>
+      <h1 className="text-2xl font-bold mb-2">Pending Reviews</h1>
+      {activeClient && (
+        <p className="text-muted text-sm mb-6">{activeClient.name}</p>
+      )}
 
       {loading ? (
         <div className="text-muted">Loading...</div>

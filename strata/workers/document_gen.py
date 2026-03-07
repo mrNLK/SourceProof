@@ -29,10 +29,18 @@ def generate_redline(document_version_id: str):
     dv = doc_version.data[0]
     extraction_data = dv.get("extraction_data", {})
     client_id = dv.get("client_id", "FERC")
+    client_uuid = dv.get("client_uuid")
 
-    # Map impacted assets
+    # Map impacted assets — prefer UUID-based lookup
     try:
-        impacted_assets = document_generator.map_impacted_assets(extraction_data, client_id)
+        if client_uuid:
+            impacted_assets = document_generator.map_impacted_assets_by_uuid(
+                extraction_data, client_uuid
+            )
+        else:
+            impacted_assets = document_generator.map_impacted_assets(
+                extraction_data, client_id
+            )
     except Exception as e:
         logger.warning("Failed to map assets for %s: %s", document_version_id, e)
         impacted_assets = []
@@ -47,6 +55,7 @@ def generate_redline(document_version_id: str):
                 "event_type": "redline_generation_failed",
                 "entity_type": "document_version",
                 "entity_id": document_version_id,
+                "client_id": client_uuid,
                 "metadata": {"error": str(e)},
             }
         ).execute()
@@ -61,14 +70,15 @@ def generate_redline(document_version_id: str):
         }
     ).eq("id", document_version_id).execute()
 
-    # Create review queue entry
-    supabase.table("review_queue").insert(
-        {
-            "document_version_id": document_version_id,
-            "assigned_reviewer": "default",
-            "status": "pending",
-        }
-    ).execute()
+    # Create review queue entry — include client_id for scoped queries
+    review_data = {
+        "document_version_id": document_version_id,
+        "assigned_reviewer": "default",
+        "status": "pending",
+    }
+    if client_uuid:
+        review_data["client_id"] = client_uuid
+    supabase.table("review_queue").insert(review_data).execute()
 
     # Audit log
     supabase.table("audit_log").insert(
@@ -76,6 +86,7 @@ def generate_redline(document_version_id: str):
             "event_type": "redline_generated",
             "entity_type": "document_version",
             "entity_id": document_version_id,
+            "client_id": client_uuid,
             "metadata": {
                 "document_version_id": document_version_id,
                 "impacted_asset_count": len(impacted_assets),

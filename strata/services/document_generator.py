@@ -185,8 +185,19 @@ def generate_redline(document_version_id: str) -> str:
     return html_content
 
 
+def map_impacted_assets_by_uuid(extraction_data: dict, client_uuid: str) -> list:
+    """Map extraction findings to client assets using the UUID FK."""
+    assets = (
+        supabase.table("asset_registry")
+        .select("*")
+        .eq("client_uuid", client_uuid)
+        .execute()
+    )
+    return _score_assets(extraction_data, assets.data)
+
+
 def map_impacted_assets(extraction_data: dict, client_id: str) -> list:
-    """Map extraction findings to specific client assets."""
+    """Map extraction findings to specific client assets (legacy slug-based)."""
     assets = (
         supabase.table("asset_registry")
         .select("*")
@@ -194,7 +205,12 @@ def map_impacted_assets(extraction_data: dict, client_id: str) -> list:
         .execute()
     )
 
-    if not assets.data:
+    return _score_assets(extraction_data, assets.data)
+
+
+def _score_assets(extraction_data: dict, asset_rows: list) -> list:
+    """Score a list of asset rows against extraction findings."""
+    if not asset_rows:
         return []
 
     asset_impact = extraction_data.get("asset_impact", {})
@@ -202,25 +218,21 @@ def map_impacted_assets(extraction_data: dict, client_id: str) -> list:
     affected_sections_lower = [s.lower() for s in affected_sections]
 
     results = []
-    for asset in assets.data:
+    for asset in asset_rows:
         matches = []
 
-        # Check asset type matches
         asset_type = asset.get("asset_type", "")
         if asset_impact.get(asset_type, False):
             matches.append(f"asset_type:{asset_type}")
 
-        # Check interconnection specifically
         if asset_type in ("generation", "storage") and asset_impact.get("interconnection", False):
             if asset.get("queue_position"):
                 matches.append("interconnection_queue_impact")
 
-        # Check rate schedule in affected sections
         rate_schedule = (asset.get("rate_schedule") or "").lower()
         if rate_schedule and any(rate_schedule in s for s in affected_sections_lower):
             matches.append(f"rate_schedule:{asset.get('rate_schedule')}")
 
-        # Determine impact level
         if len(matches) >= 2:
             impact_level = "HIGH"
         elif len(matches) == 1:

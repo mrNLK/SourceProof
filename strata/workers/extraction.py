@@ -15,6 +15,46 @@ POLL_INTERVAL = 10  # seconds
 MAX_POLL_TIME = 300  # 5 minutes
 
 
+def _resolve_client_ids(item: dict) -> tuple[str, str | None]:
+    """Resolve text client_id and UUID client_uuid for a regulatory item.
+
+    Priority:
+    1. regulatory_item.client_id (UUID FK set during ingestion)
+    2. Fall back to looking up the client by slug matching jurisdiction
+    """
+    client_uuid = item.get("client_id")  # UUID FK from regulatory_items
+    client_slug = None
+
+    if client_uuid:
+        # Look up slug for the text field
+        client = (
+            supabase.table("clients")
+            .select("slug")
+            .eq("id", client_uuid)
+            .limit(1)
+            .execute()
+        )
+        if client.data:
+            client_slug = client.data[0]["slug"]
+        return client_slug or client_uuid, client_uuid
+
+    # Fallback: look up all clients and create document versions for each
+    # that has assets in the matching jurisdiction. For now, default to
+    # the first active client to avoid breaking the pipeline.
+    clients = (
+        supabase.table("clients")
+        .select("id, slug")
+        .eq("is_active", True)
+        .limit(1)
+        .execute()
+    )
+    if clients.data:
+        return clients.data[0]["slug"], clients.data[0]["id"]
+
+    # Last resort fallback
+    return item.get("jurisdiction", "FERC"), None
+
+
 @celery.task(name="strata.workers.extraction.run_extraction")
 def run_extraction(regulatory_item_id: str, prior_version_id: str = None):
     """Run Deep Research extraction on a regulatory item."""
@@ -98,8 +138,10 @@ def run_extraction(regulatory_item_id: str, prior_version_id: str = None):
     is_valid = extractor.validate_extraction(extraction_data)
     confidence = extraction_data.get("confidence", "low")
 
+    # Resolve client identity
+    client_slug, client_uuid = _resolve_client_ids(item)
+
     # Determine next version number
-    client_id = item.get("jurisdiction", "FERC")  # Use as default client
     existing_versions = (
         supabase.table("document_versions")
         .select("version_number")
@@ -111,21 +153,19 @@ def run_extraction(regulatory_item_id: str, prior_version_id: str = None):
     next_version = (existing_versions.data[0]["version_number"] + 1) if existing_versions.data else 1
 
     # Create document version
-    doc_version = (
-        supabase.table("document_versions")
-        .insert(
-            {
-                "client_id": client_id,
-                "regulatory_item_id": regulatory_item_id,
-                "version_number": next_version,
-                "status": "draft",
-                "template_type": "leadership_memo",
-                "extraction_data": extraction_data,
-                "parallel_job_id": parallel_job_id,
-            }
-        )
-        .execute()
-    )
+    doc_data = {
+        "client_id": client_slug,
+        "regulatory_item_id": regulatory_item_id,
+        "version_number": next_version,
+        "status": "draft",
+        "template_type": "leadership_memo",
+        "extraction_data": extraction_data,
+        "parallel_job_id": parallel_job_id,
+    }
+    if client_uuid:
+        doc_data["client_uuid"] = client_uuid
+
+    doc_version = supabase.table("document_versions").insert(doc_data).execute()
     document_version_id = doc_version.data[0]["id"]
 
     # Audit log
@@ -134,6 +174,7 @@ def run_extraction(regulatory_item_id: str, prior_version_id: str = None):
             "event_type": "extraction_complete",
             "entity_type": "document_version",
             "entity_id": document_version_id,
+            "client_id": client_uuid,
             "metadata": {
                 "regulatory_item_id": regulatory_item_id,
                 "confidence": confidence,
@@ -144,10 +185,11 @@ def run_extraction(regulatory_item_id: str, prior_version_id: str = None):
     ).execute()
 
     logger.info(
-        "Extraction complete for %s → doc version %s (confidence=%s)",
+        "Extraction complete for %s → doc version %s (confidence=%s, client=%s)",
         regulatory_item_id,
         document_version_id,
         confidence,
+        client_slug,
     )
 
     # Dispatch document generation

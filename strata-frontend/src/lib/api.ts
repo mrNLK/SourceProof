@@ -1,14 +1,40 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+// Auth context — set once at app init, threaded into every request.
+let _userEmail = import.meta.env.VITE_USER_EMAIL || "admin@strata.demo";
+let _clientId = ""; // UUID, set dynamically after loading clients
+
+export function setAuthContext(email: string, clientId: string) {
+  _userEmail = email;
+  _clientId = clientId;
+}
+
+export function getActiveClientId() {
+  return _clientId;
+}
+
+export function getActiveUserEmail() {
+  return _userEmail;
+}
+
 async function request(path: string, options?: RequestInit) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string>),
+  };
+  if (_userEmail) headers["X-User-Email"] = _userEmail;
+  if (_clientId) headers["X-Client-Id"] = _clientId;
+
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   if (res.status === 204) return null;
   return res.json();
 }
+
+// Clients
+export const getMyClients = () => request("/clients/");
+export const getCurrentClient = () => request("/clients/current");
+export const getMe = () => request("/clients/users/me");
 
 // Admin
 export const getMonitors = () => request("/admin/monitors");
@@ -18,8 +44,7 @@ export const deleteMonitor = (id: string) =>
 export const getCorpus = () => request("/admin/corpus");
 export const initCorpus = () => request("/admin/corpus/init", { method: "POST" });
 export const syncCorpus = () => request("/admin/corpus/sync", { method: "POST" });
-export const getAssets = (clientId?: string) =>
-  request(`/admin/assets${clientId ? `?client_id=${clientId}` : ""}`);
+export const getAssets = () => request("/admin/assets");
 export const triggerPipeline = (sourceUrl: string) =>
   request("/admin/test/trigger", {
     method: "POST",
@@ -42,11 +67,9 @@ export const requestRevision = (id: string, notes: string) =>
     body: JSON.stringify({ notes }),
   });
 
-// Documents
-export const getCurrentDocument = (clientId: string) =>
-  request(`/documents/${clientId}/current`);
-export const getDocumentHistory = (clientId: string) =>
-  request(`/documents/${clientId}/history`);
+// Documents — no longer take clientId param; scoped by active client header
+export const getCurrentDocument = () => request("/documents/current");
+export const getDocumentHistory = () => request("/documents/history");
 export const getAuditTrail = (dvId: string) =>
   request(`/documents/${dvId}/audit-trail`);
 export const getDocumentHtmlUrl = (dvId: string) =>
