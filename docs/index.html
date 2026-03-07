@@ -9,45 +9,45 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --accent: #6ef2c7;
-    --accent-strong: #8dffd8;
-    --accent-subtle: rgba(110,242,199,0.09);
-    --accent-bg: rgba(110,242,199,0.08);
-    --accent-border: rgba(110,242,199,0.24);
-    --accent-warm: #d7c39a;
-    --bg: #071018;
-    --bg-elevated: #0d1720;
-    --bg-card: #111d28;
-    --white: #f7faf8;
-    --body: #d8e1df;
-    --secondary: #99a8ac;
-    --muted: #72818a;
-    --border: rgba(215, 225, 223, 0.08);
-    --border-focus: #6ef2c7;
-    --blue: #7fb4ff;
-    --blue-bg: rgba(127,180,255,0.08);
-    --blue-border: rgba(127,180,255,0.24);
-    --purple: #b7a6ff;
-    --purple-bg: rgba(183,166,255,0.08);
-    --purple-border: rgba(183,166,255,0.22);
-    --orange: #f3c47c;
-    --orange-bg: rgba(243,196,124,0.08);
-    --orange-border: rgba(243,196,124,0.22);
-    --red: #ff8f8f;
-    --red-bg: rgba(255,143,143,0.06);
-    --red-border: rgba(255,143,143,0.2);
-    --cyan: #6ad8f0;
-    --cyan-bg: rgba(106,216,240,0.08);
-    --cyan-border: rgba(106,216,240,0.22);
-    --pink: #f2a4c9;
-    --pink-bg: rgba(242,164,201,0.08);
-    --pink-border: rgba(242,164,201,0.2);
+    --accent: #00E5A0;
+    --accent-strong: #00C896;
+    --accent-subtle: rgba(0,229,160,0.08);
+    --accent-bg: rgba(0,229,160,0.06);
+    --accent-border: rgba(0,229,160,0.22);
+    --accent-warm: #00E5A0;
+    --bg: #0A0A0F;
+    --bg-elevated: #111116;
+    --bg-card: #15151B;
+    --white: #FFFFFF;
+    --body: #E0E0E0;
+    --secondary: #A1A1AA;
+    --muted: #6B7280;
+    --border: #1F1F26;
+    --border-focus: #00E5A0;
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.06);
+    --blue-border: rgba(59,130,246,0.22);
+    --purple: #a855f7;
+    --purple-bg: rgba(168,85,247,0.06);
+    --purple-border: rgba(168,85,247,0.22);
+    --orange: #f59e0b;
+    --orange-bg: rgba(245,158,11,0.06);
+    --orange-border: rgba(245,158,11,0.22);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.06);
+    --red-border: rgba(239,68,68,0.22);
+    --cyan: #06b6d4;
+    --cyan-bg: rgba(6,182,212,0.06);
+    --cyan-border: rgba(6,182,212,0.22);
+    --pink: #ec4899;
+    --pink-bg: rgba(236,72,153,0.06);
+    --pink-border: rgba(236,72,153,0.22);
     --radius: 10px;
     --radius-lg: 22px;
     --shadow-soft: 0 26px 80px rgba(0, 0, 0, 0.34);
     --shadow-card: 0 18px 38px rgba(0, 0, 0, 0.22);
-    --surface-top: rgba(18, 30, 40, 0.94);
-    --surface-bottom: rgba(10, 18, 27, 0.96);
+    --surface-top: rgba(18, 18, 24, 0.94);
+    --surface-bottom: rgba(10, 10, 15, 0.96);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html {
@@ -56,10 +56,10 @@
   body {
     min-height: 100vh;
     background:
-      radial-gradient(circle at 10% 0%, rgba(110,242,199,0.14), transparent 24%),
-      radial-gradient(circle at 100% 10%, rgba(127,180,255,0.12), transparent 22%),
-      radial-gradient(circle at 50% 100%, rgba(215,195,154,0.08), transparent 26%),
-      linear-gradient(180deg, #071018 0%, #09131d 48%, #060d14 100%);
+      radial-gradient(circle at 10% 0%, rgba(0,229,160,0.10), transparent 24%),
+      radial-gradient(circle at 100% 10%, rgba(59,130,246,0.08), transparent 22%),
+      radial-gradient(circle at 50% 100%, rgba(0,229,160,0.04), transparent 26%),
+      linear-gradient(180deg, #0A0A0F 0%, #0E0E14 48%, #08080D 100%);
     color: var(--body);
     font-family: 'DM Sans', sans-serif;
     font-size: 15px;
@@ -75,7 +75,7 @@
     width: 100%;
     margin: 0 auto;
     padding: clamp(18px, 3vw, 32px) clamp(16px, 4vw, 44px) clamp(28px, 4vw, 40px);
-    background: linear-gradient(180deg, rgba(15, 25, 35, 0.82) 0%, rgba(8, 15, 22, 0.92) 100%);
+    background: linear-gradient(180deg, rgba(18, 18, 24, 0.82) 0%, rgba(12, 12, 17, 0.92) 100%);
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: clamp(20px, 3vw, 30px);
     box-shadow: var(--shadow-soft);
@@ -89,7 +89,7 @@
     pointer-events: none;
     background:
       linear-gradient(135deg, rgba(255,255,255,0.05), transparent 28%),
-      linear-gradient(180deg, rgba(110,242,199,0.04), transparent 45%);
+      linear-gradient(180deg, rgba(0,229,160,0.04), transparent 45%);
   }
   .page > * {
     position: relative;
@@ -117,7 +117,7 @@
     content: '';
     width: 48px;
     height: 1px;
-    background: linear-gradient(90deg, rgba(110,242,199,0.8), rgba(110,242,199,0));
+    background: linear-gradient(90deg, rgba(0,229,160,0.8), rgba(0,229,160,0));
   }
   .heading {
     font-family: 'DM Sans', sans-serif;
@@ -175,7 +175,7 @@
 
   /* Highlighted card */
   .card-hl {
-    background: linear-gradient(180deg, rgba(110,242,199,0.12) 0%, rgba(110,242,199,0.04) 100%);
+    background: linear-gradient(180deg, rgba(0,229,160,0.12) 0%, rgba(0,229,160,0.04) 100%);
     border: 1px solid var(--accent-border);
     border-radius: 16px;
     padding: 14px 16px;
@@ -184,13 +184,13 @@
   .card-hl .card-title { color: var(--accent); }
 
   /* Color-coded cards */
-  .card-blue { background: linear-gradient(180deg, rgba(127,180,255,0.1) 0%, rgba(127,180,255,0.03) 100%); border: 1px solid var(--blue-border); border-radius: 16px; padding: 14px 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+  .card-blue { background: linear-gradient(180deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.03) 100%); border: 1px solid var(--blue-border); border-radius: 16px; padding: 14px 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
   .card-blue .card-title { color: var(--blue); }
-  .card-purple { background: linear-gradient(180deg, rgba(183,166,255,0.1) 0%, rgba(183,166,255,0.03) 100%); border: 1px solid var(--purple-border); border-radius: 16px; padding: 14px 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+  .card-purple { background: linear-gradient(180deg, rgba(168,85,247,0.1) 0%, rgba(168,85,247,0.03) 100%); border: 1px solid var(--purple-border); border-radius: 16px; padding: 14px 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
   .card-purple .card-title { color: var(--purple); }
-  .card-orange { background: linear-gradient(180deg, rgba(243,196,124,0.1) 0%, rgba(243,196,124,0.03) 100%); border: 1px solid var(--orange-border); border-radius: 16px; padding: 14px 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+  .card-orange { background: linear-gradient(180deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.03) 100%); border: 1px solid var(--orange-border); border-radius: 16px; padding: 14px 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
   .card-orange .card-title { color: var(--orange); }
-  .card-cyan { background: linear-gradient(180deg, rgba(106,216,240,0.1) 0%, rgba(106,216,240,0.03) 100%); border: 1px solid var(--cyan-border); border-radius: 16px; padding: 14px 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+  .card-cyan { background: linear-gradient(180deg, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0.03) 100%); border: 1px solid var(--cyan-border); border-radius: 16px; padding: 14px 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
   .card-cyan .card-title { color: var(--cyan); }
 
   /* Workflow */
@@ -313,7 +313,7 @@
   }
   .arch-box {
     flex: 1;
-    background: linear-gradient(180deg, rgba(110,242,199,0.08) 0%, rgba(255,255,255,0.03) 100%);
+    background: linear-gradient(180deg, rgba(0,229,160,0.08) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid var(--accent-border);
     border-radius: 14px;
     padding: 10px 12px;
@@ -363,7 +363,7 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, rgba(110,242,199,0.95), rgba(215,195,154,0.2));
+    background: linear-gradient(90deg, rgba(0,229,160,0.95), rgba(0,229,160,0.2));
     transform: translateY(-50%);
     z-index: 0;
   }
@@ -507,9 +507,9 @@
     padding: 14px 16px;
     transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
-  .api-group-card.blue { background: linear-gradient(180deg, rgba(127,180,255,0.08), rgba(127,180,255,0.03)); border: 1px solid rgba(127,180,255,0.18); }
-  .api-group-card.purple { background: linear-gradient(180deg, rgba(183,166,255,0.08), rgba(183,166,255,0.03)); border: 1px solid rgba(183,166,255,0.18); }
-  .api-group-card.orange { background: linear-gradient(180deg, rgba(243,196,124,0.08), rgba(243,196,124,0.03)); border: 1px solid rgba(243,196,124,0.18); }
+  .api-group-card.blue { background: linear-gradient(180deg, rgba(59,130,246,0.08), rgba(59,130,246,0.03)); border: 1px solid rgba(59,130,246,0.18); }
+  .api-group-card.purple { background: linear-gradient(180deg, rgba(168,85,247,0.08), rgba(168,85,247,0.03)); border: 1px solid rgba(168,85,247,0.18); }
+  .api-group-card.orange { background: linear-gradient(180deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03)); border: 1px solid rgba(245,158,11,0.18); }
 
   /* Hero */
   .hero {
@@ -522,9 +522,9 @@
     border-radius: 28px;
     border: 1px solid rgba(255,255,255,0.08);
     background:
-      radial-gradient(circle at top right, rgba(215,195,154,0.12), transparent 24%),
-      radial-gradient(circle at top left, rgba(110,242,199,0.12), transparent 24%),
-      linear-gradient(180deg, rgba(22, 34, 45, 0.96) 0%, rgba(10, 17, 25, 0.96) 100%);
+      radial-gradient(circle at top right, rgba(0,229,160,0.12), transparent 24%),
+      radial-gradient(circle at top left, rgba(0,229,160,0.12), transparent 24%),
+      linear-gradient(180deg, rgba(20, 20, 28, 0.96) 0%, rgba(12, 12, 17, 0.96) 100%);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 18px 44px rgba(0,0,0,0.2);
   }
   .hero-left { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
@@ -581,7 +581,7 @@
   .btn-primary {
     color: #082019;
     background: linear-gradient(135deg, var(--accent-strong), var(--accent));
-    border-color: rgba(110,242,199,0.35);
+    border-color: rgba(0,229,160,0.35);
   }
   .btn-secondary {
     background: rgba(255,255,255,0.03);
@@ -638,7 +638,7 @@
     left: 11%;
     right: 11%;
     height: 1px;
-    background: linear-gradient(90deg, rgba(110,242,199,0.2), rgba(215,195,154,0.35), rgba(110,242,199,0.2));
+    background: linear-gradient(90deg, rgba(0,229,160,0.2), rgba(0,229,160,0.35), rgba(0,229,160,0.2));
     z-index: 0;
   }
   .process-step {
@@ -883,14 +883,14 @@
   <div class="hero">
     <div class="hero-left">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="52" height="52">
-        <path d="M88 72 L56 128 L88 184" stroke="#6EF2C7" stroke-width="20" stroke-linecap="round" fill="none"/>
-        <path d="M168 72 L200 128 L168 184" stroke="#6EF2C7" stroke-width="20" stroke-linecap="round" fill="none"/>
-        <line x1="128" y1="88" x2="128" y2="64" stroke="#D7C39A" stroke-width="11" stroke-linecap="round"/>
-        <line x1="128" y1="192" x2="128" y2="168" stroke="#D7C39A" stroke-width="11" stroke-linecap="round"/>
-        <circle cx="128" cy="128" r="10" fill="#6EF2C7"/>
+        <path d="M88 72 L56 128 L88 184" stroke="#00E5A0" stroke-width="20" stroke-linecap="round" fill="none"/>
+        <path d="M168 72 L200 128 L168 184" stroke="#00E5A0" stroke-width="20" stroke-linecap="round" fill="none"/>
+        <line x1="128" y1="88" x2="128" y2="64" stroke="#00E5A0" stroke-width="11" stroke-linecap="round"/>
+        <line x1="128" y1="192" x2="128" y2="168" stroke="#00E5A0" stroke-width="11" stroke-linecap="round"/>
+        <circle cx="128" cy="128" r="10" fill="#00E5A0"/>
       </svg>
       <div>
-        <div class="hero-wordmark"><span style="color:#F7FAF8; font-weight:600;">Source</span><span style="color:#D7C39A; font-weight:500;">Kit</span></div>
+        <div class="hero-wordmark"><span style="color:#FFFFFF; font-weight:600;">Source </span><span style="color:#9E9E9E; font-weight:500;">Kit</span></div>
         <div class="hero-url">getsourcekit.vercel.app</div>
       </div>
     </div>
@@ -932,7 +932,7 @@
         </div>
         <div class="process-step">
           <div class="process-stage">Strategy Generation</div>
-          <div class="process-brand"><span class="process-brand-mark">E</span>Exa Research</div>
+          <div class="process-brand"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><circle cx="12" cy="12" r="10" stroke="var(--blue)" stroke-width="2" fill="none"/><path d="M8 8h8M8 12h5M8 16h8" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round"/></svg>Exa Research</div>
           <div class="process-step-title">Translate the role into sourcing logic</div>
           <ul class="process-list">
             <li>Target repos</li>
@@ -942,7 +942,7 @@
         </div>
         <div class="process-step">
           <div class="process-stage">Ecosystem Mapping</div>
-          <div class="process-brand"><span class="process-brand-mark">P</span>Parallel</div>
+          <div class="process-brand"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="4" stroke="var(--purple)" stroke-width="2" fill="none"/><line x1="8" y1="7" x2="8" y2="17" stroke="var(--purple)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="7" x2="12" y2="17" stroke="var(--purple)" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="7" x2="16" y2="17" stroke="var(--purple)" stroke-width="2" stroke-linecap="round"/></svg>Parallel</div>
           <div class="process-step-title">Map the company and talent landscape</div>
           <ul class="process-list">
             <li>Company intelligence</li>
@@ -952,7 +952,7 @@
         </div>
         <div class="process-step">
           <div class="process-stage">Candidate Discovery</div>
-          <div class="process-brand"><span class="process-brand-mark">GH</span>GitHub</div>
+          <div class="process-brand"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z" fill="var(--orange)"/></svg>GitHub</div>
           <div class="process-step-title">Find builders with visible technical proof</div>
           <ul class="process-list">
             <li>Repo mining</li>
