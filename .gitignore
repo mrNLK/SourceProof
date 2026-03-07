@@ -36,3 +36,8 @@ supabase/.temp/
 *.sln
 *.sw?
 SourceProof.zip
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
