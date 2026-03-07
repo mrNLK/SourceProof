@@ -179,6 +179,8 @@ export async function updatePerson(
   if (updates.sourceChannel !== undefined) payload.source_channel = updates.sourceChannel;
   if (updates.tags !== undefined) payload.tags = updates.tags;
   if (updates.metadata !== undefined) payload.metadata = updates.metadata;
+  if (updates.harmonicPersonId !== undefined) payload.harmonic_person_id = updates.harmonicPersonId;
+  if (updates.harmonicEnrichedAt !== undefined) payload.harmonic_enriched_at = updates.harmonicEnrichedAt;
 
   const { error } = await supabase
     .from("aifund_people")

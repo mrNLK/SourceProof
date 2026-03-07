@@ -26,6 +26,7 @@ import {
   createScore,
   fetchDashboardStats,
 } from "@/lib/ai-fund";
+import { enrichPersonWithHarmonic } from "@/lib/harmonic";
 
 export function useAiFundWorkspace(): AiFundWorkspace {
   const [concepts, setConcepts] = useState<AiFundConcept[]>([]);
@@ -99,6 +100,39 @@ export function useAiFundWorkspace(): AiFundWorkspace {
       try {
         const person = await createPerson(fields);
         setPeople((prev) => [person, ...prev]);
+
+        // Auto-enrich with Harmonic if LinkedIn URL is available
+        if (person.linkedinUrl) {
+          enrichPersonWithHarmonic({
+            personId: person.id,
+            linkedinUrl: person.linkedinUrl,
+            personContext: {
+              fullName: person.fullName,
+              currentRole: person.currentRole,
+              currentCompany: person.currentCompany,
+              location: person.location,
+            },
+          })
+            .then((result) => {
+              // Merge enriched fields into local state
+              setPeople((prev) =>
+                prev.map((p) =>
+                  p.id === person.id
+                    ? {
+                        ...p,
+                        harmonicPersonId: result.person.harmonic_person_id ?? p.harmonicPersonId,
+                        harmonicEnrichedAt: result.person.harmonic_enriched_at ?? p.harmonicEnrichedAt,
+                        linkedinUrl: result.person.linkedin_url ?? p.linkedinUrl,
+                      }
+                    : p
+                )
+              );
+            })
+            .catch((err) => {
+              console.warn("Harmonic enrichment failed (non-blocking):", err);
+            });
+        }
+
         return person;
       } catch (err) {
         console.error("addPerson error:", err);
@@ -114,8 +148,41 @@ export function useAiFundWorkspace(): AiFundWorkspace {
       setPeople((prev) =>
         prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
       );
+
+      // Auto-enrich with Harmonic if LinkedIn URL was added/changed
+      if (updates.linkedinUrl) {
+        const person = people.find((p) => p.id === id);
+        const merged = person ? { ...person, ...updates } : updates;
+        enrichPersonWithHarmonic({
+          personId: id,
+          linkedinUrl: updates.linkedinUrl,
+          personContext: {
+            fullName: merged.fullName ?? null,
+            currentRole: merged.currentRole ?? null,
+            currentCompany: merged.currentCompany ?? null,
+            location: merged.location ?? null,
+          },
+        })
+          .then((result) => {
+            setPeople((prev) =>
+              prev.map((p) =>
+                p.id === id
+                  ? {
+                      ...p,
+                      harmonicPersonId: result.person.harmonic_person_id ?? p.harmonicPersonId,
+                      harmonicEnrichedAt: result.person.harmonic_enriched_at ?? p.harmonicEnrichedAt,
+                      linkedinUrl: result.person.linkedin_url ?? p.linkedinUrl,
+                    }
+                  : p
+              )
+            );
+          })
+          .catch((err) => {
+            console.warn("Harmonic enrichment failed (non-blocking):", err);
+          });
+      }
     },
-    []
+    [people]
   );
 
   const addAssignmentHandler = useCallback(

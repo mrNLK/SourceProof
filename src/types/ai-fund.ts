@@ -78,7 +78,7 @@ export type IntelligenceRunStatus =
   | "completed"
   | "failed";
 
-export type IntelligenceProvider = "exa" | "parallel" | "github" | "manual";
+export type IntelligenceProvider = "exa" | "parallel" | "github" | "manual" | "harmonic";
 
 // ---------------------------------------------------------------------------
 // Core Entities
@@ -116,6 +116,8 @@ export interface AiFundPerson {
   sourceChannel: string | null;
   tags: string[];
   metadata: Record<string, unknown> | null;
+  harmonicPersonId: string | null;
+  harmonicEnrichedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -320,6 +322,8 @@ export interface AiFundPersonRow {
   source_channel: string | null;
   tags: string[];
   metadata: Record<string, unknown> | null;
+  harmonic_person_id: string | null;
+  harmonic_enriched_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -469,6 +473,8 @@ export function personFromRow(row: AiFundPersonRow): AiFundPerson {
     sourceChannel: row.source_channel,
     tags: row.tags,
     metadata: row.metadata,
+    harmonicPersonId: row.harmonic_person_id ?? null,
+    harmonicEnrichedAt: row.harmonic_enriched_at ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -585,4 +591,94 @@ export function evidenceFromRow(row: AiFundEvidenceRow): AiFundEvidence {
     metadata: row.metadata,
     createdAt: row.created_at,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Harmonic Types
+// ---------------------------------------------------------------------------
+
+export interface AiFundHarmonicFounderSummary {
+  name: string;
+  role: string | null;
+  linkedinUrl: string | null;
+}
+
+export interface AiFundHarmonicCompany {
+  id: string;
+  userId: string;
+  harmonicCompanyId: string;
+  name: string;
+  domain: string | null;
+  linkedinUrl: string | null;
+  websiteUrl: string | null;
+  location: string | null;
+  fundingStage: string | null;
+  fundingTotal: number | null;
+  lastFundingDate: string | null;
+  lastFundingTotal: number | null;
+  headcount: number | null;
+  headcountGrowth30d: number | null;
+  headcountGrowth90d: number | null;
+  tags: string[];
+  founders: AiFundHarmonicFounderSummary[];
+  rawPayload: Record<string, unknown>;
+  fetchedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AiFundHarmonicCompanySummary {
+  harmonicCompanyId: string;
+  name: string;
+  domain: string | null;
+  linkedinUrl: string | null;
+  websiteUrl: string | null;
+  location: string | null;
+  fundingStage: string | null;
+  fundingTotal: number | null;
+  lastFundingDate: string | null;
+  lastFundingTotal: number | null;
+  headcount: number | null;
+  headcountGrowth30d: number | null;
+  headcountGrowth90d: number | null;
+  tags: string[];
+  founders: AiFundHarmonicFounderSummary[];
+}
+
+export interface AiFundHarmonicIntelligenceSummary {
+  query: string;
+  companies: AiFundHarmonicCompanySummary[];
+  source: "harmonic";
+  conceptId: string | null;
+  fetchedAt: string;
+}
+
+export interface AiFundHarmonicSavedSearch {
+  id: string;
+  userId: string;
+  conceptId: string;
+  harmonicSavedSearchId: string | null;
+  queryText: string;
+  queryHash: string;
+  status: string;
+  lastSyncedAt: string | null;
+  lastRunId: string | null;
+  resultCount: number;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AiFundHarmonicPersonProfile {
+  harmonicPersonId: string | null;
+  fullName: string | null;
+  linkedinUrl: string | null;
+  currentRole: string | null;
+  currentCompany: string | null;
+  location: string | null;
+  bio: string | null;
+  education: unknown[];
+  experience: unknown[];
+  skills: string[];
+  socialLinks: Record<string, string>;
 }
