@@ -74,7 +74,7 @@ export default function AIFundDashboard() {
       case "investment":
         return <InvestmentReviewTab workspace={workspace} />;
       case "intelligence":
-        return <IntelligenceTab />;
+        return <IntelligenceTab workspace={workspace} />;
       case "settings":
         return <AiFundSettingsTab />;
       default:

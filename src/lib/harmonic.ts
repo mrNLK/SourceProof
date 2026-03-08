@@ -92,3 +92,32 @@ export async function runHarmonicIntelligence(
 
   return data as RunHarmonicIntelligenceResult;
 }
+
+// ---------------------------------------------------------------------------
+// Saved Search Sync
+// ---------------------------------------------------------------------------
+
+export interface SyncSavedSearchesResult {
+  synced: number;
+  totalNewCompanies: number;
+  results: Array<{
+    savedSearchId: string;
+    conceptId: string;
+    newCompanies: number;
+    status: string;
+  }>;
+}
+
+export async function syncHarmonicSavedSearches(
+  savedSearchId?: string
+): Promise<SyncSavedSearchesResult> {
+  const { data, error } = await supabase.functions.invoke("harmonic-sync", {
+    body: savedSearchId ? { savedSearchId } : {},
+  });
+
+  if (error) {
+    throw new Error(error.message || "Failed to sync Harmonic saved searches");
+  }
+
+  return data as SyncSavedSearchesResult;
+}

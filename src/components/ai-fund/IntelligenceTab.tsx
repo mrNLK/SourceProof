@@ -1,18 +1,43 @@
 import { useState, useEffect } from "react";
-import { Zap, Clock, CheckCircle, XCircle, Loader2, Building2, MapPin, Users, TrendingUp, ExternalLink } from "lucide-react";
+import {
+  Zap,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Building2,
+  MapPin,
+  Users,
+  TrendingUp,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
+  UserPlus,
+  DollarSign,
+  Calendar,
+  BarChart3,
+  Globe,
+} from "lucide-react";
 import type {
   AiFundIntelligenceRun,
   IntelligenceProvider,
   IntelligenceRunStatus,
   AiFundHarmonicIntelligenceSummary,
   AiFundHarmonicCompanySummary,
+  AiFundHarmonicFounderSummary,
+  AiFundWorkspace,
 } from "@/types/ai-fund";
-import { fetchIntelligenceRuns, createIntelligenceRun, updateIntelligenceRun } from "@/lib/ai-fund";
+import { fetchIntelligenceRuns, createIntelligenceRun } from "@/lib/ai-fund";
 import { runHarmonicIntelligence } from "@/lib/harmonic";
 
-interface Props {}
+interface Props {
+  workspace?: AiFundWorkspace;
+}
 
-const STATUS_CONFIG: Record<IntelligenceRunStatus, { icon: React.ElementType; color: string }> = {
+const STATUS_CONFIG: Record<
+  IntelligenceRunStatus,
+  { icon: React.ElementType; color: string }
+> = {
   pending: { icon: Clock, color: "text-yellow-400" },
   running: { icon: Loader2, color: "text-blue-400" },
   completed: { icon: CheckCircle, color: "text-emerald-400" },
@@ -29,97 +54,292 @@ const PROVIDER_LABELS: Record<IntelligenceProvider, string> = {
 
 function formatFunding(amount: number | null): string {
   if (!amount) return "—";
-  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`;
+  if (amount >= 1_000_000_000)
+    return `$${(amount / 1_000_000_000).toFixed(1)}B`;
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
   if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`;
   return `$${amount}`;
 }
 
-function HarmonicCompanyCard({ company }: { company: AiFundHarmonicCompanySummary }) {
+function formatGrowth(pct: number | null): string {
+  if (pct === null || pct === undefined) return "—";
+  const sign = pct > 0 ? "+" : "";
+  return `${sign}${pct.toFixed(1)}%`;
+}
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Expanded Company Detail Card
+// ---------------------------------------------------------------------------
+
+function HarmonicCompanyCard({
+  company,
+  onImportFounders,
+  importing,
+}: {
+  company: AiFundHarmonicCompanySummary;
+  onImportFounders?: (
+    founders: AiFundHarmonicFounderSummary[],
+    companyName: string
+  ) => void;
+  importing?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div className="bg-background border border-border rounded-lg p-4 space-y-2">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+    <div className="bg-background border border-border rounded-lg overflow-hidden">
+      {/* Compact header — always visible */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 transition-colors"
+      >
+        <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
-            <h3 className="text-sm font-medium text-foreground truncate">{company.name}</h3>
+            <h3 className="text-sm font-medium text-foreground truncate">
+              {company.name}
+            </h3>
+            {company.domain && (
+              <span className="text-[10px] text-muted-foreground">
+                {company.domain}
+              </span>
+            )}
           </div>
-          {company.domain && (
-            <p className="text-xs text-muted-foreground mt-0.5 ml-6">{company.domain}</p>
-          )}
+          <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+            {company.location && (
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {company.location}
+              </span>
+            )}
+            {company.headcount && (
+              <span className="flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                {company.headcount.toLocaleString()}
+              </span>
+            )}
+            {company.fundingTotal && (
+              <span className="flex items-center gap-1">
+                <DollarSign className="w-3 h-3" />
+                {formatFunding(company.fundingTotal)}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex gap-1 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {company.websiteUrl && (
             <a
               href={company.websiteUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-foreground transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Globe className="w-3.5 h-3.5" />
+            </a>
+          )}
+          {company.linkedinUrl && (
+            <a
+              href={company.linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        {company.location && (
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3 h-3" />
-            {company.location}
-          </span>
-        )}
-        {company.headcount && (
-          <span className="flex items-center gap-1">
-            <Users className="w-3 h-3" />
-            {company.headcount.toLocaleString()} employees
-          </span>
-        )}
-        {company.fundingTotal && (
-          <span className="flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
-            {formatFunding(company.fundingTotal)} raised
-            {company.fundingStage && ` (${company.fundingStage})`}
-          </span>
-        )}
-      </div>
-
-      {company.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {company.tags.slice(0, 5).map((tag) => (
-            <span
-              key={tag}
-              className="px-1.5 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground"
-            >
-              {tag}
-            </span>
-          ))}
-          {company.tags.length > 5 && (
-            <span className="text-[10px] text-muted-foreground">
-              +{company.tags.length - 5} more
-            </span>
+          {expanded ? (
+            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
           )}
         </div>
-      )}
+      </button>
 
-      {company.founders.length > 0 && (
-        <div className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Founders: </span>
-          {company.founders.map((f) => f.name).join(", ")}
+      {/* Expanded detail panel */}
+      {expanded && (
+        <div className="border-t border-border px-4 py-3 space-y-3">
+          {/* Funding details */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                Total Raised
+              </p>
+              <p className="text-sm font-medium text-foreground">
+                {formatFunding(company.fundingTotal)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                Last Round
+              </p>
+              <p className="text-sm font-medium text-foreground">
+                {company.fundingStage || "—"}
+                {company.lastFundingTotal
+                  ? ` (${formatFunding(company.lastFundingTotal)})`
+                  : ""}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                Last Funding Date
+              </p>
+              <p className="text-sm font-medium text-foreground flex items-center gap-1">
+                <Calendar className="w-3 h-3 text-muted-foreground" />
+                {formatDate(company.lastFundingDate)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                Headcount
+              </p>
+              <p className="text-sm font-medium text-foreground flex items-center gap-1">
+                <Users className="w-3 h-3 text-muted-foreground" />
+                {company.headcount?.toLocaleString() || "—"}
+              </p>
+            </div>
+          </div>
+
+          {/* Traction metrics */}
+          {(company.headcountGrowth30d !== null ||
+            company.headcountGrowth90d !== null) && (
+            <div className="flex items-center gap-4">
+              <BarChart3 className="w-4 h-4 text-muted-foreground shrink-0" />
+              {company.headcountGrowth30d !== null && (
+                <div>
+                  <p className="text-[10px] text-muted-foreground">
+                    30d Growth
+                  </p>
+                  <p
+                    className={`text-sm font-medium ${
+                      (company.headcountGrowth30d ?? 0) > 0
+                        ? "text-emerald-500"
+                        : (company.headcountGrowth30d ?? 0) < 0
+                          ? "text-red-500"
+                          : "text-foreground"
+                    }`}
+                  >
+                    {formatGrowth(company.headcountGrowth30d)}
+                  </p>
+                </div>
+              )}
+              {company.headcountGrowth90d !== null && (
+                <div>
+                  <p className="text-[10px] text-muted-foreground">
+                    90d Growth
+                  </p>
+                  <p
+                    className={`text-sm font-medium ${
+                      (company.headcountGrowth90d ?? 0) > 0
+                        ? "text-emerald-500"
+                        : (company.headcountGrowth90d ?? 0) < 0
+                          ? "text-red-500"
+                          : "text-foreground"
+                    }`}
+                  >
+                    {formatGrowth(company.headcountGrowth90d)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tags */}
+          {company.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {company.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-1.5 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Founders */}
+          {company.founders.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Founders
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {company.founders.map((f, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/5 border border-primary/10 text-xs text-foreground"
+                  >
+                    {f.name}
+                    {f.role && f.role !== "Founder" && (
+                      <span className="text-muted-foreground">
+                        ({f.role})
+                      </span>
+                    )}
+                    {f.linkedinUrl && (
+                      <a
+                        href={f.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </span>
+                ))}
+              </div>
+
+              {/* Import founders button */}
+              {onImportFounders && company.founders.length > 0 && (
+                <button
+                  onClick={() =>
+                    onImportFounders(company.founders, company.name)
+                  }
+                  disabled={importing}
+                  className="mt-1 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 disabled:opacity-50 transition-colors"
+                >
+                  <UserPlus className="w-3 h-3" />
+                  {importing
+                    ? "Importing..."
+                    : `Import ${company.founders.length} founder${company.founders.length > 1 ? "s" : ""} to Talent Pool`}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-export default function IntelligenceTab({}: Props) {
+// ---------------------------------------------------------------------------
+// Main IntelligenceTab
+// ---------------------------------------------------------------------------
+
+export default function IntelligenceTab({ workspace }: Props) {
   const [runs, setRuns] = useState<AiFundIntelligenceRun[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
+  const [importingCompany, setImportingCompany] = useState<string | null>(null);
 
   // Form
-  const [formProvider, setFormProvider] = useState<IntelligenceProvider>("harmonic");
+  const [formProvider, setFormProvider] =
+    useState<IntelligenceProvider>("harmonic");
   const [formQuery, setFormQuery] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -154,9 +374,10 @@ export default function IntelligenceTab({}: Props) {
       if (formProvider === "harmonic") {
         setExpandedRunId(run.id);
 
-        // Update local state to running
         setRuns((prev) =>
-          prev.map((r) => (r.id === run.id ? { ...r, status: "running" as const } : r))
+          prev.map((r) =>
+            r.id === run.id ? { ...r, status: "running" as const } : r
+          )
         );
 
         try {
@@ -165,7 +386,6 @@ export default function IntelligenceTab({}: Props) {
             query: formQuery.trim(),
           });
 
-          // Update local state with results
           setRuns((prev) =>
             prev.map((r) =>
               r.id === run.id
@@ -183,9 +403,7 @@ export default function IntelligenceTab({}: Props) {
           console.error("Harmonic intelligence run failed:", err);
           setRuns((prev) =>
             prev.map((r) =>
-              r.id === run.id
-                ? { ...r, status: "failed" as const }
-                : r
+              r.id === run.id ? { ...r, status: "failed" as const } : r
             )
           );
         }
@@ -197,10 +415,46 @@ export default function IntelligenceTab({}: Props) {
     }
   };
 
+  // Import founders from a company into the talent pool
+  const handleImportFounders = async (
+    founders: AiFundHarmonicFounderSummary[],
+    companyName: string
+  ) => {
+    if (!workspace?.addPerson) return;
+    setImportingCompany(companyName);
+
+    try {
+      let imported = 0;
+      for (const founder of founders) {
+        try {
+          await workspace.addPerson({
+            fullName: founder.name,
+            currentRole: founder.role || "Founder",
+            currentCompany: companyName,
+            linkedinUrl: founder.linkedinUrl || undefined,
+            personType: "fir",
+            processStage: "identified",
+            sourceChannel: "harmonic",
+          });
+          imported++;
+        } catch (err) {
+          console.error(`Failed to import founder ${founder.name}:`, err);
+        }
+      }
+      console.log(
+        `Imported ${imported}/${founders.length} founders from ${companyName}`
+      );
+    } finally {
+      setImportingCompany(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-pulse text-muted-foreground text-sm">Loading intelligence runs...</div>
+        <div className="animate-pulse text-muted-foreground text-sm">
+          Loading intelligence runs...
+        </div>
       </div>
     );
   }
@@ -209,7 +463,9 @@ export default function IntelligenceTab({}: Props) {
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Intelligence</h1>
+          <h1 className="text-xl font-semibold text-foreground">
+            Intelligence
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             External sourcing runs via Harmonic, Exa, Parallel, and GitHub
           </p>
@@ -229,7 +485,9 @@ export default function IntelligenceTab({}: Props) {
           <div className="grid grid-cols-2 gap-3">
             <select
               value={formProvider}
-              onChange={(e) => setFormProvider(e.target.value as IntelligenceProvider)}
+              onChange={(e) =>
+                setFormProvider(e.target.value as IntelligenceProvider)
+              }
               className="px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground"
             >
               <option value="harmonic">Harmonic Discovery</option>
@@ -336,30 +594,49 @@ export default function IntelligenceTab({}: Props) {
                 </button>
 
                 {/* Expanded Harmonic results */}
-                {isExpanded && harmonicSummary && harmonicSummary.companies && (
-                  <div className="ml-4 mr-4 mt-1 mb-2 space-y-2">
-                    <p className="text-xs text-muted-foreground px-1">
-                      {harmonicSummary.companies.length} companies found for &ldquo;{harmonicSummary.query}&rdquo;
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {harmonicSummary.companies.map((company) => (
-                        <HarmonicCompanyCard
-                          key={company.harmonicCompanyId}
-                          company={company}
-                        />
-                      ))}
+                {isExpanded &&
+                  harmonicSummary &&
+                  harmonicSummary.companies && (
+                    <div className="ml-4 mr-4 mt-1 mb-2 space-y-2">
+                      <div className="flex items-center justify-between px-1">
+                        <p className="text-xs text-muted-foreground">
+                          {harmonicSummary.companies.length} companies found
+                          for &ldquo;{harmonicSummary.query}&rdquo;
+                        </p>
+                        {workspace?.addPerson && (
+                          <p className="text-[10px] text-muted-foreground">
+                            Expand a company to import founders
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        {harmonicSummary.companies.map((company) => (
+                          <HarmonicCompanyCard
+                            key={company.harmonicCompanyId}
+                            company={company}
+                            onImportFounders={
+                              workspace?.addPerson
+                                ? handleImportFounders
+                                : undefined
+                            }
+                            importing={importingCompany === company.name}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Expanded failed run */}
-                {isExpanded && run.status === "failed" && run.resultsSummary && (
-                  <div className="ml-4 mr-4 mt-1 mb-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                    <p className="text-xs text-destructive">
-                      {(run.resultsSummary as { error?: string }).error || "Unknown error"}
-                    </p>
-                  </div>
-                )}
+                {isExpanded &&
+                  run.status === "failed" &&
+                  run.resultsSummary && (
+                    <div className="ml-4 mr-4 mt-1 mb-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <p className="text-xs text-destructive">
+                        {(run.resultsSummary as { error?: string }).error ||
+                          "Unknown error"}
+                      </p>
+                    </div>
+                  )}
               </div>
             );
           })}
